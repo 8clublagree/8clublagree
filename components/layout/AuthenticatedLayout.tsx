@@ -17,7 +17,8 @@ import {
   LogoutOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
@@ -34,6 +35,7 @@ export default function AuthenticatedLayout({
 }: AuthenticatedLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
 
@@ -85,24 +87,27 @@ export default function AuthenticatedLayout({
     router.push("/login");
   };
 
+  const getSelectedKey = () => {
+    if (pathname === "/dashboard") return "1";
+    if (pathname === "/bookings") return "2";
+    return "1";
+  };
+
   const menuItems = [
     {
       key: "1",
       icon: <HomeOutlined />,
-      label: "Dashboard",
-      onClick: () => router.push("/"),
+      label: <Link href="/dashboard">Dashboard</Link>,
     },
     {
       key: "2",
       icon: <CalendarOutlined />,
-      label: "Bookings",
-      onClick: () => router.push("/bookings"),
+      label: <Link href="/bookings">Bookings</Link>,
     },
     {
       key: "3",
       icon: <UserOutlined />,
-      label: "Profile",
-      onClick: () => router.push("/"),
+      label: <Link href="/bookings">Profile</Link>,
     },
   ];
 
@@ -130,7 +135,7 @@ export default function AuthenticatedLayout({
         </div>
         <Menu
           mode="inline"
-          defaultSelectedKeys={["1"]}
+          selectedKeys={[getSelectedKey()]}
           items={menuItems}
           className="border-r-0 pt-4"
         />
@@ -185,7 +190,7 @@ export default function AuthenticatedLayout({
       >
         <Menu
           mode="inline"
-          defaultSelectedKeys={["1"]}
+          selectedKeys={[getSelectedKey()]}
           items={menuItems}
           className="border-r-0"
           onClick={() => setMobileMenuOpen(false)}
