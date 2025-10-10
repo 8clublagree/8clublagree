@@ -1,11 +1,26 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Form, Input, Button, Card, Typography, Steps, message, DatePicker } from 'antd';
-import { MailOutlined, LockOutlined, PhoneOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
+import { useState } from "react";
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  Steps,
+  message,
+  DatePicker,
+} from "antd";
+import {
+  MailOutlined,
+  LockOutlined,
+  PhoneOutlined,
+  UserOutlined,
+  EnvironmentOutlined,
+} from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
 const { Title, Text } = Typography;
 
@@ -33,23 +48,26 @@ export default function SignupPage() {
 
       if (authData.user) {
         const { error: profileError } = await supabase
-          .from('user_profiles')
+          .from("user_profiles")
           .insert({
             id: authData.user.id,
             email: stepOneData.email,
             contact_number: stepOneData.contact_number,
             full_name: values.full_name,
-            birthday: values.birthday ? values.birthday.format('YYYY-MM-DD') : null,
+            birthday: values.birthday
+              ? values.birthday.format("YYYY-MM-DD")
+              : null,
             location: values.location,
+            role: "user",
           });
 
         if (profileError) throw profileError;
       }
 
-      message.success('Account created successfully!');
-      router.push('/dashboard');
+      message.success("Account created successfully!");
+      router.push("/dashboard");
     } catch (error: any) {
-      message.error(error.message || 'Sign up failed');
+      message.error(error.message || "Sign up failed");
     } finally {
       setLoading(false);
     }
@@ -62,17 +80,16 @@ export default function SignupPage() {
         style={{ borderRadius: 12 }}
       >
         <div className="text-center mb-8">
-          <Title level={2} className="!mb-2">Create Account</Title>
+          <Title level={2} className="!mb-2">
+            Create Account
+          </Title>
           <Text type="secondary">Join us today</Text>
         </div>
 
         <Steps
           current={currentStep}
           className="mb-8"
-          items={[
-            { title: 'Account' },
-            { title: 'Profile' },
-          ]}
+          items={[{ title: "Account" }, { title: "Profile" }]}
         />
 
         {currentStep === 0 && (
@@ -87,8 +104,8 @@ export default function SignupPage() {
             <Form.Item
               name="email"
               rules={[
-                { required: true, message: 'Please enter your email' },
-                { type: 'email', message: 'Please enter a valid email' },
+                { required: true, message: "Please enter your email" },
+                { type: "email", message: "Please enter a valid email" },
               ]}
             >
               <Input
@@ -100,8 +117,8 @@ export default function SignupPage() {
             <Form.Item
               name="password"
               rules={[
-                { required: true, message: 'Please enter your password' },
-                { min: 6, message: 'Password must be at least 6 characters' },
+                { required: true, message: "Please enter your password" },
+                { min: 6, message: "Password must be at least 6 characters" },
               ]}
             >
               <Input.Password
@@ -112,15 +129,15 @@ export default function SignupPage() {
 
             <Form.Item
               name="confirm_password"
-              dependencies={['password']}
+              dependencies={["password"]}
               rules={[
-                { required: true, message: 'Please confirm your password' },
+                { required: true, message: "Please confirm your password" },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
-                    if (!value || getFieldValue('password') === value) {
+                    if (!value || getFieldValue("password") === value) {
                       return Promise.resolve();
                     }
-                    return Promise.reject(new Error('Passwords do not match'));
+                    return Promise.reject(new Error("Passwords do not match"));
                   },
                 }),
               ]}
@@ -134,8 +151,11 @@ export default function SignupPage() {
             <Form.Item
               name="contact_number"
               rules={[
-                { required: true, message: 'Please enter your contact number' },
-                { pattern: /^[0-9+\s-()]+$/, message: 'Please enter a valid phone number' },
+                { required: true, message: "Please enter your contact number" },
+                {
+                  pattern: /^[0-9+\s-()]+$/,
+                  message: "Please enter a valid phone number",
+                },
               ]}
             >
               <Input
@@ -145,20 +165,18 @@ export default function SignupPage() {
             </Form.Item>
 
             <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                className="h-11"
-              >
+              <Button type="primary" htmlType="submit" block className="h-11">
                 Next
               </Button>
             </Form.Item>
 
             <div className="text-center">
               <Text type="secondary">
-                Already have an account?{' '}
-                <Link href="/login" className="text-blue-600 hover:text-blue-700">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   Sign in
                 </Link>
               </Text>
@@ -176,7 +194,9 @@ export default function SignupPage() {
           >
             <Form.Item
               name="full_name"
-              rules={[{ required: true, message: 'Please enter your full name' }]}
+              rules={[
+                { required: true, message: "Please enter your full name" },
+              ]}
             >
               <Input
                 prefix={<UserOutlined className="text-slate-400" />}
@@ -186,7 +206,9 @@ export default function SignupPage() {
 
             <Form.Item
               name="birthday"
-              rules={[{ required: true, message: 'Please select your birthday' }]}
+              rules={[
+                { required: true, message: "Please select your birthday" },
+              ]}
             >
               <DatePicker
                 placeholder="Birthday"
@@ -197,7 +219,9 @@ export default function SignupPage() {
 
             <Form.Item
               name="location"
-              rules={[{ required: true, message: 'Please enter your location' }]}
+              rules={[
+                { required: true, message: "Please enter your location" },
+              ]}
             >
               <Input
                 prefix={<EnvironmentOutlined className="text-slate-400" />}
@@ -206,11 +230,7 @@ export default function SignupPage() {
             </Form.Item>
 
             <div className="flex gap-3">
-              <Button
-                onClick={() => setCurrentStep(0)}
-                block
-                className="h-11"
-              >
+              <Button onClick={() => setCurrentStep(0)} block className="h-11">
                 Back
               </Button>
               <Button
