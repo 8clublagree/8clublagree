@@ -12,6 +12,7 @@ export interface UserProfile {
   full_name?: string;
   birthday?: string;
   location?: string;
+  role?: string;
   created_at?: string;
   updated_at?: string;
 }

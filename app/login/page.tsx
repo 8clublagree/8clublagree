@@ -23,8 +23,19 @@ export default function LoginPage() {
 
       if (error) throw error;
 
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
       message.success('Login successful!');
-      router.push('/dashboard');
+
+      if (profile?.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       message.error(error.message || 'Login failed');
     } finally {

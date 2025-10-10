@@ -60,6 +60,10 @@ export default function AuthenticatedLayout({
         .maybeSingle();
 
       if (profile) {
+        if (profile.role !== 'admin') {
+          router.push("/dashboard");
+          return;
+        }
         dispatch(setUser(profile));
       }
     };
