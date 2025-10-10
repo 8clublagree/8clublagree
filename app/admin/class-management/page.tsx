@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Row, Col, Statistic, Typography, Button } from "antd";
+import { useState, useEffect } from "react";
+import { Card, Row, Col, Statistic, Typography, Button, Modal, Drawer } from "antd";
 import {
   CalendarOutlined,
   CheckCircleOutlined,
@@ -14,6 +15,28 @@ import AdminBookingTable from "@/components/ui/admin-booking-table";
 const { Title } = Typography;
 
 export default function ClassManagementPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <AdminAuthenticatedLayout>
       <div className="space-y-6">
@@ -32,6 +55,7 @@ export default function ClassManagementPage() {
             <Button
               type="primary"
               icon={<PlusOutlined />}
+              onClick={handleOpenModal}
               className={`bg-[#733AC6] hover:!bg-[#5B2CA8] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
               Create
@@ -39,12 +63,34 @@ export default function ClassManagementPage() {
           </Row>
           <AdminBookingTable />
         </div>
-        {/* <Card className="shadow-sm" title="Recent Bookings">
-          <div className="text-center py-12 text-slate-500">
-            <CalendarOutlined className="text-4xl mb-4" />
-            <p>No bookings yet. Start by creating your first booking.</p>
-          </div>
-        </Card> */}
+        {isMobile ? (
+          <Drawer
+            title="Create New Class"
+            placement="bottom"
+            onClose={handleCloseModal}
+            open={isModalOpen}
+            height="80%"
+            styles={{
+              body: { paddingTop: 24 }
+            }}
+          >
+            <div className="space-y-4">
+              <p>Create class form will go here</p>
+            </div>
+          </Drawer>
+        ) : (
+          <Modal
+            title="Create New Class"
+            open={isModalOpen}
+            onCancel={handleCloseModal}
+            footer={null}
+            width={600}
+          >
+            <div className="space-y-4 pt-4">
+              <p>Create class form will go here</p>
+            </div>
+          </Modal>
+        )}
       </div>
     </AdminAuthenticatedLayout>
   );
