@@ -17,15 +17,17 @@ import {
 } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 
 export default function BookingsPage() {
+  const date = dayjs("2024-10-10");
   const data = [
     {
       time: "07:00AM",
       duration: "50 mins",
-      date: "2024-10-10",
+      date: dayjs("2024-10-10").format("MMM D, YYYY"),
       instructor: "Jane Doe",
       limit: 10,
       available: 3,
@@ -33,7 +35,7 @@ export default function BookingsPage() {
     {
       time: "07:00AM",
       duration: "50 mins",
-      date: "2024-10-10",
+      date: dayjs("2024-10-10").format("MMM D, YYYY"),
       instructor: "Jane Doe",
       limit: 10,
       available: 0,
@@ -41,7 +43,7 @@ export default function BookingsPage() {
     {
       time: "07:00AM",
       duration: "50 mins",
-      date: "2024-10-10",
+      date: dayjs("2024-10-10").format("MMM D, YYYY"),
       instructor: "Jane Doe",
       limit: 10,
       available: 1,
@@ -49,7 +51,7 @@ export default function BookingsPage() {
     {
       time: "07:00AM",
       duration: "50 mins",
-      date: "2024-10-10",
+      date: dayjs("2024-10-10").format("MMM D, YYYY"),
       instructor: "Jane Doe",
       limit: 10,
       available: 7,
@@ -67,18 +69,6 @@ export default function BookingsPage() {
         <Row className="wrap-none justify-center bg-transparent">
           <DatePickerCarousel onDateSelect={(e) => console.log(e)} />
         </Row>
-        {/* <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
-              <Statistic
-                title="Total Bookings"
-                value={12}
-                prefix={<CalendarOutlined className="text-blue-600" />}
-                valueStyle={{ color: "#1e293b" }}
-              />
-            </Card>
-          </Col>
-        </Row> */}
 
         <Card className="shadow-sm">
           <List
@@ -99,36 +89,39 @@ export default function BookingsPage() {
                 ]}
               >
                 <Row className="wrap-none items-center gap-4">
-                  <Avatar
-                    className="border-gray-500 border"
-                    size={60}
-                    src={`https://api.dicebear.com/7.x/miniavs/svg?seed=${index}`}
-                  />
                   <Col>
-                    <p>
-                      <span className="font-semibold">
-                        {`${item.time} (${item.duration})`}{" "}
-                        <span
-                          className={
-                            item.available === 1 || item.available === 0
-                              ? `text-red-500`
-                              : ``
-                          }
-                        >
-                          {item.available === 1
-                            ? `(Last Slot)`
-                            : item.available <= 3 && item.available > 1
-                            ? `(${item.available} slots left)`
-                            : ``}
-                          {item.available === 0 && `(Full)`}
-                        </span>
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-light">{item.date}</span>
-                    </p>
+                    <Avatar
+                      className="border-gray-500 border"
+                      size={60}
+                      src={`https://api.dicebear.com/7.x/miniavs/svg?seed=${index}`}
+                    />
                     <p>
                       <span className="font-light">{item.instructor}</span>
+                    </p>
+                  </Col>
+                  <Col>
+                    <p>
+                      <span className="font-semibold">{item.time}</span>
+                    </p>
+                    <p>
+                      <span className="font-light">{item.duration}</span>
+                    </p>
+
+                    <p>
+                      <span
+                        className={`${
+                          item.available === 1 || item.available === 0
+                            ? `text-red-500`
+                            : ``
+                        } font-semibold`}
+                      >
+                        {item.available === 1
+                          ? `Last Slot`
+                          : item.available > 1
+                          ? `${item.available} slots left`
+                          : ``}
+                        {item.available <= 0 && `Full`}
+                      </span>
                     </p>
                   </Col>
                 </Row>
