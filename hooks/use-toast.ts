@@ -6,7 +6,7 @@ import * as React from 'react';
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_REMOVE_DELAY = 4000;
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -114,10 +114,19 @@ export const reducer = (state: State, action: Action): State => {
     }
     case 'REMOVE_TOAST':
       if (action.toastId === undefined) {
+        // Clear all timeouts when removing all toasts
+        toastTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+        toastTimeouts.clear();
         return {
           ...state,
           toasts: [],
         };
+      }
+      // Clear timeout for this toast if present
+      const existingTimeout = toastTimeouts.get(action.toastId);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+        toastTimeouts.delete(action.toastId);
       }
       return {
         ...state,
@@ -179,7 +188,7 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, []);
 
   return {
     ...state,
