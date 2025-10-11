@@ -162,42 +162,37 @@ const AdminBookingTable = ({ data }: { data: CreateClassProps[] }) => {
       title: "Instructor",
       dataIndex: "instructor",
       key: "instructor",
-      width: "20%",
+      width: isMobile ? undefined : "20%",
       ...getColumnSearchProps("instructor"),
     },
     {
       title: "Start Time",
       dataIndex: "start_time",
       key: "time",
-      width: "20%",
+      width: isMobile ? undefined : "20%",
       ...getColumnSearchProps("start_time"),
+      responsive: ["sm"] as any,
     },
     {
       title: "End Time",
       dataIndex: "end_time",
       key: "time",
-      width: "20%",
+      width: isMobile ? undefined : "20%",
       ...getColumnSearchProps("end_time"),
+      responsive: ["md"] as any,
     },
-    // {
-    //   title: "Duration",
-    //   dataIndex: "duration",
-    //   key: "duration",
-    //   width: "20%",
-    //   ...getColumnSearchProps("duration"),
-    //   sortDirections: ["descend", "ascend"],
-    // },
     {
       title: "Slots",
       dataIndex: "slots",
       key: "slots",
-      width: "20%",
+      width: isMobile ? undefined : "20%",
       ...getColumnSearchProps("slots"),
     },
     {
       title: "Action",
       key: "action",
-      width: "10%",
+      width: isMobile ? undefined : "10%",
+      fixed: isMobile ? undefined : "right",
       render: (_, record) => (
         <Row className="justify-center cursor-pointer">
           <MdDelete
@@ -210,7 +205,22 @@ const AdminBookingTable = ({ data }: { data: CreateClassProps[] }) => {
     },
   ];
 
-  return <Table<CreateClassProps> columns={columns} dataSource={data} />;
+  return (
+    <Table<CreateClassProps>
+      columns={columns}
+      dataSource={data}
+      scroll={{ x: isMobile ? 600 : undefined }}
+      pagination={{
+        defaultPageSize: 10,
+        showSizeChanger: true,
+        pageSizeOptions: ["10", "20", "50"],
+        responsive: true,
+        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+      }}
+      size={isMobile ? "small" : "middle"}
+      className="admin-booking-table"
+    />
+  );
 };
 
 export default AdminBookingTable;
