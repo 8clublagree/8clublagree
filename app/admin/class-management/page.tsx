@@ -55,10 +55,22 @@ export default function ClassManagementPage() {
       setIsMobile(window.innerWidth < 768);
     };
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
+    // rAF throttle
+    let rafId: number | null = null;
+    const onResize = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        handleResize();
+      });
+    };
 
-    return () => window.removeEventListener("resize", handleResize);
+    handleResize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onResize);
+    };
   }, []);
 
   const handleOpenModal = () => {

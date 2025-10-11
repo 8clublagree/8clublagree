@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import dayjs, { Dayjs } from "dayjs";
@@ -28,14 +28,36 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
       } else {
         setDaysToShow(7); // desktop/tablet
       }
+    };
 
-      onDateSelect?.(dayjs().toISOString());
+    // rAF-throttled resize handler to avoid excessive re-renders
+    let rafId: number | null = null;
+    const onResize = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        updateDaysToShow();
+      });
     };
 
     updateDaysToShow();
-    window.addEventListener("resize", updateDaysToShow);
-    return () => window.removeEventListener("resize", updateDaysToShow);
+    window.addEventListener("resize", onResize);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onResize);
+    };
   }, []);
+
+  // Keep a stable reference to the latest onDateSelect to avoid effect re-triggers
+  const onDateSelectRef = useRef<typeof onDateSelect>();
+  useEffect(() => {
+    onDateSelectRef.current = onDateSelect;
+  }, [onDateSelect]);
+
+  // Notify parent when selected date changes (once on mount and on user selection)
+  useEffect(() => {
+    onDateSelectRef.current?.(dayjs(selectedDate).toISOString());
+  }, [selectedDate]);
 
   const dates = useMemo(() => {
     const startOfRange = currentDate.startOf("day");
@@ -59,7 +81,6 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
   const handleSelect = (date: Dayjs) => {
     if (date.isBefore(today, "day")) return;
     setSelectedDate(date);
-    onDateSelect?.(dayjs(date).toISOString());
   };
 
   const isPrevDisabled = currentDate.isSame(today, "day");
