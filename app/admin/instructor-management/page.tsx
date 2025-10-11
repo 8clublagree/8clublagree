@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
 import { Card, Row, Col, Typography, Button } from "antd";

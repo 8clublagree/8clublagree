@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-   webpack: (config) => {
+  reactStrictMode: true,
+
+  output: "export",
+  webpack: (config) => {
     config.module.exprContextCritical = false; // 👈 disables the warning
     return config;
   },
