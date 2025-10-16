@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import { Button, Input, Row, Space, Table, Modal, Typography } from "antd";
+import { Button, Input, Row, Space, Table, Modal, Typography, Drawer } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
 import { formatTime } from "@/lib/utils";
@@ -22,6 +22,8 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<CreateClassProps | null>(null);
   const searchInput = useRef<InputRef>(null);
   const { confirm } = Modal;
 
@@ -61,6 +63,16 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
   const handleReset = (clearFilters: () => void) => {
     clearFilters();
     setSearchText("");
+  };
+
+  const handleView = (record: CreateClassProps) => {
+    setSelectedRecord(record);
+    setViewModalOpen(true);
+  };
+
+  const handleCloseView = () => {
+    setViewModalOpen(false);
+    setSelectedRecord(null);
   };
 
   const showDeleteConfirm = (record: CreateClassProps) => {
@@ -212,7 +224,7 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
         fixed: isMobile ? undefined : "right",
         render: (_, record) => (
           <Row className="justify-center cursor-pointer gap-3">
-            <IoEye size={20} />
+            <IoEye size={20} color="#1890ff" onClick={() => handleView(record)} />
             <MdEdit size={20} color="#733AC6" onClick={() => onEdit(record)} />
             <MdDelete
               size={20}
@@ -227,21 +239,53 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
   );
 
   return (
-    <Table<CreateClassProps>
-      columns={columns}
-      dataSource={data}
-      scroll={{ x: isMobile ? 600 : undefined }}
-      pagination={{
-        defaultPageSize: 10,
-        showSizeChanger: true,
-        pageSizeOptions: ["10", "20", "50"],
-        responsive: true,
-        showTotal: (total, range) =>
-          `${range[0]}-${range[1]} of ${total} items`,
-      }}
-      size={isMobile ? "small" : "middle"}
-      className="admin-booking-table"
-    />
+    <>
+      <Table<CreateClassProps>
+        columns={columns}
+        dataSource={data}
+        scroll={{ x: isMobile ? 600 : undefined }}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          pageSizeOptions: ["10", "20", "50"],
+          responsive: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} items`,
+        }}
+        size={isMobile ? "small" : "middle"}
+        className="admin-booking-table"
+      />
+
+      {isMobile ? (
+        <Drawer
+          title="View Class Details"
+          placement="right"
+          onClose={handleCloseView}
+          open={viewModalOpen}
+          width="100%"
+          styles={{
+            body: { paddingTop: 24 },
+          }}
+        >
+          <div className="space-y-4">
+            {/* Content placeholder */}
+          </div>
+        </Drawer>
+      ) : (
+        <Modal
+          title="View Class Details"
+          open={viewModalOpen}
+          onCancel={handleCloseView}
+          footer={null}
+          width={600}
+          centered
+        >
+          <div className="pt-4 space-y-4">
+            {/* Content placeholder */}
+          </div>
+        </Modal>
+      )}
+    </>
   );
 };
 
