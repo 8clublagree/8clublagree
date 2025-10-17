@@ -57,9 +57,7 @@ export default function DashboardPage() {
           </Col>
         </Row>
 
-        <div>
-          <DemoBar />
-        </div>
+        <div>{/* gantt chart here */}</div>
       </div>
     </AdminAuthenticatedLayout>
   );
