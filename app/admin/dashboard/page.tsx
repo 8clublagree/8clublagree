@@ -8,6 +8,8 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
+import React from "react";
+import { Bar } from "@ant-design/plots";
 
 const { Title } = Typography;
 
@@ -55,12 +57,9 @@ export default function DashboardPage() {
           </Col>
         </Row>
 
-        <Card className="shadow-sm" title="Recent Bookings">
-          <div className="text-center py-12 text-slate-500">
-            <CalendarOutlined className="text-4xl mb-4" />
-            <p>No bookings yet. Start by creating your first booking.</p>
-          </div>
-        </Card>
+        <div>
+          <DemoBar />
+        </div>
       </div>
     </AdminAuthenticatedLayout>
   );

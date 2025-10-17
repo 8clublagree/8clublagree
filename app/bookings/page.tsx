@@ -62,7 +62,7 @@ export default function BookingsPage() {
       <div className="space-y-6">
         <div>
           <Title level={2} className="!mb-2">
-            Available Bookings
+            Join a Session
           </Title>
         </div>
 
@@ -84,7 +84,7 @@ export default function BookingsPage() {
                       item.available === 0 ? "" : "hover:!bg-[#5B2CA8]"
                     } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
                   >
-                    Book
+                    Join
                   </Button>,
                 ]}
               >

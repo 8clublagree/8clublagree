@@ -10,6 +10,8 @@ import AdminBookingTable from "@/components/ui/admin-booking-table";
 import CreateClassForm from "@/components/forms/CreateClassForm";
 import dayjs from "dayjs";
 import { CreateClassProps } from "@/lib/props";
+import { IoMdPersonAdd } from "react-icons/io";
+import ManualBookingForm from "@/components/forms/ManualBookingForm";
 
 const { Title } = Typography;
 
@@ -46,6 +48,7 @@ let data: CreateClassProps[] = [
 
 export default function ClassManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [editingRecord, setEditingRecord] = useState<CreateClassProps | null>(
     null
@@ -79,6 +82,10 @@ export default function ClassManagementPage() {
     setIsModalOpen(true);
   };
 
+  const handleOpenBookingModal = () => {
+    setIsBookingModalOpen(true);
+  };
+
   const handleEdit = (record: CreateClassProps) => {
     console.log("record: ", record);
     setEditingRecord(record);
@@ -88,6 +95,9 @@ export default function ClassManagementPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingRecord(null);
+  };
+  const handleCloseBookingModal = () => {
+    setIsBookingModalOpen(false);
   };
 
   const handleSubmit = (values: any) => {
@@ -134,7 +144,7 @@ export default function ClassManagementPage() {
         </Row>
 
         <div>
-          <Row className="mb-4 justify-end">
+          <Row className="mb-4 gap-2 justify-end">
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -143,9 +153,53 @@ export default function ClassManagementPage() {
             >
               Create
             </Button>
+            <Button
+              type="primary"
+              icon={<IoMdPersonAdd />}
+              onClick={handleOpenBookingModal}
+              className={`bg-[#733AC6] hover:!bg-[#5B2CA8] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+            >
+              Manual Booking
+            </Button>
           </Row>
           <AdminBookingTable data={[...data]} onEdit={handleEdit} />
         </div>
+        {isMobile ? (
+          <Drawer
+            title={"Manual Booking"}
+            placement="right"
+            onClose={handleCloseBookingModal}
+            open={isBookingModalOpen}
+            width={"100%"}
+            styles={{
+              body: { paddingTop: 24 },
+            }}
+          >
+            <ManualBookingForm
+              onSubmit={handleSubmit}
+              onCancel={handleCloseBookingModal}
+              initialValues={editingRecord}
+              isEdit={!!editingRecord}
+            />
+          </Drawer>
+        ) : (
+          <Modal
+            title={"Manual Booking"}
+            open={isBookingModalOpen}
+            onCancel={handleCloseBookingModal}
+            footer={null}
+            width={600}
+          >
+            <div className="pt-4">
+              <ManualBookingForm
+                onSubmit={handleSubmit}
+                onCancel={handleCloseBookingModal}
+                initialValues={editingRecord}
+                isEdit={!!editingRecord}
+              />
+            </div>
+          </Modal>
+        )}
         {isMobile ? (
           <Drawer
             title={editingRecord ? "Edit Class" : "Create New Class"}

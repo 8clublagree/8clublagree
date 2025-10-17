@@ -1,13 +1,27 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import { Button, Input, Row, Space, Table, Modal, Typography, Drawer } from "antd";
+import {
+  Button,
+  Input,
+  Row,
+  Space,
+  Table,
+  Modal,
+  Typography,
+  Drawer,
+  Col,
+  Divider,
+  List,
+  Select,
+} from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
 import { formatTime } from "@/lib/utils";
 import { CreateClassProps } from "@/lib/props";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { IoEye } from "react-icons/io5";
+import dayjs from "dayjs";
 
 type DataIndex = keyof CreateClassProps;
 
@@ -23,7 +37,9 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<CreateClassProps | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<CreateClassProps | null>(
+    null
+  );
   const searchInput = useRef<InputRef>(null);
   const { confirm } = Modal;
 
@@ -215,7 +231,6 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
         dataIndex: "slots",
         key: "slots",
         width: isMobile ? undefined : "20%",
-        ...getColumnSearchProps("slots"),
       },
       {
         title: "Action",
@@ -224,7 +239,11 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
         fixed: isMobile ? undefined : "right",
         render: (_, record) => (
           <Row className="justify-center cursor-pointer gap-3">
-            <IoEye size={20} color="#1890ff" onClick={() => handleView(record)} />
+            <IoEye
+              size={20}
+              // color="#1890ff"
+              onClick={() => handleView(record)}
+            />
             <MdEdit size={20} color="#733AC6" onClick={() => onEdit(record)} />
             <MdDelete
               size={20}
@@ -237,6 +256,24 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
     ],
     [isMobile, searchedColumn, searchText, data]
   );
+
+  useEffect(() => {
+    console.log("Selected Record:", selectedRecord);
+  }, [selectedRecord]);
+
+  const tempData = [
+    { user: "John Doe" },
+    { user: "Tom Cruise" },
+    { user: "Taylor Swift" },
+    { user: "Lionel Messi" },
+    { user: "Rachel Brosnahan" },
+    { user: "Lil Yachty" },
+    { user: "Anthony Keidis" },
+  ];
+
+  const handleChange = (value: string) => {
+    console.log(`selected ${value}`);
+  };
 
   return (
     <>
@@ -267,9 +304,7 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
             body: { paddingTop: 24 },
           }}
         >
-          <div className="space-y-4">
-            {/* Content placeholder */}
-          </div>
+          <div className="space-y-4">{/* Content placeholder */}</div>
         </Drawer>
       ) : (
         <Modal
@@ -278,11 +313,79 @@ const AdminBookingTable = ({ data, onEdit }: AdminBookingTableProps) => {
           onCancel={handleCloseView}
           footer={null}
           width={600}
-          centered
+          maskClosable={false}
         >
-          <div className="pt-4 space-y-4">
-            {/* Content placeholder */}
-          </div>
+          <Col className="flex flex-col pt-0 space-y-4">
+            <Row wrap={false} className="justify-between">
+              <Text className="!mt-[10px]">
+                <span className="font-semibold">Instructor:</span>{" "}
+                {selectedRecord?.instructor}
+              </Text>
+              <Text className="!mt-[10px]">
+                <span className="font-semibold">Time:</span>{" "}
+                {`${formatTime(
+                  dayjs(selectedRecord?.start_time)
+                )} - ${formatTime(dayjs(selectedRecord?.end_time))}`}
+              </Text>
+            </Row>
+
+            <Divider />
+
+            <Col>
+              <div className="mb-[15px]">
+                <span className="font-semibold">Attendees</span>
+              </div>
+
+              {/* Empty State for 0 attendees */}
+              {tempData.length === 0 && (
+                <Row wrap={false} className="justify-center">
+                  <span className="font-semibold p-4">
+                    Nobody has booked this class yet
+                  </span>
+                </Row>
+              )}
+
+              {/* Non-empty state */}
+              <div
+                style={{
+                  overflowY: "auto",
+                  maxHeight: "30vh",
+                  scrollbarWidth: "none", // Firefox
+                  msOverflowStyle: "none", // IE and Edge
+                }}
+                className="overflow-y-auto"
+              >
+                <List
+                  itemLayout="horizontal"
+                  dataSource={tempData}
+                  renderItem={(item, index) => (
+                    <Row
+                      key={index}
+                      wrap={false}
+                      className="border-b py-3 justify-between"
+                    >
+                      <List.Item.Meta
+                        title={item.user}
+                        className="flex items-center"
+                      />
+
+                      <Select
+                        className="!outline-none"
+                        defaultValue="no-show"
+                        style={{ width: 120 }}
+                        onChange={handleChange}
+                        options={[
+                          { value: "no-show", label: "No Show" },
+                          { value: "attended", label: "Attended" },
+                          { value: "cancelled", label: "Cancelled" },
+                        ]}
+                      />
+                    </Row>
+                  )}
+                />
+              </div>
+            </Col>
+          </Col>
         </Modal>
       )}
     </>
