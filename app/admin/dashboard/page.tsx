@@ -1,14 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 
-import { Card, Row, Col, Statistic, Typography, Grid, Segmented } from "antd";
-import {
-  CalendarOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-} from "@ant-design/icons";
+import { Card, Row, Col, Statistic, Typography, Segmented } from "antd";
+import { CalendarOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
-import React, { useMemo } from "react";
+import React, { useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,7 +14,6 @@ import {
   ChartOptions,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import dayjs from "dayjs";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -34,56 +28,68 @@ type EventItem = {
 };
 
 export default function DashboardPage() {
-  const GanttChart = () => {
+  const [dashboardPeriod, setDashboardPeriod] = useState<"Daily" | "Weekly">(
+    "Daily"
+  );
+  const DailyGanttChart = () => {
     const activities = [
-      { name: "Event Planning", start: 7, end: 10 },
-      { name: "Layout Logistics", start: 9, end: 13 },
-      { name: "Select Vendors", start: 13, end: 16 },
-      { name: "Hire Venue", start: 15, end: 18 },
-      { name: "Marketing", start: 17, end: 21 },
+      { label: "Event Planning", start: 7, end: 10.9, color: "#93c5fd" },
+      { label: "Layout Logistics", start: 10, end: 13, color: "#f9a8d4" },
+      { label: "Select Vendors", start: 13, end: 16, color: "#fcd34d" },
+      { label: "Hire Venue", start: 16, end: 18, color: "#d8b4fe" },
+      { label: "Marketing", start: 18, end: 21, color: "#86efac" },
     ];
 
-    const labels = activities.map((a) => a.name);
+    // Labels on the Y-axis — each activity name
+    const labels = activities.map((a) => a.label);
 
     const data = {
       labels,
       datasets: [
         {
-          label: "Schedule",
+          label: "Daily Schedule",
           data: activities.map((a) => ({
-            x: [a.start, a.end],
-            y: a.name,
+            x: [a.start, a.end], // start and end hours
+            y: a.label, // the activity name
           })),
-          backgroundColor: "#733AC6",
-          // borderRadius: 10,
-          barPercentage: 0.5,
+          backgroundColor: activities.map((a) => a.color),
+          borderRadius: 8,
+          borderSkipped: false,
+          barPercentage: 0.8,
         },
       ],
     };
 
     const options = {
-      indexAxis: "y" as const,
+      indexAxis: "y" as const, // makes it horizontal
       responsive: true,
       maintainAspectRatio: false,
       scales: {
         x: {
           type: "linear" as const,
-          min: 9,
+          min: 7,
           max: 22,
           ticks: {
             stepSize: 1,
             callback: (value: number) => {
-              const hour = dayjs().hour(value).minute(0);
-              return hour.format("h A"); // e.g. 7 AM, 8 AM
+              const hour = Math.floor(value);
+              const suffix = hour >= 12 ? "PM" : "AM";
+              const displayHour = hour % 12 || 12;
+              return `${displayHour} ${suffix}`;
             },
           },
+          grid: { color: "#e5e7eb" },
           title: {
             display: true,
+            color: "#374151",
           },
         },
         y: {
-          title: {
-            display: true,
+          type: "category" as const,
+          grid: { display: false },
+          ticks: {
+            color: "#374151",
+            font: { size: 13 },
           },
         },
       },
@@ -91,8 +97,8 @@ export default function DashboardPage() {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (context: any) => {
-              const [start, end] = context.raw.x;
+            label: (ctx: any) => {
+              const [start, end] = ctx.raw.x;
               return `${start}:00 - ${end}:00`;
             },
           },
@@ -101,13 +107,15 @@ export default function DashboardPage() {
     };
 
     return (
-      <div className="w-full h-[500px]">
-        <Bar data={data} options={options} />
+      <div style={{ width: "100%", height: 500, padding: 12 }}>
+        <div style={{ height: 460 }}>
+          <Bar data={data} options={options} />
+        </div>
       </div>
     );
   };
 
-  const WeeklyScheduleChart: React.FC = () => {
+  const WeeklyScheduleChart = () => {
     const events: EventItem[] = [
       {
         label: "Launching new features",
@@ -130,7 +138,6 @@ export default function DashboardPage() {
         endTime: "15:30",
         color: "#d8b4fe",
       },
-      // Add a second event same day to verify stacking/visibility
       {
         label: "Workshop",
         day: "Wed",
@@ -142,24 +149,18 @@ export default function DashboardPage() {
 
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-    // convert "HH:mm" -> decimal hours
     const timeToDecimal = (t: string) => {
       const [hh, mm] = t.split(":").map(Number);
       return hh + mm / 60;
     };
 
-    // map day string to numeric category index (0..6)
-    const dayIndex = (d: string) =>
-      Math.max(0, Math.min(days.length - 1, days.indexOf(d)));
-
-    // Build data points: x = numeric category index, y = [start, end]
+    // IMPORTANT: use the exact day string here (must match the labels array items)
     const dataPoints = events.map((ev) => ({
-      x: dayIndex(ev.day),
+      x: ev.day, // <-- use 'Wed' / 'Thu' etc. (string), not numeric index
       y: [timeToDecimal(ev.startTime), timeToDecimal(ev.endTime)],
       label: ev.label,
     }));
 
-    // backgroundColor array in the same order as data points
     const backgroundColors = events.map((ev) => ev.color);
 
     const data = {
@@ -168,17 +169,20 @@ export default function DashboardPage() {
         {
           label: "Schedule",
           data: dataPoints,
-          // Use parsing to tell Chart.js which properties to read for axes
           parsing: { xAxisKey: "x", yAxisKey: "y" },
           backgroundColor: backgroundColors,
-          borderRadius: 8,
+          borderRadius: 5,
           borderSkipped: false,
-          // Thickness controls — tuned for a "calendar block" feel
-          barThickness: 28, // fixed thickness (px)
-          maxBarThickness: 36,
+          // Thicker candles:
+          barThickness: 44, // fixed thickness in px
+          maxBarThickness: 56, // upper bound
+          categoryPercentage: 0.9,
         },
       ],
     };
+
+    // uncomment to verify the shape at runtime
+    // console.log("chart data", data);
 
     const options: ChartOptions<"bar"> = {
       responsive: true,
@@ -209,7 +213,7 @@ export default function DashboardPage() {
         x: {
           type: "category",
           labels: days,
-          offset: true, // helps center bars on ticks
+          offset: true,
           grid: { display: false },
           ticks: { color: "#374151", font: { size: 13 } },
         },
@@ -230,10 +234,8 @@ export default function DashboardPage() {
           grid: { color: "#e5e7eb" },
         },
       },
-      // ensure bars are not grouped (we're using one dataset)
       elements: {
         bar: {
-          // fallback color if something goes wrong
           backgroundColor: "#60a5fa",
         },
       },
@@ -255,14 +257,22 @@ export default function DashboardPage() {
           <Title level={2} className="!mb-2">
             Dashboard
           </Title>
-          <Segmented options={["Daily", "Weekly"]} />
+          <Segmented
+            defaultValue={dashboardPeriod}
+            options={["Daily", "Weekly"]}
+            onChange={(e) => setDashboardPeriod(e as "Daily" | "Weekly")}
+          />
         </Row>
 
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Card className="shadow-sm hover:shadow-md transition-shadow">
               <Statistic
-                title="Total Classes"
+                title={
+                  dashboardPeriod === "Daily"
+                    ? "Total Classes Today"
+                    : "Total Classes This Week"
+                }
                 value={12}
                 prefix={<CalendarOutlined className="text-blue-600" />}
                 valueStyle={{ color: "#1e293b" }}
@@ -279,27 +289,19 @@ export default function DashboardPage() {
               />
             </Card>
           </Col>
-          {/* <Col xs={24} sm={12} lg={8}>
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
-              <Statistic
-                title="Pending"
-                value={4}
-                prefix={<ClockCircleOutlined className="text-orange-600" />}
-                valueStyle={{ color: "#1e293b" }}
-              />
-            </Card>
-          </Col> */}
         </Row>
 
         <Card
           className="shadow-sm hover:shadow-md transition-shadow"
-          title="Today's Classes"
+          title={
+            dashboardPeriod === "Daily"
+              ? "Today's Schedule"
+              : "This Week's Schedule"
+          }
           styles={{ header: { border: "none" }, body: { padding: 0 } }}
         >
-          {/* <GanttChart /> */}
-
-          {/* daily view?  */}
-          <WeeklyScheduleChart />
+          {dashboardPeriod === "Daily" && <DailyGanttChart />}
+          {dashboardPeriod === "Weekly" && <WeeklyScheduleChart />}
         </Card>
       </div>
     </AdminAuthenticatedLayout>

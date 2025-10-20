@@ -1,40 +1,109 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
-import { Card, Row, Col, Typography, Button } from "antd";
+import { Card, Row, Col, Typography, Button, Drawer, Modal, Input } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import CreateInstructorForm from "@/components/forms/CreateInstructorForm";
+import { IoIosSearch } from "react-icons/io";
+import useDebounce from "@/hooks/use-debounce";
+import { useSearchUser } from "@/lib/api";
+import { User } from "lucide-react";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 export default function InstructorManagementPage() {
-  const instructors = [
-    {
-      name: "Alice Smith",
-      role: "Lead Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "Bob Johnson",
-      role: "Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "Carol Lee",
-      role: "Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "David Kim",
-      role: "Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-  ];
+  const [instructors, setInstructors] = useState<any[] | null>([]);
+  const [input, setInput] = useState<string>("");
+  const { debouncedValue } = useDebounce(input, 1000);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any | null>(null);
+  const { searchInstructors, loading } = useSearchUser();
+
+  useEffect(() => {
+    handleSearchInstructors();
+  }, [debouncedValue]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // rAF throttle
+    let rafId: number | null = null;
+    const onResize = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        handleResize();
+      });
+    };
+
+    handleResize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  const handleSearchInstructors = async () => {
+    const data = await searchInstructors({ name: debouncedValue });
+    console.log(data);
+    setInstructors(data);
+  };
+
+  const handleOpenModal = () => {
+    setEditingRecord(null);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingRecord(null);
+  };
+
+  const handleEdit = (record: any) => {
+    console.log("record: ", record);
+    setEditingRecord(record);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (values: any) => {
+    console.log("Form values:", values);
+
+    // if (editingRecord) {
+    //   const index = data.findIndex((item) => item.key === editingRecord.key);
+    //   console.log("index: ", index);
+    //   if (index !== -1) {
+    //     const currentSlots = data[index].slots.split("/")[0].trim();
+    //     data[index] = {
+    //       ...data[index],
+    //       instructor: values.instructor,
+    //       start_time: values.start_time,
+    //       end_time: values.end_time,
+    //       slots: `${currentSlots} / ${values.slots}`,
+    //     };
+    //   }
+    // } else {
+    //   data.push({
+    //     key: (data.length + 1).toString(),
+    //     instructor: values.instructor,
+    //     start_time: values.start_time,
+    //     end_time: values.end_time,
+    //     slots: `0 / ${values.slots}`,
+    //   });
+    // }
+
+    setIsModalOpen(false);
+    setEditingRecord(null);
+  };
 
   return (
     <AdminAuthenticatedLayout>
       <div className="space-y-6">
-        <div>
+        <Row wrap={false} className="flex flex-col gap-y-[15px]">
           <Row className="items-center justify-between">
             <Title level={2} className="!mb-0">
               Instructor Management
@@ -42,33 +111,105 @@ export default function InstructorManagementPage() {
 
             <Button
               type="primary"
+              onClick={handleOpenModal}
               icon={<PlusOutlined />}
-              className="!bg-[#733AC6] hover:!bg-[#5B2CA8] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+              className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
             >
               New Instructor
             </Button>
           </Row>
-        </div>
+
+          <Input
+            className="max-w-[300px]"
+            placeholder="Search instructors"
+            prefix={<IoIosSearch />}
+            onChange={(e) => setInput(e.target.value)}
+          />
+        </Row>
 
         <Row gutter={[16, 16]}>
-          {instructors.map((inst, idx) => (
-            <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
-              <Card
-                hoverable
-                cover={
-                  <img
-                    alt={inst.name}
-                    src={inst.avatar}
-                    style={{ objectFit: "cover", height: 200, width: "100%" }}
-                  />
-                }
-              >
-                <Card.Meta title={inst.name} description={inst.role} />
-              </Card>
-            </Col>
-          ))}
+          {instructors &&
+            instructors.map((data, idx) => (
+              <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
+                <Card
+                  onClick={() => handleEdit(data)}
+                  hoverable
+                  cover={
+                    <div
+                      style={{
+                        height: 200, // same height as an image cover
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#f5f5f5", // optional: placeholder background
+                      }}
+                    >
+                      {data?.avatar === undefined && (
+                        <User style={{ fontSize: 64, color: "#999" }} />
+                      )}
+                      {data?.avatar && (
+                        <img
+                          src={data.avatar}
+                          alt={data.full_name}
+                          style={{
+                            objectFit: "cover",
+                            height: 200,
+                            width: "100%",
+                          }}
+                        />
+                      )}
+                    </div>
+                  }
+                >
+                  <Card.Meta title={data.first_name} description={data.role} />
+                </Card>
+              </Col>
+            ))}
+
+          {!instructors?.length && (
+            <Row className="w-full flex justify-center">
+              <Text>No clients by that name</Text>
+            </Row>
+          )}
         </Row>
       </div>
+
+      {isMobile ? (
+        <Drawer
+          title={editingRecord ? "Edit Instructor" : "Create New Instructor"}
+          placement="right"
+          onClose={handleCloseModal}
+          open={isModalOpen}
+          width={"100%"}
+          styles={{
+            body: { paddingTop: 24 },
+          }}
+        >
+          <CreateInstructorForm
+            onSubmit={handleSubmit}
+            onCancel={handleCloseModal}
+            initialValues={editingRecord}
+            isEdit={!!editingRecord}
+          />
+        </Drawer>
+      ) : (
+        <Modal
+          title={editingRecord ? "Edit Instructor" : "Create New Instructor"}
+          open={isModalOpen}
+          onCancel={handleCloseModal}
+          footer={null}
+          width={600}
+        >
+          <div className="pt-4">
+            <CreateInstructorForm
+              onSubmit={handleSubmit}
+              onCancel={handleCloseModal}
+              initialValues={editingRecord}
+              isEdit={!!editingRecord}
+            />
+          </div>
+        </Modal>
+      )}
     </AdminAuthenticatedLayout>
   );
 }

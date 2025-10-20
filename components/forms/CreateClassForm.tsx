@@ -160,7 +160,7 @@ export default function CreateClassForm({
               size="large"
               loading={loading}
               block
-              className="bg-[#733AC6] hover:!bg-[#5B2CA8] !border-none"
+              className="bg-[#36013F] hover:!bg-[#36013F] !border-none"
             >
               {isEdit ? "Update" : "Create"}
             </Button>

@@ -1,29 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Typography,
-  Button,
-  Modal,
-  Drawer,
-} from "antd";
-import {
-  CalendarOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import { Row, Typography, Button, Modal, Drawer } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
-import DatePickerCarousel from "@/components/ui/datepicker-carousel";
-import AdminBookingTable from "@/components/ui/admin-booking-table";
-import CreateClassForm from "@/components/forms/CreateClassForm";
-import { formatTime } from "@/lib/utils";
-import dayjs from "dayjs";
 import { CreatePackageProps } from "@/lib/props";
 import AdminPackageTable from "@/components/ui/admin-package-table";
 import CreatePackageForm from "@/components/forms/CreatePackageForm";

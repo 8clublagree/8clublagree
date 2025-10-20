@@ -1,22 +1,8 @@
 "use client";
 
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Typography,
-  Avatar,
-  List,
-  Button,
-} from "antd";
-import {
-  CalendarOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-} from "@ant-design/icons";
+import { Card, Row, Col, Typography, Avatar, List, Button } from "antd";
+import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 
 const { Title } = Typography;
 

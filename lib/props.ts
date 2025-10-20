@@ -7,6 +7,14 @@ export interface CreateClassProps {
   end_time: Dayjs;
   slots: string;
 }
+export interface CreateInstructorProps {
+  key: string;
+  first_name: string;
+  last_name: string;
+  start_time: Dayjs;
+  end_time: Dayjs;
+  slots: string;
+}
 
 export interface CreatePackageProps {
   key: string;

@@ -7,14 +7,25 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
     <ConfigProvider
       theme={{
         token: {
+          colorTextHeading: "#36013F",
+          colorTextSecondary: "#36013F",
+          colorText: "#36013F",
           colorPrimary: "#2563eb",
           borderRadius: 6,
           fontSize: 14,
         },
         components: {
           Segmented: {
-            itemSelectedBg: "purple",
+            itemSelectedBg: "#36013F",
             itemSelectedColor: "white",
+          },
+          Menu: {
+            itemBg: "transparent",
+            itemSelectedBg: "#36013F",
+            itemSelectedColor: "white",
+            itemColor: "#36013F",
+            itemHoverColor: "white",
+            itemHoverBg: "#36013F",
           },
         },
       }}

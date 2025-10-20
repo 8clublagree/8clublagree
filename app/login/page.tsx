@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
+import { useState } from "react";
+import { Form, Input, Button, Card, Typography, message } from "antd";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
 const { Title, Text } = Typography;
 
@@ -24,20 +24,20 @@ export default function LoginPage() {
       if (error) throw error;
 
       const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('role')
-        .eq('id', data.user.id)
+        .from("user_profiles")
+        .select("is_user")
+        .eq("id", data.user.id)
         .maybeSingle();
 
-      message.success('Login successful!');
+      message.success("Login successful!");
 
-      if (profile?.role === 'admin') {
-        router.push('/admin/dashboard');
+      if (profile?.is_user === false) {
+        router.push("/admin/dashboard");
       } else {
-        router.push('/dashboard');
+        router.push("/dashboard");
       }
     } catch (error: any) {
-      message.error(error.message || 'Login failed');
+      message.error(error.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,9 @@ export default function LoginPage() {
         style={{ borderRadius: 12 }}
       >
         <div className="text-center mb-8">
-          <Title level={2} className="!mb-2">Welcome Back</Title>
+          <Title level={2} className="!mb-2">
+            Welcome Back
+          </Title>
           <Text type="secondary">Sign in to your account</Text>
         </div>
 
@@ -64,8 +66,8 @@ export default function LoginPage() {
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: 'Please enter your email' },
-              { type: 'email', message: 'Please enter a valid email' },
+              { required: true, message: "Please enter your email" },
+              { type: "email", message: "Please enter a valid email" },
             ]}
           >
             <Input
@@ -76,7 +78,7 @@ export default function LoginPage() {
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Please enter your password' }]}
+            rules={[{ required: true, message: "Please enter your password" }]}
           >
             <Input.Password
               prefix={<LockOutlined className="text-slate-400" />}
@@ -98,8 +100,11 @@ export default function LoginPage() {
 
           <div className="text-center">
             <Text type="secondary">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-blue-600 hover:text-blue-700">
+              Don't have an account?{" "}
+              <Link
+                href="/signup"
+                className="text-blue-600 hover:text-blue-700"
+              >
                 Sign up
               </Link>
             </Text>

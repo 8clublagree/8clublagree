@@ -53,12 +53,14 @@ export default function SignupPage() {
             id: authData.user.id,
             email: stepOneData.email,
             contact_number: stepOneData.contact_number,
-            full_name: values.full_name,
+            full_name: `${values.first_name} ${values.last_name}`,
+            first_name: values.first_name,
+            last_name: values.last_name,
             birthday: values.birthday
               ? values.birthday.format("YYYY-MM-DD")
               : null,
             location: values.location,
-            role: "user",
+            is_user: true,
           });
 
         if (profileError) throw profileError;
@@ -193,14 +195,26 @@ export default function SignupPage() {
             requiredMark={false}
           >
             <Form.Item
-              name="full_name"
+              name="first_name"
               rules={[
-                { required: true, message: "Please enter your full name" },
+                { required: true, message: "Please enter your first name" },
               ]}
             >
               <Input
                 prefix={<UserOutlined className="text-slate-400" />}
-                placeholder="Full Name"
+                placeholder="First Name"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="last_name"
+              rules={[
+                { required: true, message: "Please enter your last name" },
+              ]}
+            >
+              <Input
+                prefix={<UserOutlined className="text-slate-400" />}
+                placeholder="Last Name"
               />
             </Form.Item>
 

@@ -60,7 +60,7 @@ export default function AuthenticatedLayout({
         .maybeSingle();
 
       if (profile) {
-        if (profile.role !== "admin") {
+        if (profile.is_user === true) {
           router.push("/dashboard");
           return;
         }
@@ -181,7 +181,7 @@ export default function AuthenticatedLayout({
             <div className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors">
               <div className="text-right hidden md:block">
                 <Text className="block text-sm font-medium">
-                  {user?.full_name || "User"}
+                  {user?.first_name || "User"}
                 </Text>
                 <Text className="block text-xs text-slate-500">
                   {user?.email}
@@ -192,7 +192,7 @@ export default function AuthenticatedLayout({
                 icon={<UserOutlined />}
                 className="bg-blue-600"
               >
-                {user?.full_name?.[0]?.toUpperCase() || "U"}
+                {user?.first_name?.[0]?.toUpperCase() || "U"}
               </Avatar>
             </div>
           </Dropdown>
