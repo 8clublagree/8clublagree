@@ -66,7 +66,7 @@ export default function ManualBookingForm({
           "hh:mm A"
         )} - ${dayjs(cls.end_time).format("hh:mm A")})`,
         id: cls.instructor_id,
-        key: cls.instructor_id,
+        key: key,
       };
     });
     console.log(mapped);

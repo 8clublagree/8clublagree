@@ -30,7 +30,7 @@ export default function BookingsPage() {
     useClassManagement();
   const [classes, setClasses] = useState<any[]>([]);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
-  const [userCredits, setUserCredits] = useState<number>(1);
+  const [userCredits, setUserCredits] = useState<number>(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
