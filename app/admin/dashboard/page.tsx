@@ -33,11 +33,11 @@ export default function DashboardPage() {
   );
   const DailyGanttChart = () => {
     const activities = [
-      { label: "Event Planning", start: 7, end: 10.9, color: "#93c5fd" },
+      { label: "Class 1", start: 7, end: 10.9, color: "#93c5fd" },
       { label: "Layout Logistics", start: 10, end: 13, color: "#f9a8d4" },
-      { label: "Select Vendors", start: 13, end: 16, color: "#fcd34d" },
-      { label: "Hire Venue", start: 16, end: 18, color: "#d8b4fe" },
-      { label: "Marketing", start: 18, end: 21, color: "#86efac" },
+      { label: "Class 2", start: 13, end: 16, color: "#fcd34d" },
+      { label: "Class 3", start: 16, end: 18, color: "#d8b4fe" },
+      { label: "Class 4", start: 18, end: 21, color: "#86efac" },
     ];
 
     // Labels on the Y-axis — each activity name
