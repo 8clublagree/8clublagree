@@ -70,7 +70,6 @@ const AdminPackageTable = ({ data, onEdit }: AdminPackageTableProps) => {
       okText: "Delete",
       okType: "danger",
       cancelText: "Cancel",
-      centered: isMobile,
       width: isMobile ? "90%" : 416,
       onOk() {
         console.log("Deleted:", record);

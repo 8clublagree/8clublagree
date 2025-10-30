@@ -60,7 +60,7 @@ export default function ClassManagementPage() {
 
     if (data) {
       const mapped = data?.map((item: any, index: number) => ({
-        key: item.id,
+        id: item.id,
         instructor_id: item.instructor_id,
         instructor_name: item.instructor_name,
         start_time: dayjs(item.start_time),
@@ -178,6 +178,8 @@ export default function ClassManagementPage() {
             }}
           >
             <ManualBookingForm
+              classes={classes}
+              selectedDate={selectedDate}
               onSubmit={handleSubmit}
               onCancel={handleCloseBookingModal}
               initialValues={editingRecord}
@@ -194,6 +196,8 @@ export default function ClassManagementPage() {
           >
             <div className="pt-4">
               <ManualBookingForm
+                classes={classes}
+                selectedDate={selectedDate}
                 onSubmit={handleSubmit}
                 onCancel={handleCloseBookingModal}
                 initialValues={editingRecord}
@@ -222,7 +226,6 @@ export default function ClassManagementPage() {
           </Drawer>
         ) : (
           <Modal
-            centered
             title={editingRecord ? "Edit Class" : "Create New Class"}
             open={isModalOpen}
             onCancel={handleCloseModal}

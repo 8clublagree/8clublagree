@@ -15,13 +15,15 @@ import {
   ClockCircleOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { CreateClassProps } from "@/lib/props";
 import { MdOutlineSchedule } from "react-icons/md";
 import { useSearchUser } from "@/lib/api";
 
 interface CreateClassFormProps {
+  selectedDate?: Dayjs;
+  classes: any[];
   onSubmit: (values: any) => void;
   onCancel: () => void;
   loading?: boolean;
@@ -30,6 +32,8 @@ interface CreateClassFormProps {
 }
 
 export default function ManualBookingForm({
+  selectedDate,
+  classes,
   onSubmit,
   onCancel,
   loading = false,
@@ -37,12 +41,12 @@ export default function ManualBookingForm({
   isEdit = false,
 }: CreateClassFormProps) {
   const [form] = Form.useForm();
-  const [instructors, setInstructors] = useState<any>([]);
+  const [schedules, setSchedules] = useState<any>([]);
   const { searchInstructors, loading: searchingInstructor } = useSearchUser();
 
   useEffect(() => {
-    handleSearchInstructors();
-  }, []);
+    handleParseClasses();
+  }, [selectedDate]);
 
   useEffect(() => {
     if (initialValues) {
@@ -54,10 +58,19 @@ export default function ManualBookingForm({
     }
   }, [initialValues, form]);
 
-  const handleSearchInstructors = async () => {
-    const data = await searchInstructors({});
-    console.log(data);
-    setInstructors(data);
+  const handleParseClasses = async () => {
+    const mapped = classes.map((cls, key) => {
+      return {
+        value: cls.id,
+        label: `${cls.instructor_name} (${dayjs(cls.start_time).format(
+          "hh:mm A"
+        )} - ${dayjs(cls.end_time).format("hh:mm A")})`,
+        id: cls.instructor_id,
+        key: cls.instructor_id,
+      };
+    });
+    console.log(mapped);
+    setSchedules(mapped);
   };
 
   const handleFinish = (values: any) => {
@@ -93,7 +106,7 @@ export default function ManualBookingForm({
             <Select
               placeholder="Select a class schedule"
               suffixIcon={<MdOutlineSchedule className="text-slate-400" />}
-              options={instructors}
+              options={schedules}
             />
           </Form.Item>
         </Col>

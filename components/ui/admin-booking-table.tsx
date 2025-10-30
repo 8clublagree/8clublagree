@@ -104,7 +104,6 @@ const AdminBookingTable = ({
       okText: "Delete",
       okType: "danger",
       cancelText: "Cancel",
-      centered: true,
       width: isMobile ? "90%" : 416,
       onOk() {
         console.log("Deleted:", record);
