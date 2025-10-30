@@ -5,12 +5,14 @@ import dayjs, { Dayjs } from "dayjs";
 import clsx from "clsx";
 
 interface DatePickerCarouselProps {
+  isAdmin: boolean;
   initialDate?: Dayjs;
   onDateSelect?: (date: Dayjs | string) => void;
   maxDaysAhead?: number; // limit how far ahead users can scroll
 }
 
 const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
+  isAdmin = false,
   initialDate = dayjs(), // default to today
   onDateSelect,
   maxDaysAhead = 30,
@@ -94,7 +96,7 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
         icon={<LeftOutlined />}
         className="flex items-center justify-center border-gray-300"
         onClick={handlePrev}
-        disabled={isPrevDisabled}
+        disabled={isAdmin ? false : isPrevDisabled}
       />
 
       {/* Date Cards */}

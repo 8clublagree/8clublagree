@@ -131,7 +131,10 @@ export const useClassManagement = () => {
   const createClass = async ({ values }: { values: CreateClassProps }) => {
     setLoading(true);
 
-    const { data, error } = await supabase.from("classes").insert(values);
+    const { data, error } = await supabase
+      .from("classes")
+      .insert(values)
+      .single();
 
     if (error) return null;
 

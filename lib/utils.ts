@@ -29,3 +29,25 @@ export function formatPrice(
 export const formatTime = (dateTime: Dayjs) => {
   return dateTime.format("hh:mm A");
 };
+
+export const calculateDuration = (start: Dayjs, end: Dayjs): string => {
+  if (end.isBefore(start)) {
+    end = end.add(1, "day");
+  }
+
+  const diffInMinutes = end.diff(start, "minute");
+  const hours = Math.floor(diffInMinutes / 60);
+  const minutes = diffInMinutes % 60;
+
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h`;
+  return `${minutes}m`;
+};
+
+export const getSlotsLeft = (
+  availableSlots: number,
+  takenSlots: number
+): number => {
+  const slotsLeft = availableSlots - takenSlots;
+  return slotsLeft > 0 ? slotsLeft : 0;
+};

@@ -4,25 +4,17 @@ import {
   Card,
   Row,
   Col,
-  Statistic,
   Typography,
   Avatar,
-  List,
   Button,
   Drawer,
   Checkbox,
   Divider,
 } from "antd";
-import {
-  CalendarOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-} from "@ant-design/icons";
+import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import { formatPrice } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import dayjs from "dayjs";
 
 const { Title } = Typography;
 

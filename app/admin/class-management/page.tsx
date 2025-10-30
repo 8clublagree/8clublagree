@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Row, Typography, Button, Modal, Drawer, message } from "antd";
+import { Row, Button, Modal, Drawer, message, Divider } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
@@ -11,44 +11,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { CreateClassProps } from "@/lib/props";
 import { IoMdPersonAdd } from "react-icons/io";
 import ManualBookingForm from "@/components/forms/ManualBookingForm";
-import { useClassManagement, useSearchUser } from "@/lib/api";
-
-const { Title } = Typography;
-
-let data: CreateClassProps[] = [
-  {
-    key: "1",
-    instructor_id: "123494",
-    instructor_name: "John Brown",
-    start_time: dayjs(),
-    end_time: dayjs(),
-    slots: "5 / 10",
-  },
-  {
-    key: "2",
-    instructor_id: "123494",
-    instructor_name: "Joe Black",
-    start_time: dayjs(),
-    end_time: dayjs(),
-    slots: "5 / 10",
-  },
-  {
-    key: "3",
-    instructor_id: "123494",
-    instructor_name: "Jim Green",
-    start_time: dayjs(),
-    end_time: dayjs(),
-    slots: "5 / 10",
-  },
-  {
-    key: "4",
-    instructor_id: "123494",
-    instructor_name: "Jim Red",
-    start_time: dayjs(),
-    end_time: dayjs(),
-    slots: "5 / 10",
-  },
-];
+import { useClassManagement } from "@/lib/api";
 
 export default function ClassManagementPage() {
   // const { createClass, loading } = useCreateClass();
@@ -148,14 +111,15 @@ export default function ClassManagementPage() {
       }
     } else {
       // CREATE INSTRUCTOR MANAGEMENT FIRST
-      console.log("values: ", values);
+      try {
+        await createClass({
+          values: { ...values, class_date: selectedDate?.format("YYYY-MM-DD") },
+        });
 
-      const response = await createClass({
-        values: { ...values, class_date: selectedDate?.format("YYYY-MM-DD") },
-      });
-      if (response) {
         handleFetchClasses();
         message.success("Class has been created!");
+      } catch (error) {
+        message.error("Failed to create class.");
       }
     }
 
@@ -166,14 +130,15 @@ export default function ClassManagementPage() {
   return (
     <AdminAuthenticatedLayout>
       <div className="space-y-6">
-        <div>
-          <Title level={2} className="!mb-2">
-            Class Management
-          </Title>
-        </div>
-
+        <p className="!mb-0 !pb-0 text-[42px] font-[400]">
+          {`${dayjs().format("MMMM").toLowerCase()} ${dayjs().format("YYYY")}`}
+        </p>
+        <Divider className="m-0 pb-[10px]" />
         <Row className="wrap-none justify-center bg-transparent">
-          <DatePickerCarousel onDateSelect={(e) => setSelectedDate(dayjs(e))} />
+          <DatePickerCarousel
+            isAdmin={true}
+            onDateSelect={(e) => setSelectedDate(dayjs(e))}
+          />
         </Row>
 
         <div>

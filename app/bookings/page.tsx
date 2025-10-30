@@ -15,19 +15,25 @@ import {
 import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
+import { useClassManagement } from "@/lib/api";
+import { calculateDuration, getSlotsLeft } from "@/lib/utils";
 
 const { Title, Text } = Typography;
 
 export default function BookingsPage() {
   const router = useRouter();
+  const { createClass, updateClass, fetchClasses, loading } =
+    useClassManagement();
+  const [classes, setClasses] = useState<any[]>([]);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [userCredits, setUserCredits] = useState<number>(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const data = [
     {
@@ -119,6 +125,33 @@ export default function BookingsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (selectedDate) {
+      handleFetchClasses();
+    }
+  }, [selectedDate]);
+
+  const handleFetchClasses = async () => {
+    const data = await fetchClasses({ date: selectedDate as Dayjs });
+
+    if (data) {
+      const mapped = data?.map((item: any, index: number) => ({
+        key: item.id,
+        instructor_id: item.instructor_id,
+        instructor_name: item.instructor_name,
+        start_time: dayjs(item.start_time),
+        end_time: dayjs(item.end_time),
+        available_slots: item.available_slots,
+        taken_slots: item.taken_slots,
+        slots: `${item.taken_slots} / ${item.available_slots}`,
+      }));
+
+      setClasses(mapped);
+    }
+
+    console.log("fetched classes: ", data);
+  };
+
   const handleAcceptTermsChange = (e: any) => {
     setAcceptsTerms(e.target.checked);
   };
@@ -159,6 +192,10 @@ export default function BookingsPage() {
     [userCredits]
   );
 
+  const temp = (data) => {
+    console.log(data.toString());
+  };
+
   return (
     <AuthenticatedLayout>
       <div className="space-y-6">
@@ -191,7 +228,10 @@ export default function BookingsPage() {
               </Row>
             </Row>
             <Divider className="m-0 pb-[10px]" />
-            <DatePickerCarousel onDateSelect={(e) => console.log(e)} />
+            <DatePickerCarousel
+              isAdmin={false}
+              onDateSelect={(e) => setSelectedDate(dayjs(e))}
+            />
           </Col>
         </Row>
 
@@ -206,41 +246,49 @@ export default function BookingsPage() {
             >
               <List
                 itemLayout="horizontal"
-                dataSource={data}
+                dataSource={classes}
                 renderItem={(item, index) => (
                   <List.Item actions={[renderActionButton(item)]}>
                     <Row className="wrap-none items-center gap-4">
-                      <Col>
+                      <Col className="flex flex-col items-center">
                         <Avatar
                           className="border-gray-500 border"
                           size={60}
                           src={`https://api.dicebear.com/7.x/miniavs/svg?seed=${index}`}
                         />
                         <p>
-                          <span className="font-light">{item.instructor}</span>
+                          <span className="font-light">
+                            {item.instructor_name}
+                          </span>
                         </p>
                       </Col>
                       <Col>
                         <p>
-                          <span className="font-semibold">{item.time}</span>
+                          <span className="font-semibold">
+                            {dayjs(item.start_time).format("hh:mm")}
+                          </span>
                         </p>
                         <p>
-                          <span className="font-light">{item.duration}</span>
+                          {/* calc start and end time */}
+                          <span className="font-light">
+                            {calculateDuration(item.start_time, item.end_time)}
+                          </span>
                         </p>
                         <p>
                           <span
                             className={`${
-                              item.available === 1 || item.available === 0
-                                ? `text-red-500`
+                              // calc available slots
+                              item.available_slots === 1 ||
+                              item.available_slots === 0
+                                ? `text-red-500 font-semibold`
                                 : ``
-                            } font-semibold`}
+                            }`}
                           >
-                            {item.available === 1
-                              ? `Last Slot`
-                              : item.available > 1
-                              ? `${item.available} slots left`
-                              : ``}
-                            {item.available <= 0 && `Full`}
+                            {item.available_slots <= 0
+                              ? "Full"
+                              : item.available_slots === 1
+                              ? "Last Slot"
+                              : `${item.slots} slots left`}
                           </span>
                         </p>
                       </Col>
@@ -277,11 +325,17 @@ export default function BookingsPage() {
           />
           <Divider />
           <Col className="mb-[20px] items-start w-full">
-            <Title>{selectedRecord?.date}</Title>
+            <Title>
+              {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
+                selectedDate
+              ).format("d")} ${dayjs(selectedDate).format("YYYY")}`}
+            </Title>
             <Title level={5}>
               Class with{" "}
-              <span className="text-red-400">{selectedRecord?.instructor}</span>{" "}
-              at <span className="text-red-400">{selectedRecord?.time}</span> on{" "}
+              <span className="text-red-400">
+                {selectedRecord?.instructor_name}
+              </span>{" "}
+              <span className="text-red-400">{selectedRecord?.time}</span> on{" "}
               <span className="text-red-400">
                 {dayjs(selectedRecord?.date).format("dddd")}
               </span>
