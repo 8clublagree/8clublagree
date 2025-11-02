@@ -12,6 +12,8 @@ export interface CreateInstructorProps {
   first_name: string;
   last_name: string;
   full_name: string;
+  avatar_url?: string;
+  avatar_path?: string;
 }
 
 export interface CreatePackageProps {

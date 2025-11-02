@@ -90,6 +90,29 @@ export const useUpdateUser = () => {
   return { loading, updateUser };
 };
 
+export const useManageImage = () => {
+  const [loading, setLoading] = useState(false);
+  const removeImage = async ({ id }: { id: string }) => {
+    setLoading(true);
+    const { data: existingURL } = await supabase
+      .from("instructors")
+      .select("avatar_path")
+      .eq("id", id)
+      .single();
+
+    if (existingURL) {
+      await supabase.storage
+        .from("user-photos")
+        .remove([existingURL?.avatar_path]);
+    }
+
+    setLoading(false);
+    return;
+  };
+
+  return { removeImage, loading };
+};
+
 export const useInstructorManagement = () => {
   const [loading, setLoading] = useState(false);
 
@@ -108,7 +131,30 @@ export const useInstructorManagement = () => {
     return data;
   };
 
-  return { loading, createInstructor };
+  const updateInstructor = async ({
+    id,
+    values,
+  }: {
+    id: string;
+    values: CreateInstructorProps;
+  }) => {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("instructors")
+      .update(values)
+      .eq("id", id);
+
+    if (error) {
+      console.log("error: ", error);
+      return null;
+    }
+
+    setLoading(false);
+    return data;
+  };
+
+  return { loading, createInstructor, updateInstructor };
 };
 
 export const useClassManagement = () => {

@@ -11,13 +11,18 @@ import {
   Modal,
   Input,
   message,
+  Form,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import CreateInstructorForm from "@/components/forms/CreateInstructorForm";
 import { IoIosSearch } from "react-icons/io";
 import useDebounce from "@/hooks/use-debounce";
-import { useInstructorManagement, useSearchUser } from "@/lib/api";
+import {
+  useInstructorManagement,
+  useManageImage,
+  useSearchUser,
+} from "@/lib/api";
 import { User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -31,8 +36,12 @@ export default function InstructorManagementPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any | null>(null);
   const { searchInstructors, loading } = useSearchUser();
-  const { createInstructor, loading: creatingInstructor } =
-    useInstructorManagement();
+  const {
+    updateInstructor,
+    createInstructor,
+    loading: creatingInstructor,
+  } = useInstructorManagement();
+  const { removeImage } = useManageImage();
 
   useEffect(() => {
     handleSearchInstructors();
@@ -63,7 +72,6 @@ export default function InstructorManagementPage() {
 
   const handleSearchInstructors = async () => {
     const data = await searchInstructors({ name: debouncedValue });
-    console.log(data);
     try {
       if (data) {
         const usersWithSignedUrls = await Promise.all(
@@ -103,39 +111,38 @@ export default function InstructorManagementPage() {
   };
 
   const handleEdit = (record: any) => {
-    console.log("record: ", record);
+    console.log(record);
     setEditingRecord(record);
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (values: any) => {
-    console.log("Form values:", values);
+    const inputs = {
+      first_name: values.first_name,
+      last_name: values.last_name,
+      full_name: `${values.first_name} ${values.last_name}`,
+      avatar_path: values.avatar_path,
+    };
 
-    if (editingRecord) {
-      // const index = data.findIndex((item) => item.key === editingRecord.key);
-      // console.log("index: ", index);
-      // if (index !== -1) {
-      //   const currentSlots = data[index].slots.split("/")[0].trim();
-      //   data[index] = {
-      //     ...data[index],
-      //     instructor: values.instructor,
-      //     start_time: values.start_time,
-      //     end_time: values.end_time,
-      //     slots: `${currentSlots} / ${values.slots}`,
-      //   };
-      // }
+    if (instructors && editingRecord) {
+      try {
+        await removeImage({ id: editingRecord.id });
+
+        await updateInstructor({ id: editingRecord.id, values: inputs });
+
+        handleSearchInstructors();
+        message.success("Instructor has been updated!");
+      } catch (error) {
+        message.error("Error updating instructor");
+        return;
+      }
     } else {
-      const inputs = {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        full_name: `${values.first_name} ${values.last_name}`,
-        avatar_path: values.avatar_path,
-      };
-      const response = await createInstructor({ values: inputs });
-
-      if (response) {
+      try {
+        await createInstructor({ values: inputs });
         handleSearchInstructors();
         message.success("Instructor has been created!");
+      } catch (error) {
+        message.error("Error creating instructor");
       }
     }
 
@@ -192,6 +199,7 @@ export default function InstructorManagementPage() {
                       )}
                       {data?.avatar_url && (
                         <img
+                          className="rounded-t-lg"
                           src={data.avatar_url}
                           alt={data.full_name}
                           style={{
@@ -229,6 +237,7 @@ export default function InstructorManagementPage() {
           }}
         >
           <CreateInstructorForm
+            isModalOpen={isModalOpen}
             onSubmit={handleSubmit}
             onCancel={handleCloseModal}
             initialValues={editingRecord}
@@ -242,9 +251,11 @@ export default function InstructorManagementPage() {
           onCancel={handleCloseModal}
           footer={null}
           width={600}
+          maskClosable={false}
         >
           <div className="pt-4">
             <CreateInstructorForm
+              isModalOpen={isModalOpen}
               onSubmit={handleSubmit}
               onCancel={handleCloseModal}
               initialValues={editingRecord}

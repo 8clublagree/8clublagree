@@ -22,7 +22,8 @@ import dayjs from "dayjs";
 
 interface CreateClassFormProps {
   onSubmit: (values: any) => void;
-  onCancel: () => void;
+  onCancel: () => void | boolean;
+  isModalOpen?: boolean;
   loading?: boolean;
   initialValues?: CreateInstructorProps | null;
   isEdit?: boolean;
@@ -33,13 +34,13 @@ type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 export default function CreateInstructorForm({
   onSubmit,
   onCancel,
+  isModalOpen,
   loading = false,
   initialValues = null,
   isEdit = false,
 }: CreateClassFormProps) {
-  const BUCKET_NAME = "user-photos";
-
   const [form] = Form.useForm();
+  const BUCKET_NAME = "user-photos";
   const user = useAppSelector((state) => state.auth.user);
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -49,6 +50,14 @@ export default function CreateInstructorForm({
   useEffect(() => {
     if (initialValues) {
       //   const totalSlots = initialValues.slots.split("/")[1].trim();
+      setFile([
+        {
+          uid: "-1",
+          name: "existing_image.png",
+          status: "done",
+          url: initialValues?.avatar_url,
+        },
+      ]);
       form.setFieldsValue({
         first_name: initialValues.first_name,
         last_name: initialValues.last_name,
@@ -56,6 +65,9 @@ export default function CreateInstructorForm({
       });
     } else {
       form.resetFields();
+      setFile(null);
+      setPreviewImage("");
+      setPreviewOpen(false);
     }
   }, [initialValues, form]);
 
@@ -159,17 +171,6 @@ export default function CreateInstructorForm({
       className="w-full"
     >
       <Row gutter={[16, 0]}>
-        {/* <Upload
-          action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-          showUploadList={false}
-          accept="image/*"
-          listType="picture-circle"
-        
-        >
-          {!!file?.length ? null : uploadButton}
-        </Upload>
-        {file && <Image className="h-[100px] w-[100px]" src={previewImage} />} */}
-
         <Upload
           listType="picture-circle"
           fileList={file as UploadFile[]}
