@@ -159,31 +159,50 @@ export const useClassManagement = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchClasses = async ({
+    userId,
     startDate,
     endDate,
-    date,
+    selectedDate,
   }: {
+    userId?: string;
     startDate?: Dayjs;
     endDate?: Dayjs;
-    date: Dayjs;
+    selectedDate?: Dayjs;
   }) => {
     setLoading(true);
 
-    let query = supabase.from("classes").select("*");
+    let query = supabase.from("classes").select(`
+      *,
+      class_bookings (
+        id,
+        booker_id,
+        class_id
+      )
+    `);
+
+    if (userId) {
+      query = query.eq("class_bookings.booker_id", userId);
+    }
 
     if (startDate && endDate) {
-      query
+      query = query
         .gte("class_date", startDate.format("YYYY-MM-DD"))
         .lte("class_date", endDate.format("YYYY-MM-DD"));
-    } else {
-      query.eq("class_date", date.format("YYYY-MM-DD"));
+    }
+
+    if (selectedDate) {
+      query = query.eq("class_date", selectedDate.format("YYYY-MM-DD"));
     }
 
     const { data, error } = await query;
 
-    if (error) return null;
-
     setLoading(false);
+
+    if (error) {
+      console.error("Error fetching classes:", error);
+      return null;
+    }
+
     return data;
   };
 
@@ -221,7 +240,27 @@ export const useClassManagement = () => {
     return data;
   };
 
-  return { loading, updateClass, fetchClasses, createClass };
+  const bookClass = async ({
+    bookerId,
+    classId,
+  }: {
+    bookerId: string;
+    classId: string;
+  }) => {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("class_bookings")
+      .insert({ booker_id: bookerId, class_id: classId })
+      .select();
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
+  return { loading, bookClass, updateClass, fetchClasses, createClass };
 };
 
 export const usePackageManagement = () => {

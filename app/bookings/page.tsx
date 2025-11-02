@@ -21,16 +21,17 @@ import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import { useClassManagement } from "@/lib/api";
 import { calculateDuration, getSlotsLeft } from "@/lib/utils";
+import { useAppSelector } from "@/lib/hooks";
 
 const { Title, Text } = Typography;
 
 export default function BookingsPage() {
   const router = useRouter();
-  const { createClass, updateClass, fetchClasses, loading } =
-    useClassManagement();
+  const user = useAppSelector((state) => state.auth.user);
+  const { bookClass, fetchClasses, loading } = useClassManagement();
   const [classes, setClasses] = useState<any[]>([]);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
-  const [userCredits, setUserCredits] = useState<number>(0);
+  const [userCredits, setUserCredits] = useState<number>(5);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
@@ -132,7 +133,11 @@ export default function BookingsPage() {
   }, [selectedDate]);
 
   const handleFetchClasses = async () => {
-    const data = await fetchClasses({ date: selectedDate as Dayjs });
+    const data = await fetchClasses({
+      userId: user?.id,
+      selectedDate: selectedDate as Dayjs,
+    });
+    console.log("data: ", data);
 
     if (data) {
       const mapped = data?.map((item: any, index: number) => ({
@@ -144,8 +149,10 @@ export default function BookingsPage() {
         available_slots: item.available_slots,
         taken_slots: item.taken_slots,
         slots: `${item.taken_slots} / ${item.available_slots}`,
+        classBookings: item?.class_bookings?.[0] ?? [],
       }));
 
+      console.log("mapped: ", mapped);
       setClasses(mapped);
     }
   };
@@ -153,6 +160,22 @@ export default function BookingsPage() {
   const handleAcceptTermsChange = (e: any) => {
     setAcceptsTerms(e.target.checked);
   };
+
+  useEffect(() => {
+    console.log("selectedRecord: ", selectedRecord);
+  }, [selectedRecord]);
+
+  const handleBookClass = async () => {
+    console.log("user: ", user);
+    if (user) {
+      const response = await bookClass({
+        bookerId: user.id,
+        classId: selectedRecord.key,
+      });
+      console.log("response: ", response);
+    }
+  };
+
   const handleOpenModal = (item: any) => {
     setIsModalOpen(true);
     setSelectedRecord(item);
@@ -166,26 +189,38 @@ export default function BookingsPage() {
   const renderActionButton = useMemo(
     () => (item: any) =>
       (
-        <Button
-          type="primary"
-          disabled={userCredits === 0 ? false : item.available === 0}
-          onClick={() => {
-            if (userCredits === 0) {
-              router.push("/credits");
-            } else {
-              handleOpenModal(item);
-            }
-          }}
-          className={`bg-[#36013F] ${
-            userCredits === 0
-              ? "hover:!bg-[#36013F]"
-              : item.available === 0
-              ? ""
-              : "hover:!bg-[#36013F]"
-          } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
-        >
-          {userCredits === 0 ? "Get Tokens" : "Join"}
-        </Button>
+        <>
+          {selectedRecord?.classBookings && (
+            <Button
+              type="primary"
+              disabled={userCredits === 0 ? false : item.available === 0}
+              onClick={() => {
+                if (userCredits === 0) {
+                  router.push("/credits");
+                } else {
+                  handleOpenModal(item);
+                }
+              }}
+              className={`bg-[#36013F] ${
+                userCredits === 0
+                  ? "hover:!bg-[#36013F]"
+                  : item.available === 0
+                  ? ""
+                  : "hover:!bg-[#36013F]"
+              } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+            >
+              {userCredits === 0 ? "Get Tokens" : "Join"}
+            </Button>
+          )}
+          {!selectedRecord?.classBookings && (
+            <Button
+              type="primary"
+              className={`bg-[green] hover:!bg-[green] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+            >
+              Joined
+            </Button>
+          )}
+        </>
       ),
     [userCredits]
   );
@@ -341,6 +376,8 @@ export default function BookingsPage() {
             </Checkbox>
           </Row>
           <Button
+            onClick={handleBookClass}
+            loading={loading}
             disabled={!acceptsTerms}
             className={`bg-[#36013F] ${
               acceptsTerms ? "hover:!bg-[#36013F]" : ""
