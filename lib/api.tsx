@@ -160,13 +160,28 @@ export const useInstructorManagement = () => {
 export const useClassManagement = () => {
   const [loading, setLoading] = useState(false);
 
-  const fetchClasses = async ({ date }: { date: Dayjs }) => {
+  const fetchClasses = async ({
+    startDate,
+    endDate,
+    date,
+  }: {
+    startDate?: Dayjs;
+    endDate?: Dayjs;
+    date: Dayjs;
+  }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("classes")
-      .select("*")
-      .eq("class_date", date.format("YYYY-MM-DD"));
+    let query = supabase.from("classes").select("*");
+
+    if (startDate && endDate) {
+      query
+        .gte("class_date", startDate.format("YYYY-MM-DD"))
+        .lte("class_date", endDate.format("YYYY-MM-DD"));
+    } else {
+      query.eq("class_date", date.format("YYYY-MM-DD"));
+    }
+
+    const { data, error } = await query;
 
     if (error) return null;
 

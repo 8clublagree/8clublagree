@@ -14,7 +14,6 @@ import ManualBookingForm from "@/components/forms/ManualBookingForm";
 import { useClassManagement } from "@/lib/api";
 
 export default function ClassManagementPage() {
-  // const { createClass, loading } = useCreateClass();
   const { createClass, updateClass, fetchClasses, loading } =
     useClassManagement();
   const [classes, setClasses] = useState<any[]>([]);

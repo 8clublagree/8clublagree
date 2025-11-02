@@ -23,3 +23,10 @@ export interface CreatePackageProps {
   promo: boolean;
   validity_period: number;
 }
+
+export interface ChartData {
+  label: string;
+  start: number;
+  end: number;
+  color: string;
+}
