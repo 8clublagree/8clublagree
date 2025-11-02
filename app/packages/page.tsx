@@ -10,15 +10,19 @@ import {
   Drawer,
   Checkbox,
   Divider,
+  Carousel,
 } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { formatPrice } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 
 const { Title } = Typography;
 
 export default function PackagesPage() {
+  const carouselRef = useRef<any>(null);
+
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -221,56 +225,72 @@ export default function PackagesPage() {
           body: { paddingTop: 24 },
         }}
       >
-        <Col className="flex flex-col items-center">
-          <Avatar
-            className="!text-[50px] bg-[#36013F] border w-full"
-            size={200}
-          >
-            30
-          </Avatar>
-          <Divider />
-          <Col className="items-start w-full">
-            <Row wrap={false} className="mb-[20px] items-start w-full">
-              <Title level={5}>
-                Package:{" "}
-                <span className="font-normal">{selectedRecord?.title}</span>
-              </Title>
+        <Carousel
+          ref={carouselRef}
+          autoplay={false}
+          infinite={false}
+          dots={false}
+        >
+          <Col className="flex flex-col items-center">
+            <Avatar
+              className="!text-[50px] bg-[#36013F] border w-full"
+              size={200}
+            >
+              30
+            </Avatar>
+            <Divider />
+            <Col className="items-start w-full">
+              <Row wrap={false} className="mb-[20px] items-start w-full">
+                <Title level={5}>
+                  Package:{" "}
+                  <span className="font-normal">{selectedRecord?.title}</span>
+                </Title>
+              </Row>
+              <Row wrap={false} className="mb-[20px] items-start w-full">
+                <Title level={5}>
+                  Price:{" "}
+                  <span className="font-normal">
+                    PHP {formatPrice(selectedRecord?.price)}
+                  </span>
+                </Title>
+              </Row>
+              <Row wrap={false} className="mb-[20px] items-start w-full">
+                <Title level={5}>
+                  Validity Period:{" "}
+                  <span className="font-normal">
+                    {selectedRecord?.validity} days
+                  </span>
+                </Title>
+              </Row>
+            </Col>
+            <Row justify={"start"} className="w-full mb-[10px]">
+              <Checkbox onChange={handleAcceptTermsChange}>
+                I have read the
+              </Checkbox>
+              <a className="text-blue-400">Terms and Conditions</a>
             </Row>
-            <Row wrap={false} className="mb-[20px] items-start w-full">
-              <Title level={5}>
-                Price:{" "}
-                <span className="font-normal">
-                  PHP {formatPrice(selectedRecord?.price)}
-                </span>
-              </Title>
-            </Row>
-            <Row wrap={false} className="mb-[20px] items-start w-full">
-              <Title level={5}>
-                Validity Period:{" "}
-                <span className="font-normal">
-                  {selectedRecord?.validity} days
-                </span>
-              </Title>
-            </Row>
+            <Button
+              onClick={() => carouselRef.current.next()}
+              disabled={!acceptsTerms}
+              className={`bg-[#36013F] ${
+                acceptsTerms ? "hover:!bg-[#36013F]" : ""
+              } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
+            >
+              Continue
+            </Button>
+            <span className="font-normal text-slate-500">
+              You won&apos;t be charged yet.
+            </span>
           </Col>
-          <Row justify={"start"} className="w-full mb-[10px]">
-            <Checkbox onChange={handleAcceptTermsChange}>
-              I have read the
-            </Checkbox>
-            <a className="text-blue-400">Terms and Conditions</a>
-          </Row>
-          <Button
-            disabled={!acceptsTerms}
-            className={`bg-[#36013F] ${
-              acceptsTerms ? "hover:!bg-[#36013F]" : ""
-            } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full h-[50px]`}
-          >
-            Continue
-          </Button>
-          <span className="font-normal text-slate-500">
-            You won&apos;t be charged yet.
-          </span>
-        </Col>
+          <Col className="flex flex-col items-center">
+            <ChevronLeft
+              size={20}
+              onClick={() => carouselRef.current.prev()}
+              className="cursor-pointer"
+            />
+            <Title>Payment Details</Title>
+          </Col>
+        </Carousel>
       </Drawer>
     </AuthenticatedLayout>
   );

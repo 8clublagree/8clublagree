@@ -117,21 +117,13 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
                 isPast && "opacity-40 cursor-not-allowed hover:shadow-none"
               )}
             >
-              {/* <span
-                className={clsx(
-                  "text-[10px] sm:text-xs font-semibold",
-                  isSelected ? "text-white/80" : "text-gray-500"
-                )}
-              >
-                {date.format("MMM").toUpperCase()}
-              </span> */}
               <span
                 className={clsx(
                   "text-[10px] sm:text-sm",
                   isSelected ? "text-white/80" : "text-gray-600"
                 )}
               >
-                {date.format("dddd")}
+                {date.format("ddd")}
               </span>
               <span className="text-xl sm:text-2xl md:text-3xl font-bold leading-none">
                 {date.format("DD")}
