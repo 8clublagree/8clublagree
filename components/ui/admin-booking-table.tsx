@@ -261,10 +261,6 @@ const AdminBookingTable = ({
     [isMobile, searchedColumn, searchText, data]
   );
 
-  useEffect(() => {
-    console.log("Selected Record:", selectedRecord);
-  }, [selectedRecord]);
-
   const tempData = [
     { user: "John Doe" },
     { user: "Tom Cruise" },

@@ -27,7 +27,6 @@ export const useSearchUser = () => {
 
   const searchClients = async ({ name }: { name: string }) => {
     setLoading(true);
-    console.log("Searching for name: ", name);
 
     let query = supabase.from("user_profiles").select("*").eq("is_user", true);
 
@@ -45,7 +44,6 @@ export const useSearchUser = () => {
 
   const searchInstructors = async ({ name }: { name?: string }) => {
     setLoading(true);
-    console.log("Searching for name: ", name);
 
     let query = supabase.from("instructors").select("*");
 
@@ -216,8 +214,6 @@ export const useClassManagement = () => {
       .from("classes")
       .update(values)
       .eq("id", id);
-
-    console.log("dataL ", data);
 
     if (error) return null;
 

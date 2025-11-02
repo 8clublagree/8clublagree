@@ -20,31 +20,8 @@ export default function ClientManagementPage() {
   const [input, setInput] = useState<string>("");
   const { debouncedValue } = useDebounce(input, 1000);
   const { searchClients, loading } = useSearchUser();
-  const instructors = [
-    {
-      name: "Alice Smith",
-      role: "Lead Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "Bob Johnson",
-      role: "Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "Carol Lee",
-      role: "Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "David Kim",
-      role: "Instructor",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-  ];
 
   useEffect(() => {
-    console.log("fetching all");
     handleSearchClients();
   }, []);
 
@@ -63,17 +40,13 @@ export default function ClientManagementPage() {
   };
 
   const handleEdit = (record: any) => {
-    console.log("record: ", record);
     setEditingRecord(record);
     setIsModalOpen(true);
   };
 
   const handleSubmit = (values: any) => {
-    console.log("Form values:", values);
-
     // if (editingRecord) {
     //   const index = data.findIndex((item) => item.key === editingRecord.key);
-    //   console.log("index: ", index);
     //   if (index !== -1) {
     //     const currentSlots = data[index].slots.split("/")[0].trim();
     //     data[index] = {
@@ -100,7 +73,6 @@ export default function ClientManagementPage() {
 
   const handleSearchClients = async () => {
     const data = await searchClients({ name: debouncedValue });
-    console.log(data);
     setClients(data);
   };
 

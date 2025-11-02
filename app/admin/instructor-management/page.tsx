@@ -92,7 +92,6 @@ export default function InstructorManagementPage() {
           })
         );
 
-        console.log("usersWithSignedUrls: ", usersWithSignedUrls);
         setInstructors(usersWithSignedUrls);
       }
     } catch (error) {
@@ -111,7 +110,6 @@ export default function InstructorManagementPage() {
   };
 
   const handleEdit = (record: any) => {
-    console.log(record);
     setEditingRecord(record);
     setIsModalOpen(true);
   };

@@ -69,8 +69,6 @@ export default function ClassManagementPage() {
 
       setClasses(mapped);
     }
-
-    console.log("fetched classes: ", data);
   };
 
   const handleOpenBookingModal = () => {
@@ -98,7 +96,6 @@ export default function ClassManagementPage() {
   const handleSubmit = async (values: any) => {
     if (editingRecord) {
       const index = classes.findIndex((item) => item.key === editingRecord.key);
-      console.log("index :", index);
       if (index !== -1) {
         await updateClass({
           id: editingRecord.key,

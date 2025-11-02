@@ -72,17 +72,14 @@ export default function CreateInstructorForm({
   }, [initialValues, form]);
 
   const handleUpload = async (file: any) => {
-    console.log(file);
     try {
       if (!!file.length) {
         setUploading(true);
 
-        // 1️⃣ Generate unique file name
         const filePath = `${dayjs().toDate().getTime()}`;
         const fileExt = (file[0] as File).name.split(".").pop();
         const fileName = `${filePath}.${fileExt}`;
 
-        // 2️⃣ Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
           .from(BUCKET_NAME)
           .upload(fileName, file[0].originFileObj as File, {
@@ -92,16 +89,6 @@ export default function CreateInstructorForm({
 
         if (uploadError) throw uploadError;
 
-        // 4️⃣ Save the image path to your database
-        // const { error: dbError } = await supabase.from("instructors").insert({
-        //   image_url: publicUrl, // or store filePath if you prefer private access
-        // });
-
-        // if (dbError) throw dbError;
-
-        message.success("Image uploaded successfully!");
-
-        // const imageURL = publicUrl.split("/").pop(); // "045
         const imageURL = fileName;
 
         return imageURL;
@@ -150,8 +137,6 @@ export default function CreateInstructorForm({
       }
 
       const formData = { ...formattedValues, avatar_path: imageURL };
-
-      console.log("formData: ", formData);
 
       onSubmit(formData);
       form.resetFields();

@@ -73,7 +73,6 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    console.log("trigger");
     const { data: profile } = await supabase
       .from("user_profiles")
       .select("*")

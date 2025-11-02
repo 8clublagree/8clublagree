@@ -148,8 +148,6 @@ export default function BookingsPage() {
 
       setClasses(mapped);
     }
-
-    console.log("fetched classes: ", data);
   };
 
   const handleAcceptTermsChange = (e: any) => {

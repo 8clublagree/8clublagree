@@ -80,7 +80,6 @@ export default function PackageManagementPage() {
 
   const handleFetchPackages = async () => {
     const response = await fetchPackages();
-    console.log(response);
     if (response) {
       const mapped = response.map((pkg: any, index: number) => ({
         key: pkg.id,
@@ -89,7 +88,6 @@ export default function PackageManagementPage() {
         validity_period: pkg.validity_period,
         promo: pkg.package_type === "promo",
       }));
-      console.log("mapped: ", mapped);
       setPackages(mapped);
     }
   };

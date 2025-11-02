@@ -207,7 +207,6 @@ export default function DashboardPage() {
     };
 
     // uncomment to verify the shape at runtime
-    // console.log("chart data", data);
 
     const options: ChartOptions<"bar"> = {
       responsive: true,
