@@ -1,7 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { Dayjs, isDayjs } from "dayjs";
 import { twMerge } from "tailwind-merge";
 import { ChartData } from "./props";
+import { Day } from "react-day-picker";
 
 export const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 export const ganttColors = [
@@ -69,11 +70,14 @@ export const formatTime = (dateTime: Dayjs) => {
 };
 
 export const calculateDuration = (start: Dayjs, end: Dayjs): string => {
-  if (end.isBefore(start)) {
-    end = end.add(1, "day");
+  let endTime = isDayjs(end) ? end : dayjs(end);
+  let startTime = isDayjs(start) ? start : dayjs(start);
+
+  if (endTime.isBefore(startTime)) {
+    endTime = endTime.add(1, "day");
   }
 
-  const diffInMinutes = end.diff(start, "minute");
+  const diffInMinutes = endTime.diff(startTime, "minute");
   const hours = Math.floor(diffInMinutes / 60);
   const minutes = diffInMinutes % 60;
 

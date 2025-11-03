@@ -181,7 +181,10 @@ export const useClassManagement = () => {
         id,
         booker_id,
         class_id
-      )
+      ),
+      instructors (
+      avatar_path
+    )
     `);
 
     if (userId) {

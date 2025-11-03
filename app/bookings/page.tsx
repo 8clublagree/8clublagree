@@ -12,7 +12,6 @@ import {
   Drawer,
   Checkbox,
 } from "antd";
-import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import dayjs, { Dayjs } from "dayjs";
@@ -20,7 +19,8 @@ import { useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import { useClassManagement } from "@/lib/api";
-import { calculateDuration, getSlotsLeft } from "@/lib/utils";
+import { calculateDuration } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/lib/hooks";
 
 const { Title, Text } = Typography;
@@ -28,7 +28,7 @@ const { Title, Text } = Typography;
 export default function BookingsPage() {
   const router = useRouter();
   const user = useAppSelector((state) => state.auth.user);
-  const { bookClass, fetchClasses, loading } = useClassManagement();
+  const { fetchClasses, bookClass, loading } = useClassManagement();
   const [classes, setClasses] = useState<any[]>([]);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [userCredits, setUserCredits] = useState<number>(5);
@@ -36,72 +36,6 @@ export default function BookingsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
-  const data = [
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 3,
-    },
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 0,
-    },
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 1,
-    },
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 7,
-    },
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 7,
-    },
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 7,
-    },
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 7,
-    },
-    {
-      time: "07:00AM",
-      duration: "50 mins",
-      date: dayjs("2024-10-10").format("MMM D YYYY"),
-      instructor: "Jane Doe",
-      limit: 10,
-      available: 7,
-    },
-  ];
 
   useEffect(() => {
     const handleResize = () => {
@@ -133,26 +67,38 @@ export default function BookingsPage() {
   }, [selectedDate]);
 
   const handleFetchClasses = async () => {
-    const data = await fetchClasses({
-      userId: user?.id,
-      selectedDate: selectedDate as Dayjs,
-    });
-    console.log("data: ", data);
+    const data = await fetchClasses({ selectedDate: selectedDate as Dayjs });
 
     if (data) {
-      const mapped = data?.map((item: any, index: number) => ({
-        key: item.id,
-        instructor_id: item.instructor_id,
-        instructor_name: item.instructor_name,
-        start_time: dayjs(item.start_time),
-        end_time: dayjs(item.end_time),
-        available_slots: item.available_slots,
-        taken_slots: item.taken_slots,
-        slots: `${item.taken_slots} / ${item.available_slots}`,
-        classBookings: item?.class_bookings?.[0] ?? [],
-      }));
+      const mapped = await Promise.all(
+        data.map(async (lagreeClass) => {
+          // if (!user.avatar_path) return user; // skip if no avatar
 
-      console.log("mapped: ", mapped);
+          // generate signed URL valid for 1 hour (3600s)
+          const { data, error: urlError } = await supabase.storage
+            .from("user-photos")
+            .createSignedUrl(`${lagreeClass.instructors.avatar_path}`, 3600);
+
+          if (urlError) {
+            console.error("Error generating signed URL:", urlError);
+          }
+
+          console.log(lagreeClass);
+          return {
+            ...lagreeClass,
+            key: lagreeClass.id,
+            avatar_url: urlError ? null : data?.signedUrl,
+            instructor_id: lagreeClass.instructor_id,
+            instructor_name: lagreeClass.instructor_name,
+            start_time: dayjs(lagreeClass.start_time),
+            end_time: dayjs(lagreeClass.end_time),
+            available_slots: lagreeClass.available_slots,
+            taken_slots: lagreeClass.taken_slots,
+            slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
+          };
+        })
+      );
+
       setClasses(mapped);
     }
   };
@@ -160,22 +106,6 @@ export default function BookingsPage() {
   const handleAcceptTermsChange = (e: any) => {
     setAcceptsTerms(e.target.checked);
   };
-
-  useEffect(() => {
-    console.log("selectedRecord: ", selectedRecord);
-  }, [selectedRecord]);
-
-  const handleBookClass = async () => {
-    console.log("user: ", user);
-    if (user) {
-      const response = await bookClass({
-        bookerId: user.id,
-        classId: selectedRecord.key,
-      });
-      console.log("response: ", response);
-    }
-  };
-
   const handleOpenModal = (item: any) => {
     setIsModalOpen(true);
     setSelectedRecord(item);
@@ -186,11 +116,28 @@ export default function BookingsPage() {
     setSelectedRecord(null);
   };
 
+  const handleBookClass = async () => {
+    if (user) {
+      await bookClass({
+        classId: selectedRecord.id,
+        bookerId: user?.id as string,
+      });
+    }
+  };
+
   const renderActionButton = useMemo(
     () => (item: any) =>
       (
         <>
-          {selectedRecord?.classBookings && (
+          {!!item.class_bookings.length && (
+            <Button
+              type="primary"
+              className={`bg-[green] hover:!bg-[green] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+            >
+              Joined
+            </Button>
+          )}
+          {!item.class_bookings.length && (
             <Button
               type="primary"
               disabled={userCredits === 0 ? false : item.available === 0}
@@ -210,14 +157,6 @@ export default function BookingsPage() {
               } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
               {userCredits === 0 ? "Get Tokens" : "Join"}
-            </Button>
-          )}
-          {!selectedRecord?.classBookings && (
-            <Button
-              type="primary"
-              className={`bg-[green] hover:!bg-[green] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
-            >
-              Joined
             </Button>
           )}
         </>
@@ -277,13 +216,13 @@ export default function BookingsPage() {
                 itemLayout="horizontal"
                 dataSource={classes}
                 renderItem={(item, index) => (
-                  <List.Item actions={[renderActionButton(item)]}>
+                  <List.Item key={index} actions={[renderActionButton(item)]}>
                     <Row className="wrap-none items-center gap-4">
                       <Col className="flex flex-col items-center">
                         <Avatar
                           className="border-gray-500 border"
                           size={60}
-                          src={`https://api.dicebear.com/7.x/miniavs/svg?seed=${index}`}
+                          src={item.avatar_url}
                         />
                         <p>
                           <span className="font-light">
@@ -327,12 +266,12 @@ export default function BookingsPage() {
               />
             </div>
 
-            {data.length === 0 && (
+            {/* {classes.length === 0 && (
               <div className="text-center py-12 text-slate-500">
                 <CalendarOutlined className="text-4xl mb-4" />
                 <p>No bookings yet. Start by creating your first booking.</p>
               </div>
-            )}
+            )} */}
           </Card>
         </Row>
       </div>
@@ -350,7 +289,7 @@ export default function BookingsPage() {
           <Avatar
             className="border-gray-500 border w-full"
             size={200}
-            src={`https://api.dicebear.com/7.x/miniavs/svg?seed=0`}
+            src={selectedRecord?.avatar_url}
           />
           <Divider />
           <Col className="mb-[20px] items-start w-full">
@@ -376,9 +315,9 @@ export default function BookingsPage() {
             </Checkbox>
           </Row>
           <Button
-            onClick={handleBookClass}
             loading={loading}
-            disabled={!acceptsTerms}
+            onClick={handleBookClass}
+            disabled={!acceptsTerms || loading}
             className={`bg-[#36013F] ${
               acceptsTerms ? "hover:!bg-[#36013F]" : ""
             } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full h-[40px]`}
