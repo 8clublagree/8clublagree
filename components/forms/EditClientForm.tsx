@@ -147,26 +147,18 @@ const EditClientForm = ({
       if (response) {
         imageURL = response;
       }
-
-      const formData = {
-        ...values,
-        avatar_path: imageURL,
-        full_name: `${values.first_name} ${values.last_name}`,
-      };
-
-      onSubmit(formData);
-      console.log("Form Values:", formData);
     }
+    const formData = {
+      ...values,
+      ...(!!imageURL.length && { avatar_path: imageURL }),
+      full_name: `${values.first_name} ${values.last_name}`,
+    };
+
+    onSubmit(formData);
+    console.log("Form Values:", formData);
   };
   return (
-    <Form
-      layout="vertical"
-      form={form}
-      onFinish={handleSubmit}
-      initialValues={{
-        birthday: dayjs(),
-      }}
-    >
+    <Form layout="vertical" form={form} onFinish={handleSubmit}>
       <Title level={3}>Personal Information</Title>
       <Col>
         <Row gutter={[16, 0]}>
