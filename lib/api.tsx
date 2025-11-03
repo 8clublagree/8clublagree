@@ -29,12 +29,12 @@ export const useSearchUser = () => {
     return data;
   };
 
-  const searchClients = async ({ name }: { name: string }) => {
+  const searchClients = async ({ name }: { name?: string }) => {
     setLoading(true);
 
     let query = supabase.from("user_profiles").select("*").eq("is_user", true);
 
-    if (!!name.length) {
+    if (!!name?.length) {
       query = query.ilike("full_name", `%${name}%`);
     }
 

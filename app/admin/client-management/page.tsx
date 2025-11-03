@@ -2,13 +2,11 @@
 export const dynamic = "force-dynamic";
 
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
-import { Card, Row, Col, Typography, Input, Spin, Drawer, Modal } from "antd";
+import { Row, Typography, Spin, Drawer } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import { IoIosSearch } from "react-icons/io";
 import { useSearchUser, useUpdateUser } from "@/lib/api";
 import { useEffect, useState } from "react";
 import useDebounce from "@/hooks/use-debounce";
-import { User } from "lucide-react";
 import EditClientForm from "@/components/forms/EditClientForm";
 import { supabase } from "@/lib/supabase";
 import AdminClientTable from "@/components/ui/admin-client-table";
@@ -20,17 +18,18 @@ export default function ClientManagementPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any | null>(null);
   const [clients, setClients] = useState<any[]>([]);
-  const [input, setInput] = useState<string>("");
-  const { debouncedValue } = useDebounce(input, 1000);
+  // const [input, setInput] = useState<string>("");
+  // const { debouncedValue } = useDebounce(input, 1000);
   const { searchClients, loading } = useSearchUser();
   const { updateUser, loading: updating } = useUpdateUser();
 
-  useEffect(() => {
-    handleSearchClients();
-  }, [debouncedValue]);
+  // useEffect(() => {
+  //   handleSearchClients();
+  // }, [debouncedValue]);
 
   const handleSearchClients = async () => {
-    const data = await searchClients({ name: debouncedValue });
+    // const data = await searchClients({ name: debouncedValue });
+    const data = await searchClients({});
 
     try {
       if (data) {
