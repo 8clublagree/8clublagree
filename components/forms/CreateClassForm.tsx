@@ -30,16 +30,6 @@ export default function CreateClassForm({
   const [form] = Form.useForm();
   const [instructors, setInstructors] = useState<any>([]);
   const { searchInstructors, loading: fetchingInstructors } = useSearchUser();
-  const handleSearchInstructors = async () => {
-    const data = await searchInstructors({});
-
-    if (data) {
-      const mapped = data.map((inst, key) => {
-        return { value: inst.full_name, label: inst.full_name, id: inst.id };
-      });
-      setInstructors(mapped);
-    }
-  };
 
   useEffect(() => {
     handleSearchInstructors();
@@ -58,13 +48,18 @@ export default function CreateClassForm({
     } else {
       form.resetFields();
     }
-  }, [initialValues, form]);
+  }, [initialValues]);
 
-  // const instructors = [
-  //   { value: "instructor1", label: "John Doe" },
-  //   { value: "instructor2", label: "Jane Smith" },
-  //   { value: "instructor3", label: "Mike Johnson" },
-  // ];
+  const handleSearchInstructors = async () => {
+    const data = await searchInstructors({});
+
+    if (data) {
+      const mapped = data.map((inst, key) => {
+        return { value: inst.full_name, label: inst.full_name, id: inst.id };
+      });
+      setInstructors(mapped);
+    }
+  };
 
   const handleFinish = (values: any) => {
     const instructor = instructors.find(
@@ -81,7 +76,7 @@ export default function CreateClassForm({
     };
 
     onSubmit(omit(formattedValues, ["time", "slots"]));
-    // form.resetFields();
+    form.resetFields();
   };
 
   return (

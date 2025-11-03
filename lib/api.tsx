@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { supabase, UpdateUserProfile } from "./supabase";
-import { CreateClassProps, CreateInstructorProps } from "./props";
+import {
+  CreateClassProps,
+  CreateInstructorProps,
+  CreatePackageProps,
+} from "./props";
 import { Dayjs } from "dayjs";
 
 export const useSearchUser = () => {
@@ -293,7 +297,7 @@ export const usePackageManagement = () => {
     values,
   }: {
     id: string;
-    values: CreateClassProps;
+    values: CreatePackageProps;
   }) => {
     setLoading(true);
 

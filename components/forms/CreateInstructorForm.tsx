@@ -124,6 +124,10 @@ export default function CreateInstructorForm({
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
     });
+
+  const handleChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
+    setFile(newFileList);
+  };
   const handleFinish = async (values: any) => {
     let imageURL: string = "";
     const formattedValues = {
@@ -141,10 +145,6 @@ export default function CreateInstructorForm({
       onSubmit(formData);
       form.resetFields();
     }
-  };
-
-  const handleChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
-    setFile(newFileList);
   };
 
   return (

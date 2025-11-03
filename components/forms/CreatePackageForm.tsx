@@ -24,9 +24,10 @@ export default function CreatePackageForm({
   const [form] = Form.useForm();
 
   useEffect(() => {
+    console.log(initialValues);
     if (initialValues) {
       form.setFieldsValue({
-        name: initialValues.name,
+        name: initialValues.title,
         price: initialValues.price,
         validity_period: initialValues.validity_period,
         promo: initialValues.promo,
@@ -173,6 +174,7 @@ export default function CreatePackageForm({
               htmlType="submit"
               size="large"
               loading={loading}
+              disabled={loading}
               block
               className="bg-[#36013F] hover:!bg-[#36013F] !border-none"
             >

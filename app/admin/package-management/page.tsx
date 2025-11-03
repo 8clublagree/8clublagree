@@ -44,7 +44,8 @@ let data: CreatePackageProps[] = [
 
 export default function PackageManagementPage() {
   const [packages, setPackages] = useState<any[]>([]);
-  const { createPackage, fetchPackages, loading } = usePackageManagement();
+  const { createPackage, updatePackage, fetchPackages, loading } =
+    usePackageManagement();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [editingRecord, setEditingRecord] = useState<CreatePackageProps | null>(
@@ -114,30 +115,22 @@ export default function PackageManagementPage() {
       package_type: values.promo ? "promo" : "regular",
       validity_period: values.validity_period,
     };
-    if (editingRecord) {
-      const index = data.findIndex((item) => item.key === editingRecord.key);
-      if (index !== -1) {
-        data[index] = {
-          ...data[index],
-          name: values.name,
-          price: values.price,
-          promo: values.promo,
-          validity_period: values.validity_period,
-        };
+    try {
+      if (editingRecord) {
+        await updatePackage({
+          id: editingRecord?.key as string,
+          values: formData,
+        });
+      } else {
+        await createPackage({ values: formData });
       }
-    } else {
-      await createPackage({ values: formData });
-      data.push({
-        key: (data.length + 1).toString(),
-        name: values.name,
-        price: values.price,
-        promo: values.promo,
-        validity_period: values.validity_period,
-      });
-    }
 
-    setIsModalOpen(false);
-    setEditingRecord(null);
+      setIsModalOpen(false);
+      setEditingRecord(null);
+      handleFetchPackages();
+    } catch (error) {
+      console.error("Error submitting package:", error);
+    }
   };
 
   return (
@@ -160,7 +153,11 @@ export default function PackageManagementPage() {
               Create
             </Button>
           </Row>
-          <AdminPackageTable data={[...packages]} onEdit={handleEdit} />
+          <AdminPackageTable
+            loading={loading}
+            data={[...packages]}
+            onEdit={handleEdit}
+          />
         </div>
         {isMobile ? (
           <Drawer
@@ -174,6 +171,7 @@ export default function PackageManagementPage() {
             }}
           >
             <CreatePackageForm
+              loading={loading}
               onSubmit={handleSubmit}
               onCancel={handleCloseModal}
               initialValues={editingRecord}
@@ -190,6 +188,7 @@ export default function PackageManagementPage() {
           >
             <div className="pt-4">
               <CreatePackageForm
+                loading={loading}
                 onSubmit={handleSubmit}
                 onCancel={handleCloseModal}
                 initialValues={editingRecord}

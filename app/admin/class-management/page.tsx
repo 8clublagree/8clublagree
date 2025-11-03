@@ -59,6 +59,7 @@ export default function ClassManagementPage() {
 
     if (data) {
       const mapped = data?.map((item: any, index: number) => ({
+        key: index,
         id: item.id,
         instructor_id: item.instructor_id,
         instructor_name: item.instructor_name,
@@ -94,33 +95,39 @@ export default function ClassManagementPage() {
   };
 
   const handleSubmit = async (values: any) => {
-    if (editingRecord) {
-      const index = classes.findIndex((item) => item.key === editingRecord.key);
-      if (index !== -1) {
+    try {
+      if (editingRecord) {
+        console.log("Editing record:", editingRecord);
+
         await updateClass({
-          id: editingRecord.key,
+          id: editingRecord.id as string,
           values: { ...values, class_date: selectedDate?.format("YYYY-MM-DD") },
         });
 
         handleFetchClasses();
         message.success("Class has been updated");
-      }
-    } else {
-      // CREATE INSTRUCTOR MANAGEMENT FIRST
-      try {
-        await createClass({
-          values: { ...values, class_date: selectedDate?.format("YYYY-MM-DD") },
-        });
+      } else {
+        // CREATE INSTRUCTOR MANAGEMENT FIRST
+        try {
+          await createClass({
+            values: {
+              ...values,
+              class_date: selectedDate?.format("YYYY-MM-DD"),
+            },
+          });
 
-        handleFetchClasses();
-        message.success("Class has been created!");
-      } catch (error) {
-        message.error("Failed to create class.");
+          handleFetchClasses();
+          message.success("Class has been created!");
+        } catch (error) {
+          message.error("Failed to create class.");
+        }
       }
+
+      setIsModalOpen(false);
+      setEditingRecord(null);
+    } catch (error) {
+      message.error("An error occurred. Please try again.");
     }
-
-    setIsModalOpen(false);
-    setEditingRecord(null);
   };
 
   return (
@@ -214,6 +221,7 @@ export default function ClassManagementPage() {
             }}
           >
             <CreateClassForm
+              loading={loading}
               onSubmit={handleSubmit}
               onCancel={handleCloseModal}
               initialValues={editingRecord}
@@ -230,6 +238,7 @@ export default function ClassManagementPage() {
           >
             <div className="pt-4">
               <CreateClassForm
+                loading={loading}
                 onSubmit={handleSubmit}
                 onCancel={handleCloseModal}
                 initialValues={editingRecord}

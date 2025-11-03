@@ -17,7 +17,7 @@ import {
   LogoutOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
-import { FaBook } from "react-icons/fa";
+import { FaBook, FaFileContract } from "react-icons/fa";
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
@@ -100,6 +100,7 @@ export default function AuthenticatedLayout({
     if (pathname === "/admin/instructor-management") return "3";
     if (pathname === "/admin/class-management") return "4";
     if (pathname === "/admin/package-management") return "5";
+    if (pathname === "/admin/user-terms-and-conditions") return "6";
     return "1";
   };
 
@@ -130,6 +131,15 @@ export default function AuthenticatedLayout({
       key: "5",
       icon: <LuPackage />,
       label: <Link href="/admin/package-management">Package Management</Link>,
+    },
+    {
+      key: "6",
+      icon: <FaFileContract />,
+      label: (
+        <Link href="/admin/user-terms-and-conditions">
+          Terms and Conditions
+        </Link>
+      ),
     },
   ];
 

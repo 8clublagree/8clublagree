@@ -48,7 +48,7 @@ export default function ProfilePage() {
 
     if (response) {
       const updated = { ...formData, ...user, id: user?.id as string };
-      dispatch(setUser(updated));
+      dispatch(setUser(updated as any));
       message.success("Profile updated successfully!");
     }
   };

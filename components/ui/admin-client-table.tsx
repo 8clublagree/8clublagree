@@ -1,28 +1,39 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import { Button, Input, Row, Space, Table, Modal, Typography, App } from "antd";
+import {
+  Button,
+  Input,
+  Row,
+  Space,
+  Table,
+  Modal,
+  Typography,
+  App,
+  Image,
+} from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
-import { CreatePackageProps } from "@/lib/props";
+import { CreatePackageProps, UserProps } from "@/lib/props";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { formatPrice } from "@/lib/utils";
+import { UserIcon } from "lucide-react";
 
-type DataIndex = keyof CreatePackageProps;
+type DataIndex = keyof UserProps;
 
 const { Text } = Typography;
 
-interface AdminPackageTableProps {
-  data: CreatePackageProps[];
+interface AdminClientsTableProps {
+  data: UserProps[];
   loading?: boolean;
-  onEdit: (record: CreatePackageProps) => void;
+  onEdit: (record: UserProps) => void;
 }
 
-const AdminPackageTable = ({
+const AdminClientTable = ({
   data,
   onEdit,
   loading = false,
-}: AdminPackageTableProps) => {
+}: AdminClientsTableProps) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [isMobile, setIsMobile] = useState(false);
@@ -68,7 +79,7 @@ const AdminPackageTable = ({
     setSearchText("");
   };
 
-  const showDeleteConfirm = (record: CreatePackageProps) => {
+  const showDeleteConfirm = (record: UserProps) => {
     confirm({
       title: "Delete Package",
       icon: null,
@@ -88,7 +99,7 @@ const AdminPackageTable = ({
 
   const getColumnSearchProps = (
     dataIndex: DataIndex
-  ): TableColumnType<CreatePackageProps> => ({
+  ): TableColumnType<UserProps> => ({
     filterDropdown: ({
       setSelectedKeys,
       selectedKeys,
@@ -179,50 +190,58 @@ const AdminPackageTable = ({
       ),
   });
 
-  const columns = useMemo<TableColumnsType<CreatePackageProps>>(
+  const columns = useMemo<TableColumnsType<UserProps>>(
     () => [
       {
-        title: "Title",
-        dataIndex: "title",
-        key: "title",
-        width: isMobile ? undefined : "20%",
-        ...getColumnSearchProps("name"),
+        dataIndex: "avatar_url",
+        key: "avatar_url",
+        width: isMobile ? undefined : "3%",
+        render(_, record) {
+          return (
+            <Row className="justify-center">
+              {!record.avatar_url && (
+                <UserIcon
+                  className="rounded-2xl !h-[35px] !w-[35px]"
+                  size={30}
+                />
+              )}
+              {record.avatar_url && (
+                <Image
+                  className="rounded-2xl !h-[35px] !w-[35px]"
+                  alt={record.full_name}
+                  src={record.avatar_url}
+                />
+              )}
+            </Row>
+          );
+        },
       },
       {
-        title: "Price (PHP)",
-        dataIndex: "price",
-        key: "price",
-        width: isMobile ? undefined : "20%",
-        ...getColumnSearchProps("price"),
-        render: (_, record) => (
-          <Row>
-            <Text>{formatPrice(record.price as number)}</Text>
-          </Row>
-        ),
+        title: "Name",
+        dataIndex: "full_name",
+        key: "full_name",
+        width: isMobile ? undefined : "15%",
+        ...getColumnSearchProps("full_name"),
       },
       {
-        title: "Validity Period (days)",
-        dataIndex: "validity_period",
-        key: "validity_period",
-        width: isMobile ? undefined : "20%",
-        ...getColumnSearchProps("validity_period"),
+        title: "Email",
+        dataIndex: "email",
+        key: "email",
+        width: isMobile ? undefined : "15%",
+        ...getColumnSearchProps("email"),
       },
       {
-        title: "Package Type",
-        dataIndex: "promo",
-        key: "promo",
-        width: isMobile ? undefined : "20%",
-        ...getColumnSearchProps("promo"),
-        render: (_, record) => (
-          <Row>
-            <Text>{record.promo ? "Promo" : "Regular"}</Text>
-          </Row>
-        ),
+        title: "Contact Number",
+        dataIndex: "contact_number",
+        key: "contact_number",
+        width: isMobile ? undefined : "15%",
+        ...getColumnSearchProps("contact_number"),
       },
+
       {
         title: "Action",
         key: "action",
-        width: isMobile ? undefined : "10%",
+        width: isMobile ? undefined : "5%",
         fixed: isMobile ? undefined : "right",
         render: (_, record) => (
           <Row className="justify-center cursor-pointer gap-3">
@@ -240,7 +259,7 @@ const AdminPackageTable = ({
   );
 
   return (
-    <Table<CreatePackageProps>
+    <Table<UserProps>
       loading={loading}
       columns={columns}
       dataSource={data}
@@ -254,9 +273,9 @@ const AdminPackageTable = ({
           `${range[0]}-${range[1]} of ${total} items`,
       }}
       size={isMobile ? "small" : "middle"}
-      className="admin-booking-table"
+      className="admin-client-table"
     />
   );
 };
 
-export default AdminPackageTable;
+export default AdminClientTable;

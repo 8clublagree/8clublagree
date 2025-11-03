@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   output: "export",
   experimental: { turbo: false }, // <- explicitly disable turbopack
   webpack: (config) => {
