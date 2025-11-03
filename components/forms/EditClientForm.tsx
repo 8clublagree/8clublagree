@@ -6,7 +6,6 @@ import {
   Form,
   Row,
   Col,
-  DatePicker,
   Button,
   Typography,
   UploadFile,
@@ -16,7 +15,7 @@ import {
   Upload,
   Image,
 } from "antd";
-import { UserOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";

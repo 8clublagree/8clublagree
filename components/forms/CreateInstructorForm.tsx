@@ -50,14 +50,16 @@ export default function CreateInstructorForm({
   useEffect(() => {
     if (initialValues) {
       //   const totalSlots = initialValues.slots.split("/")[1].trim();
-      setFile([
-        {
-          uid: "-1",
-          name: "existing_image.png",
-          status: "done",
-          url: initialValues?.avatar_url,
-        },
-      ]);
+      if (initialValues?.avatar_url) {
+        setFile([
+          {
+            uid: "-1",
+            name: "existing_image.png",
+            status: "done",
+            url: initialValues?.avatar_url,
+          },
+        ]);
+      }
       form.setFieldsValue({
         first_name: initialValues.first_name,
         last_name: initialValues.last_name,
