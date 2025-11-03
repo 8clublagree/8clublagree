@@ -7,7 +7,7 @@ import {
   CreateInstructorProps,
   CreatePackageProps,
 } from "./props";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 export const useSearchUser = () => {
   const [loading, setLoading] = useState(false);
@@ -248,9 +248,11 @@ export const useClassManagement = () => {
   };
 
   const bookClass = async ({
+    classDate,
     bookerId,
     classId,
   }: {
+    classDate: string;
     bookerId: string;
     classId: string;
   }) => {
@@ -258,7 +260,7 @@ export const useClassManagement = () => {
 
     const { data, error } = await supabase
       .from("class_bookings")
-      .insert({ booker_id: bookerId, class_id: classId })
+      .insert({ booker_id: bookerId, class_id: classId, class_date: classDate })
       .select();
 
     if (error) return null;
@@ -316,4 +318,44 @@ export const usePackageManagement = () => {
   };
 
   return { loading, updatePackage, createPackage, fetchPackages };
+};
+
+export const useClientBookings = () => {
+  const [loading, setLoading] = useState(false);
+
+  const fetchClientBookings = async ({ userID }: { userID: string }) => {
+    setLoading(true);
+    const today = dayjs().startOf("day").format("YYYY-MM-DD");
+
+    const { data, error } = await supabase
+      .from("class_bookings")
+      .select(
+        `
+    id,
+    booker_id,
+    class_id,
+    class_date,
+    classes (
+      id,
+      start_time,
+      end_time,
+      instructor_id,
+      instructors (
+        id,
+        full_name,
+        avatar_path
+      )
+    )
+  `
+      )
+      .eq("booker_id", userID)
+      .gte("class_date", today);
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
+  return { loading, fetchClientBookings };
 };

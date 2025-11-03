@@ -28,7 +28,8 @@ const { Title, Text } = Typography;
 export default function BookingsPage() {
   const router = useRouter();
   const user = useAppSelector((state) => state.auth.user);
-  const { fetchClasses, bookClass, loading } = useClassManagement();
+  const { fetchClasses, updateClass, bookClass, loading } =
+    useClassManagement();
   const [classes, setClasses] = useState<any[]>([]);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [userCredits, setUserCredits] = useState<number>(5);
@@ -118,9 +119,21 @@ export default function BookingsPage() {
   const handleBookClass = async () => {
     if (user) {
       await bookClass({
+        classDate: dayjs().format("YYYY-MM-DD"),
         classId: selectedRecord.id,
         bookerId: user?.id as string,
       });
+
+      await updateClass({
+        id: selectedRecord.id,
+        values: {
+          taken_slots: selectedRecord.taken_slots + 1,
+          // available_slots: selectedRecord.available_slots - 1,
+        },
+      });
+
+      handleFetchClasses();
+      handleCloseModal();
     }
   };
 
@@ -139,7 +152,11 @@ export default function BookingsPage() {
           {!item.class_bookings.length && (
             <Button
               type="primary"
-              disabled={userCredits === 0 ? false : item.available === 0}
+              disabled={
+                userCredits === 0
+                  ? false
+                  : item.taken_slots === item.available_slots
+              }
               onClick={() => {
                 if (userCredits === 0) {
                   router.push("/credits");
@@ -150,7 +167,7 @@ export default function BookingsPage() {
               className={`bg-[#36013F] ${
                 userCredits === 0
                   ? "hover:!bg-[#36013F]"
-                  : item.available === 0
+                  : item.taken_slots === item.available_slots
                   ? ""
                   : "hover:!bg-[#36013F]"
               } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
@@ -276,6 +293,8 @@ export default function BookingsPage() {
       </div>
 
       <Drawer
+        keyboard={false}
+        maskClosable={false}
         placement="right"
         onClose={handleCloseModal}
         open={isModalOpen}

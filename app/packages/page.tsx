@@ -22,7 +22,7 @@ const { Title } = Typography;
 
 export default function PackagesPage() {
   const carouselRef = useRef<any>(null);
-
+  const [carouselSlide, setCarouselSlide] = useState(1);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,6 +84,16 @@ export default function PackagesPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedRecord(null);
+  };
+
+  const handleNext = () => {
+    setCarouselSlide(2);
+    carouselRef.current.next();
+  };
+
+  const handlePrev = () => {
+    setCarouselSlide(1);
+    carouselRef.current.prev();
   };
   return (
     <AuthenticatedLayout>
@@ -217,6 +227,9 @@ export default function PackagesPage() {
       </div>
 
       <Drawer
+        keyboard={false} // prevent closing with Esc key
+        closable={carouselSlide === 2 ? false : true}
+        maskClosable={false}
         placement="right"
         onClose={handleCloseModal}
         open={isModalOpen}
@@ -270,7 +283,7 @@ export default function PackagesPage() {
               <a className="text-blue-400">Terms and Conditions</a>
             </Row>
             <Button
-              onClick={() => carouselRef.current.next()}
+              onClick={handleNext}
               disabled={!acceptsTerms}
               className={`bg-[#36013F] ${
                 acceptsTerms ? "hover:!bg-[#36013F]" : ""
@@ -283,12 +296,16 @@ export default function PackagesPage() {
             </span>
           </Col>
           <Col className="flex flex-col items-center">
-            <ChevronLeft
-              size={20}
-              onClick={() => carouselRef.current.prev()}
-              className="cursor-pointer"
-            />
-            <Title>Payment Details</Title>
+            <Row className="w-full items-center mb-6 gap-[10px]">
+              <ChevronLeft
+                size={20}
+                onClick={handlePrev}
+                className="cursor-pointer"
+              />
+              <Title level={3} className="!m-0">
+                Payment Details
+              </Title>
+            </Row>
           </Col>
         </Carousel>
       </Drawer>
