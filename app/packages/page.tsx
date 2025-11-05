@@ -17,36 +17,47 @@ import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { formatPrice } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft } from "lucide-react";
+import { useManageCredits } from "@/lib/api";
+import { useAppSelector } from "@/lib/hooks";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/lib/features/authSlice";
 
 const { Title } = Typography;
 
 export default function PackagesPage() {
+  const dispatch = useDispatch();
+  const user = useAppSelector((state) => state.auth.user);
   const carouselRef = useRef<any>(null);
   const [carouselSlide, setCarouselSlide] = useState(1);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const { updateUserCredits } = useManageCredits();
   const data = [
     {
       title: "Private Class",
       validity: 30,
       price: 15000,
+      credits: 30,
     },
     {
       title: "Private Class",
       validity: 30,
       price: 15000,
+      credits: 30,
     },
     {
       title: "Private Class",
       validity: 30,
       price: 15000,
+      credits: 30,
     },
     {
       title: "Private Class",
       validity: 30,
       price: 15000,
+      credits: 30,
     },
   ];
 
@@ -73,9 +84,25 @@ export default function PackagesPage() {
     };
   }, []);
 
+  const handleUpdateUserCredits = async ({ credits }: { credits: number }) => {
+    try {
+      const response = await updateUserCredits({
+        userID: user?.id as string,
+        values: { credits },
+      });
+
+      dispatch(setUser({ ...user, credits: 40 }));
+
+      console.log("response: ", response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleAcceptTermsChange = (e: any) => {
     setAcceptsTerms(e.target.checked);
   };
+
   const handleOpenModal = (item: any) => {
     setSelectedRecord(item);
     setIsModalOpen(true);
@@ -86,9 +113,13 @@ export default function PackagesPage() {
     setSelectedRecord(null);
   };
 
-  const handleNext = () => {
-    setCarouselSlide(2);
-    carouselRef.current.next();
+  const handleNext = async () => {
+    const response = await handleUpdateUserCredits({ credits: 30 });
+    console.log("response: ", response);
+
+    // temporarily commented out until payments is integrated
+    // setCarouselSlide(2);
+    // carouselRef.current.next();
   };
 
   const handlePrev = () => {

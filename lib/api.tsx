@@ -6,6 +6,7 @@ import {
   CreateClassProps,
   CreateInstructorProps,
   CreatePackageProps,
+  CreateUserCredits,
 } from "./props";
 import dayjs, { Dayjs } from "dayjs";
 
@@ -174,6 +175,8 @@ export const useClassManagement = () => {
     selectedDate?: Dayjs;
   }) => {
     setLoading(true);
+
+    console.log("userId: ", userId);
 
     let query = supabase.from("classes").select(`
       *,
@@ -358,4 +361,53 @@ export const useClientBookings = () => {
   };
 
   return { loading, fetchClientBookings };
+};
+
+export const useManageCredits = () => {
+  const [loading, setLoading] = useState(false);
+
+  const createUserCredits = async ({
+    values,
+  }: {
+    values: CreateUserCredits;
+  }) => {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("user_credits")
+      .insert(values)
+      .single();
+
+    console.log("error: ", error);
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
+  const updateUserCredits = async ({
+    userID,
+    values,
+  }: {
+    userID: string;
+    values: { credits: number };
+  }) => {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("user_credits")
+      .update(values)
+      .eq("user_id", userID)
+      .single();
+
+    console.log("error: ", error);
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
+  return { loading, updateUserCredits, createUserCredits };
 };

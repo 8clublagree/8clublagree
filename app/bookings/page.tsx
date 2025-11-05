@@ -18,21 +18,24 @@ import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
-import { useClassManagement } from "@/lib/api";
+import { useClassManagement, useManageCredits } from "@/lib/api";
 import { calculateDuration } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/lib/hooks";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/lib/features/authSlice";
 
 const { Title, Text } = Typography;
 
 export default function BookingsPage() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const { fetchClasses, updateClass, bookClass, loading } =
     useClassManagement();
+  const { updateUserCredits } = useManageCredits();
   const [classes, setClasses] = useState<any[]>([]);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
-  const [userCredits, setUserCredits] = useState<number>(5);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
@@ -62,13 +65,16 @@ export default function BookingsPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedDate) {
+    if (selectedDate && user) {
       handleFetchClasses();
     }
-  }, [selectedDate]);
+  }, [selectedDate, user?.id]);
 
   const handleFetchClasses = async () => {
-    const data = await fetchClasses({ selectedDate: selectedDate as Dayjs });
+    const data = await fetchClasses({
+      userId: user?.id,
+      selectedDate: selectedDate as Dayjs,
+    });
 
     if (data) {
       const mapped = await Promise.all(
@@ -117,23 +123,34 @@ export default function BookingsPage() {
   };
 
   const handleBookClass = async () => {
-    if (user) {
-      await bookClass({
-        classDate: dayjs().format("YYYY-MM-DD"),
-        classId: selectedRecord.id,
-        bookerId: user?.id as string,
-      });
+    try {
+      if (user) {
+        const updatedCredits = (user?.credits as number) - 1;
+        await Promise.all([
+          bookClass({
+            classDate: dayjs().format("YYYY-MM-DD"),
+            classId: selectedRecord.id,
+            bookerId: user?.id as string,
+          }),
+          updateClass({
+            id: selectedRecord.id,
+            values: {
+              taken_slots: selectedRecord.taken_slots + 1,
+            },
+          }),
+          updateUserCredits({
+            userID: user?.id as string,
+            values: { credits: updatedCredits },
+          }),
+        ]);
 
-      await updateClass({
-        id: selectedRecord.id,
-        values: {
-          taken_slots: selectedRecord.taken_slots + 1,
-          // available_slots: selectedRecord.available_slots - 1,
-        },
-      });
+        dispatch(setUser({ ...user, credits: updatedCredits }));
 
-      handleFetchClasses();
-      handleCloseModal();
+        handleFetchClasses();
+        handleCloseModal();
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -153,31 +170,31 @@ export default function BookingsPage() {
             <Button
               type="primary"
               disabled={
-                userCredits === 0
+                user?.credits === 0
                   ? false
                   : item.taken_slots === item.available_slots
               }
               onClick={() => {
-                if (userCredits === 0) {
+                if (user?.credits === 0) {
                   router.push("/credits");
                 } else {
                   handleOpenModal(item);
                 }
               }}
               className={`bg-[#36013F] ${
-                userCredits === 0
+                user?.credits === 0
                   ? "hover:!bg-[#36013F]"
                   : item.taken_slots === item.available_slots
                   ? ""
                   : "hover:!bg-[#36013F]"
               } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
-              {userCredits === 0 ? "Get Tokens" : "Join"}
+              {user?.credits === 0 ? "Get Tokens" : "Join"}
             </Button>
           )}
         </>
       ),
-    [userCredits]
+    [classes, user?.credits]
   );
 
   return (
@@ -202,10 +219,10 @@ export default function BookingsPage() {
               >
                 <LiaCoinsSolid size={30} />
                 <span>
-                  <span className="text-red-400">{userCredits} </span>
-                  {userCredits >= 0 && userCredits !== 1
+                  <span className="text-red-400">{user?.credits} </span>
+                  {user?.credits && user?.credits >= 0 && user?.credits !== 1
                     ? "credits"
-                    : userCredits === 1
+                    : user?.credits === 1
                     ? "credit"
                     : "credits"}
                 </span>

@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { MdContactEmergency } from "react-icons/md";
-import { useSearchUser } from "@/lib/api";
+import { useManageCredits, useSearchUser } from "@/lib/api";
 
 const { Title, Text } = Typography;
 
@@ -33,6 +33,7 @@ export default function SignupPage() {
   const [stepOneData, setStepOneData] = useState<any>(null);
   const router = useRouter();
   const { validateEmail, loading: validatingEmail } = useSearchUser();
+  const { createUserCredits, loading: creatingCredits } = useManageCredits();
 
   const onFinishStepOne = async (values: any) => {
     setStepOneData(values);
@@ -53,6 +54,7 @@ export default function SignupPage() {
 
       if (authError) throw authError;
 
+      console.log("authData: ", authData);
       if (authData.user) {
         const { error: profileError } = await supabase
           .from("user_profiles")
@@ -72,12 +74,15 @@ export default function SignupPage() {
             is_user: true,
           });
 
+        await createUserCredits({ values: { user_id: authData.user.id } });
+
         if (profileError) throw profileError;
       }
 
       message.success("Account created successfully!");
       router.push("/dashboard");
     } catch (error: any) {
+      console.log("error: ", error);
       message.error(error.message || "Sign up failed");
     } finally {
       setLoading(false);

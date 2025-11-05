@@ -88,7 +88,7 @@ export default function DashboardPage() {
             <Card className="shadow-sm hover:shadow-md transition-shadow">
               <Statistic
                 title="Total Credits"
-                value={12}
+                value={user?.credits as number}
                 prefix={<CalendarOutlined className="text-blue-600" />}
                 valueStyle={{ color: "#1e293b" }}
               />
@@ -146,13 +146,13 @@ export default function DashboardPage() {
               ))}
 
             {!upcomingBookings?.length && (
-              <Card className="shadow-sm w-full" title="Upcoming Sessions">
+              <Card className="shadow-sm w-full">
                 <Row className="w-full flex-col flex items-center justify-center">
                   <Button
                     onClick={() => router.push("/bookings")}
                     className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] h-[40px]`}
                   >
-                    Book a class with us
+                    Book a Class
                   </Button>
                 </Row>
               </Card>

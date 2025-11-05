@@ -73,18 +73,28 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from("user_profiles")
-      .select("*")
+      .select(
+        `
+    *,
+    user_credits (
+      id,
+      credits
+    )
+  `
+      )
       .eq("id", session.user.id)
-      .maybeSingle();
+      .single();
 
     if (profile) {
       if (profile.is_user === false) {
         router.push("/admin/dashboard");
         return;
       }
-      dispatch(setUser(profile));
+      dispatch(
+        setUser({ ...profile, credits: profile.user_credits?.[0]?.credits })
+      );
     }
   };
 

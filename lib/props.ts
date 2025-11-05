@@ -1,13 +1,18 @@
 import { Dayjs } from "dayjs";
 
+export interface CreateUserCredits {
+  user_id: string;
+}
+
 export interface CreateClassProps {
   key?: string;
   id?: string;
-  instructor_id: string;
-  instructor_name: string;
-  start_time: Dayjs;
-  end_time: Dayjs;
-  slots: string;
+  instructor_id?: string;
+  instructor_name?: string;
+  start_time?: Dayjs;
+  end_time?: Dayjs;
+  slots?: string;
+  taken_slots?: number;
 }
 export interface CreateInstructorProps {
   first_name: string;
