@@ -25,6 +25,7 @@ import { supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
 import { LuPackage } from "react-icons/lu";
+import { FaBook } from "react-icons/fa";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -93,7 +94,10 @@ export default function AuthenticatedLayout({
         return;
       }
       dispatch(
-        setUser({ ...profile, credits: profile.user_credits?.[0]?.credits })
+        setUser({
+          ...profile,
+          credits: profile.user_credits?.[0]?.credits ?? 0,
+        })
       );
     }
   };
@@ -142,7 +146,7 @@ export default function AuthenticatedLayout({
     },
     {
       key: "6",
-      icon: <CalendarOutlined />,
+      icon: <FaBook />,
       label: (
         <Link href="/user-terms-and-conditions">Terms and Conditions</Link>
       ),

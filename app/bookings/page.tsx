@@ -11,11 +11,12 @@ import {
   Divider,
   Drawer,
   Checkbox,
+  Carousel,
 } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import { useClassManagement, useManageCredits } from "@/lib/api";
@@ -24,11 +25,20 @@ import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
+import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
+import { ChevronRight, X } from "lucide-react";
 
 const { Title, Text } = Typography;
 
+const CAROUSEL_SLIDES = {
+  TERMS: 0,
+  BOOKING_DETAILS: 1,
+};
+
 export default function BookingsPage() {
   const router = useRouter();
+  const carouselRef = useRef<any>(null);
+  const [carouselSlide, setCarouselSlide] = useState(1);
   const dispatch = useDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const { fetchClasses, updateClass, bookClass, loading } =
@@ -118,6 +128,12 @@ export default function BookingsPage() {
   };
 
   const handleCloseModal = () => {
+    if (carouselSlide === CAROUSEL_SLIDES.TERMS) {
+      setCarouselSlide(CAROUSEL_SLIDES.BOOKING_DETAILS);
+      carouselRef.current.goTo(CAROUSEL_SLIDES.BOOKING_DETAILS);
+      return;
+    }
+
     setIsModalOpen(false);
     setSelectedRecord(null);
   };
@@ -197,6 +213,11 @@ export default function BookingsPage() {
     [classes, user?.credits]
   );
 
+  const handleShowTermsAndConditions = () => {
+    setCarouselSlide(CAROUSEL_SLIDES.TERMS);
+    carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
+  };
+
   return (
     <AuthenticatedLayout>
       <div className="space-y-6">
@@ -233,6 +254,12 @@ export default function BookingsPage() {
               isAdmin={false}
               onDateSelect={(e) => setSelectedDate(dayjs(e))}
             />
+            <Row justify={"center"}>
+              <span className="text-red-400">
+                Please note that instructor assignments are subject to change
+                without prior notice.
+              </span>
+            </Row>
           </Col>
         </Row>
 
@@ -249,6 +276,9 @@ export default function BookingsPage() {
                 loading={loading}
                 itemLayout="horizontal"
                 dataSource={classes}
+                locale={{
+                  emptyText: "A class hasn't been created for this day",
+                }}
                 renderItem={(item, index) => (
                   <List.Item key={index} actions={[renderActionButton(item)]}>
                     <Row className="wrap-none items-center gap-4">
@@ -314,53 +344,81 @@ export default function BookingsPage() {
         keyboard={false}
         maskClosable={false}
         placement="right"
+        title={carouselSlide === CAROUSEL_SLIDES.TERMS && "Back to Agreement"}
+        closeIcon={carouselSlide === CAROUSEL_SLIDES.TERMS && <ChevronRight />}
+        closable
         onClose={handleCloseModal}
         open={isModalOpen}
         width={isMobile ? "100%" : "30%"}
         styles={{
-          body: { paddingTop: 24 },
+          body: {
+            paddingTop: 0,
+            overflow:
+              carouselSlide !== CAROUSEL_SLIDES.TERMS ? "hidden" : "auto", // Drawer itself never scrolls
+          },
         }}
       >
-        <Col className="flex flex-col items-center">
-          <Avatar
-            className="border-gray-500 border w-full"
-            size={200}
-            src={selectedRecord?.avatar_url}
-          />
-          <Divider />
-          <Col className="mb-[20px] items-start w-full">
-            <Title>
-              {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
-                selectedDate
-              ).format("d")} ${dayjs(selectedDate).format("YYYY")}`}
-            </Title>
-            <Title level={5}>
-              Class with{" "}
-              <span className="text-red-400">
-                {selectedRecord?.instructor_name}
-              </span>{" "}
-              <span className="text-red-400">{selectedRecord?.time}</span> on{" "}
-              <span className="text-red-400">
-                {dayjs(selectedRecord?.date).format("dddd")}
-              </span>
-            </Title>
-          </Col>
-          <Row justify={"start"} className="w-full mb-[10px]">
-            <Checkbox onChange={handleAcceptTermsChange}>
-              Accept Terms and Conditions
-            </Checkbox>
-          </Row>
-          <Button
-            loading={loading}
-            onClick={handleBookClass}
-            disabled={!acceptsTerms || loading}
-            className={`bg-[#36013F] ${
-              acceptsTerms ? "hover:!bg-[#36013F]" : ""
-            } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full h-[40px]`}
+        <div className="flex-1 overflow-hidden">
+          <Carousel
+            ref={carouselRef}
+            autoplay={false}
+            infinite={false}
+            dots={false}
+            initialSlide={1}
+            className="h-full"
           >
-            Book
-          </Button>
-        </Col>
+            <div className="h-full overflow-y-auto">
+              <UserTermsAndConditions />
+            </div>
+            <Col className="flex flex-col items-center">
+              <Avatar
+                className="border-gray-500 border w-full"
+                size={200}
+                src={selectedRecord?.avatar_url}
+              />
+              <Divider />
+              <Col className="mb-[20px] items-start w-full">
+                <Title>
+                  {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
+                    selectedDate
+                  ).format("d")} ${dayjs(selectedDate).format("YYYY")}`}
+                </Title>
+                <Title level={5}>
+                  Class with{" "}
+                  <span className="text-red-400">
+                    {selectedRecord?.instructor_name}
+                  </span>{" "}
+                  <span className="text-red-400">{selectedRecord?.time}</span>{" "}
+                  on{" "}
+                  <span className="text-red-400">
+                    {dayjs(selectedRecord?.date).format("dddd")}
+                  </span>
+                </Title>
+              </Col>
+              <Row justify={"start"} className="w-full mb-[10px]">
+                <Checkbox onChange={handleAcceptTermsChange}>
+                  Accept{" "}
+                  <span
+                    onClick={handleShowTermsAndConditions}
+                    className="text-blue-400"
+                  >
+                    Terms and Conditions
+                  </span>
+                </Checkbox>
+              </Row>
+              <Button
+                loading={loading}
+                onClick={handleBookClass}
+                disabled={!acceptsTerms || loading}
+                className={`bg-[#36013F] ${
+                  acceptsTerms ? "hover:!bg-[#36013F]" : ""
+                } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full h-[40px]`}
+              >
+                Book
+              </Button>
+            </Col>
+          </Carousel>
+        </div>
       </Drawer>
     </AuthenticatedLayout>
   );
