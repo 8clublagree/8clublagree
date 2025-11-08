@@ -70,7 +70,7 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
 
   const handlePrev = () => {
     const newDate = currentDate.subtract(1, "day");
-    if (newDate.isBefore(today, "day")) return;
+    if (!isAdmin && newDate.isBefore(today, "day")) return;
     setCurrentDate(newDate);
   };
 
