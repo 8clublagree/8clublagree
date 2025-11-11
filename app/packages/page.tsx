@@ -94,7 +94,6 @@ export default function PackagesPage() {
       };
     });
 
-    console.log("mapped: ", mapped);
     setPackages(mapped);
   };
 
@@ -131,7 +130,6 @@ export default function PackagesPage() {
   };
 
   const handleNext = async () => {
-    console.log("selectedRecord: ", selectedRecord);
     const purchasedPackage = await handlePurchasePackage();
 
     console.log("purchasedPackage: ", purchasedPackage);

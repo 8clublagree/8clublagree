@@ -18,6 +18,7 @@ export interface UserProfile {
   created_at?: string;
   updated_at?: string;
   credits?: number;
+  currentPackage?: any;
   emergency_contact_name?: string;
   emergency_contact_number?: string;
 }

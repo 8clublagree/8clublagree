@@ -133,7 +133,6 @@ export default function BookingsPage() {
     setAcceptsTerms(e.target.checked);
   };
   const handleOpenModal = (item: any) => {
-    console.log("user: ", user);
     setIsModalOpen(true);
     setSelectedRecord(item);
   };
@@ -191,6 +190,14 @@ export default function BookingsPage() {
     }
   };
 
+  const handleScheduleAction = (item: any) => {
+    if (user?.credits === 0) {
+      router.push("/packages");
+    } else {
+      handleOpenModal(item);
+    }
+  };
+
   const renderActionButton = useMemo(
     () => (item: any) =>
       (
@@ -211,13 +218,7 @@ export default function BookingsPage() {
                   ? false
                   : item.taken_slots === item.available_slots
               }
-              onClick={() => {
-                if (user?.credits === 0) {
-                  router.push("/credits");
-                } else {
-                  handleOpenModal(item);
-                }
-              }}
+              onClick={() => handleScheduleAction(item)}
               className={`bg-[#36013F] ${
                 user?.credits === 0
                   ? "hover:!bg-[#36013F]"
@@ -226,7 +227,7 @@ export default function BookingsPage() {
                   : "hover:!bg-[#36013F]"
               } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
-              {user?.credits === 0 ? "Get Tokens" : "Join"}
+              {user?.credits === 0 ? "Get Credits" : "Join"}
             </Button>
           )}
         </>
@@ -261,7 +262,8 @@ export default function BookingsPage() {
                 className="cursor-pointer items-center gap-[10px] text-[20px] font-[400] bg-white rounded-lg py-[7px] px-[10px] shadow-sm border border-slate-300"
               >
                 {user?.credits && <LiaCoinsSolid size={30} />}
-                {user?.credits ? user?.credits : <ImInfinite />}{" "}
+                {user?.credits === null && <ImInfinite />}
+                {user?.credits !== null && user?.credits !== 0 && user?.credits}
                 <span>
                   {user?.credits && user?.credits >= 0 && user?.credits !== 1
                     ? "credits"

@@ -74,7 +74,7 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    const { data: profile, error } = (await supabase
+    const { data: profile, error } = await supabase
       .from("user_profiles")
       .select(
         `
@@ -83,13 +83,28 @@ export default function AuthenticatedLayout({
       id,
       credits,
       created_at
+    ),
+    client_packages (
+      *,
+      packages (*)
     )
-    .order(created_at, desc)
-    .limit(1)
   `
       )
       .eq("id", session.user.id)
-      .single()) as any;
+      .single();
+
+    if (error) {
+      console.error(error);
+    }
+
+    const latestCredit = profile?.user_credits?.sort(
+      (a: any, b: any) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )[0];
+
+    const activePackage = profile?.client_packages?.find(
+      (p: any) => p.status === "active"
+    );
 
     if (profile) {
       if (profile.is_user === false) {
@@ -99,7 +114,8 @@ export default function AuthenticatedLayout({
       dispatch(
         setUser({
           ...profile,
-          credits: profile.user_credits?.[0]?.credits,
+          currentPackage: activePackage,
+          credits: activePackage ? latestCredit.credits : 0,
         })
       );
     }
