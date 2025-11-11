@@ -170,9 +170,6 @@ export default function PackagesPage() {
     carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
   };
 
-  useEffect(() => {
-    console.log("user :", user);
-  }, []);
   return (
     <AuthenticatedLayout>
       <div className="space-y-6">

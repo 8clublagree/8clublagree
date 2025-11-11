@@ -102,8 +102,6 @@ export default function CreditsPage() {
         );
       }
 
-      console.log("mapped: ", mapped);
-
       setActivePackage(active);
       setPackages(mapped);
     }
