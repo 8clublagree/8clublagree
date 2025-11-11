@@ -46,3 +46,35 @@ export interface ChartData {
   end: number;
   color: string;
 }
+
+export interface PackageProps {
+  id: string;
+  created_at?: string;
+  price: number;
+  title: string;
+  packageType: string;
+  packageCredits: number;
+  validityPeriod: number;
+}
+
+export interface ClientPackageProps {
+  id: string;
+  createdAt: string;
+  packageId: string;
+  userId: string;
+  expirationDate: string;
+  status: "active" | "expired" | "inactive" | string;
+  purchaseDate: string;
+  paymentMethod: "debit" | "credit" | string;
+  packageCredits: number;
+  validityPeriod: number;
+  packages: {
+    id: string;
+    price: number;
+    title: string;
+    createdAt: string;
+    packageType: "regular" | "promo" | string;
+    packageCredits: number;
+    validityPeriod: number;
+  };
+}

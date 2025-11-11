@@ -12,16 +12,17 @@ import {
   Divider,
   Carousel,
 } from "antd";
-import { CalendarOutlined, CloseOutlined } from "@ant-design/icons";
+import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { formatPrice } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useManageCredits } from "@/lib/api";
+import { useManageCredits, usePackageManagement } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
+import { PackageProps } from "@/lib/props";
 
 const { Title } = Typography;
 const CAROUSEL_SLIDES = {
@@ -34,39 +35,14 @@ export default function PackagesPage() {
   const dispatch = useDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const carouselRef = useRef<any>(null);
+  const [packages, setPackages] = useState<PackageProps[]>();
   const [carouselSlide, setCarouselSlide] = useState(1);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const { updateUserCredits } = useManageCredits();
-  const data = [
-    {
-      title: "Private Class",
-      validity: 30,
-      price: 15000,
-      credits: 30,
-    },
-    {
-      title: "Private Class",
-      validity: 30,
-      price: 15000,
-      credits: 30,
-    },
-    {
-      title: "Private Class",
-      validity: 30,
-      price: 15000,
-      credits: 30,
-    },
-    {
-      title: "Private Class",
-      validity: 30,
-      price: 15000,
-      credits: 30,
-    },
-  ];
-
+  const { fetchPackages, purchasePackage } = usePackageManagement();
   const [delayedOverflow, setDelayedOverflow] = useState("hidden");
 
   useEffect(() => {
@@ -102,6 +78,26 @@ export default function PackagesPage() {
     };
   }, []);
 
+  useEffect(() => {
+    handleFetchPackages();
+  }, []);
+
+  const handleFetchPackages = async () => {
+    const response = await fetchPackages();
+
+    const mapped = response?.map((data) => {
+      return {
+        ...data,
+        validityPeriod: data.validity_period,
+        packageType: data.package_type,
+        packageCredits: data.package_credits,
+      };
+    });
+
+    console.log("mapped: ", mapped);
+    setPackages(mapped);
+  };
+
   const handleUpdateUserCredits = async ({ credits }: { credits: number }) => {
     try {
       const response = await updateUserCredits({
@@ -109,7 +105,7 @@ export default function PackagesPage() {
         values: { credits },
       });
 
-      dispatch(setUser({ ...user, credits: 40 }));
+      dispatch(setUser({ ...user, credits }));
     } catch (error) {
       console.log(error);
     }
@@ -135,7 +131,13 @@ export default function PackagesPage() {
   };
 
   const handleNext = async () => {
-    const response = await handleUpdateUserCredits({ credits: 30 });
+    console.log("selectedRecord: ", selectedRecord);
+    const purchasedPackage = await handlePurchasePackage();
+
+    console.log("purchasedPackage: ", purchasedPackage);
+    const response = await handleUpdateUserCredits({
+      credits: selectedRecord.packageCredits,
+    });
     console.log("response: ", response);
 
     // temporarily commented out until payments is integrated
@@ -145,6 +147,18 @@ export default function PackagesPage() {
     //temporary behavior
     setIsModalOpen(false);
     setSelectedRecord(null);
+  };
+
+  const handlePurchasePackage = async () => {
+    const response = await purchasePackage({
+      userID: user?.id as string,
+      packageID: selectedRecord.id,
+      paymentMethod: "debit",
+      validityPeriod: selectedRecord.validityPeriod,
+      packageCredits: selectedRecord.packageCredits,
+    });
+
+    return response;
   };
 
   const handlePrev = () => {
@@ -165,66 +179,56 @@ export default function PackagesPage() {
           </Title>
         </div>
 
-        <Row
-          gutter={[20, 20]} // spacing between cards (horizontal, vertical)
-          justify="start"
-          // className="px-4"
-        >
-          {data.map((item, index) => (
-            <Col
-              key={index}
-              xs={24} // full width on mobile
-              sm={12} // 2 columns on small screens
-              md={8} // 3 columns on tablets
-              lg={6} // 4 columns on desktops
-              xl={5} // 4–5 columns on wide desktops
-            >
-              <Card
-                title={`${item.validity} days`}
-                styles={{
-                  header: {
-                    backgroundColor: "#36013F",
-                    color: "white",
-                    textAlign: "center",
-                    fontSize: "36px",
-                    height: "120px",
-                  },
-                  body: {
-                    paddingTop: "15px",
-                  },
-                }}
-                className="border-[#fbe2ff] rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300"
-              >
-                <Col className="flex flex-col gap-y-[10px]">
-                  <Col>
-                    <p>
-                      <span className="font-light">{item.title}</span>
-                    </p>
-                    <p>
-                      <span className="font-light">
-                        PHP {formatPrice(item.price)}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-light">
-                        Valid for {item.validity} days
-                      </span>
-                    </p>
-                  </Col>
+        <Row gutter={[20, 20]} justify="start">
+          {packages &&
+            packages.map((item, index) => (
+              <Col key={index} xs={24} sm={12} md={8} lg={6} xl={5}>
+                <Card
+                  title={`${item.validityPeriod} days`}
+                  styles={{
+                    header: {
+                      backgroundColor: "#36013F",
+                      color: "white",
+                      textAlign: "center",
+                      fontSize: "36px",
+                      height: "120px",
+                    },
+                    body: {
+                      paddingTop: "15px",
+                    },
+                  }}
+                  className="border-[#fbe2ff] rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <Col className="flex flex-col gap-y-[10px]">
+                    <Col>
+                      <p>
+                        <span className="font-light">{item.title}</span>
+                      </p>
+                      <p>
+                        <span className="font-light">
+                          PHP {formatPrice(item.price)}
+                        </span>
+                      </p>
+                      <p>
+                        <span className="font-light">
+                          Valid for {item.validityPeriod} days
+                        </span>
+                      </p>
+                    </Col>
 
-                  <Button
-                    onClick={() => handleOpenModal(item)}
-                    className="!bg-[#36013F] h-[40px] hover:!bg-[#36013F] !border-[#36013F] !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
-                  >
-                    Purchase
-                  </Button>
-                </Col>
-              </Card>
-            </Col>
-          ))}
+                    <Button
+                      onClick={() => handleOpenModal(item)}
+                      className="!bg-[#36013F] h-[40px] hover:!bg-[#36013F] !border-[#36013F] !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+                    >
+                      Purchase
+                    </Button>
+                  </Col>
+                </Card>
+              </Col>
+            ))}
         </Row>
 
-        {data.length === 0 && (
+        {packages && packages.length === 0 && (
           <Card className="shadow-sm">
             {/* <List
             itemLayout="horizontal"
@@ -310,30 +314,39 @@ export default function PackagesPage() {
                   className="!text-[50px] bg-[#36013F] border w-full"
                   size={200}
                 >
-                  30
+                  {selectedRecord?.validityPeriod}
                 </Avatar>
               </Row>
               <Divider />
               <div className="items-start w-full">
-                <Row wrap={false} className="mb-[20px] items-start w-full">
+                <Row wrap={false} className="mb-[10px] items-start w-full">
                   <Title level={5}>
                     Package:{" "}
                     <span className="font-normal">{selectedRecord?.title}</span>
                   </Title>
                 </Row>
-                <Row wrap={false} className="mb-[20px] items-start w-full">
+                <Row wrap={false} className="mb-[15px] items-center w-full">
+                  <Title level={5} className="!mb-0">
+                    Number of Sessions:{" "}
+                    <span className="font-normal">
+                      {selectedRecord?.packageCredits ?? "Unlimited"}
+                    </span>
+                  </Title>
+                </Row>
+
+                <Row wrap={false} className="mb-[10px] items-start w-full">
+                  <Title level={5}>
+                    Validity Period:{" "}
+                    <span className="font-normal">
+                      {selectedRecord?.validityPeriod} days
+                    </span>
+                  </Title>
+                </Row>
+                <Row wrap={false} className="mb-[10px] items-start w-full">
                   <Title level={5}>
                     Price:{" "}
                     <span className="font-normal">
                       PHP {formatPrice(selectedRecord?.price)}
-                    </span>
-                  </Title>
-                </Row>
-                <Row wrap={false} className="mb-[20px] items-start w-full">
-                  <Title level={5}>
-                    Validity Period:{" "}
-                    <span className="font-normal">
-                      {selectedRecord?.validity} days
                     </span>
                   </Title>
                 </Row>

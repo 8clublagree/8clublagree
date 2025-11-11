@@ -1,15 +1,30 @@
 "use client";
 
-import { Card, Row, Col, Typography, Button } from "antd";
+import { Card, Row, Col, Typography, Button, List } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useRouter } from "next/navigation";
 import { MdErrorOutline } from "react-icons/md";
 import { LiaCoinsSolid } from "react-icons/lia";
+import { useEffect, useState } from "react";
+import { useAppSelector } from "@/lib/hooks";
+import { usePackageManagement } from "@/lib/api";
+import { ClientPackageProps } from "@/lib/props";
+import { TfiPackage } from "react-icons/tfi";
+import { checkIfExpired, formatDate } from "@/lib/utils";
+import { ImInfinite } from "react-icons/im";
+
+import dayjs from "dayjs";
+
+import { HiOutlineCalendarDateRange } from "react-icons/hi2";
 
 const { Title, Text } = Typography;
 
 export default function CreditsPage() {
   const router = useRouter();
+  const [activePackage, setActivePackage] = useState<ClientPackageProps>();
+  const [packages, setPackages] = useState<ClientPackageProps[]>([]);
+  const user = useAppSelector((state) => state.auth.user);
+  const { fetchClientPackages } = usePackageManagement();
   const data = [
     // {
     //   time: "07:00AM",
@@ -44,104 +59,262 @@ export default function CreditsPage() {
     //   available: 7,
     // },
   ];
+
+  useEffect(() => {
+    if (user?.id) {
+      handleFetchClientPackages();
+    }
+  }, [user?.id]);
+
+  const handleFetchClientPackages = async () => {
+    let active: any;
+    let mapped: any = [];
+    if (user) {
+      const response = await fetchClientPackages({
+        clientID: user?.id as string,
+      });
+
+      if (response) {
+        mapped = response?.map((data) => ({
+          id: data.id,
+          createdAt: data.created_at,
+          packageId: data.package_id,
+          userId: data.user_id,
+          expirationDate: data.expiration_date,
+          status: data.status,
+          purchaseDate: data.purchase_date,
+          paymentMethod: data.payment_method,
+          packageCredits: data.package_credits,
+          validityPeriod: data.validity_period,
+          packages: {
+            id: data.packages.id,
+            price: data.packages.price,
+            title: data.packages.title,
+            createdAt: data.packages.created_at,
+            packageType: data.packages.package_type,
+            packageCredits: data.packages.package_credits,
+            validityPeriod: data.packages.validity_period,
+          },
+        }));
+
+        active = mapped.find(
+          (data: ClientPackageProps) => data.status === "active"
+        );
+      }
+
+      console.log("mapped: ", mapped);
+
+      setActivePackage(active);
+      setPackages(mapped);
+    }
+  };
+
   return (
     <AuthenticatedLayout>
       <div className="space-y-6">
-        {/* <div>
-          <Title level={2} className="!mb-2">
-            Your Credits
-          </Title>
-        </div> */}
-
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Card className="shadow-sm hover:shadow-md transition-shadow max-h-[150px]">
-              <Title level={3}>Current Package</Title>
+        <Row gutter={[16, 16]} className="flex flex-wrap">
+          {/* Current Package */}
+          <Col xs={24} sm={12} lg={8} className="flex">
+            <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
+              <Title level={3}>Active Package</Title>
 
               <Row
                 wrap={false}
                 justify={"start"}
-                className="p-[10px] bg-slate-200 rounded-lg items-center gap-[10px]"
+                className={`${
+                  !activePackage && "p-[10px] bg-slate-200"
+                } rounded-lg items-center gap-[10px]`}
               >
-                <MdErrorOutline size={30} />
-
-                <Text>Package has expired or hasn&apos;t been purchased</Text>
+                {activePackage ? (
+                  <Row className="items-center gap-[10px]">
+                    <TfiPackage size={25} />
+                    <Title level={4} className="!mb-0 !font-normal">
+                      {activePackage.packages.title}
+                    </Title>
+                  </Row>
+                ) : (
+                  <>
+                    <MdErrorOutline size={30} />
+                    <Text>
+                      Package has expired or hasn&apos;t been purchased
+                    </Text>
+                  </>
+                )}
               </Row>
             </Card>
           </Col>
 
-          <Col xs={24} sm={12} lg={8}>
-            <Card className="shadow-sm hover:shadow-md transition-shadow max-h-[150px]">
-              <Title level={3}>Credits</Title>
+          {/* Credits */}
+          <Col xs={24} sm={12} lg={8} className="flex">
+            <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
+              <Title level={3}>Sessions</Title>
 
               <Row
                 wrap={false}
                 justify={"start"}
-                className="p-[10px] bg-slate-200 rounded-lg items-center gap-[10px]"
+                className={`${
+                  !activePackage && "p-[10px] bg-slate-200"
+                } rounded-lg items-center gap-[10px]`}
               >
-                <LiaCoinsSolid size={30} />
+                {activePackage ? (
+                  <Row className="items-center gap-x-[7px]">
+                    {!activePackage.packages.packageCredits && (
+                      <Row className="items-center gap-x-[10px]">
+                        <ImInfinite size={25} className="!font-normal" />
+                        <Title level={4} className="!mb-0 !font-normal">
+                          Unlimited
+                        </Title>
+                      </Row>
+                    )}
+                    {activePackage.packages.packageCredits && (
+                      <Title level={4} className="!mb-0 !font-normal">
+                        {activePackage.packages.packageCredits}
+                      </Title>
+                    )}
+                    <Title level={4} className="!m-0 !font-normal">
+                      Sessions
+                    </Title>
+                  </Row>
+                ) : (
+                  <Row className="w-[90%] justify-center">
+                    <Text>No credits available</Text>
+                  </Row>
+                )}
+              </Row>
+            </Card>
+          </Col>
 
-                <Row className="w-[90%] justify-center">
-                  <Text>No credits available</Text>
-                </Row>
+          {/* Expiration Date */}
+          <Col xs={24} sm={12} lg={8} className="flex">
+            <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
+              <Title level={3}>Expiration Date</Title>
+
+              <Row
+                wrap={false}
+                justify={"start"}
+                className={`${
+                  !activePackage && "p-[10px] bg-slate-200"
+                } rounded-lg items-center gap-[10px]`}
+              >
+                <HiOutlineCalendarDateRange size={30} />
+                {activePackage ? (
+                  <Title level={4} className="!mb-0 !font-normal">
+                    {formatDate(dayjs(activePackage.expirationDate))} (
+                    {formatDate(dayjs(activePackage.expirationDate), "dddd")})
+                  </Title>
+                ) : (
+                  <Row className="w-[90%] justify-center">
+                    <Text>No package</Text>
+                  </Row>
+                )}
               </Row>
             </Card>
           </Col>
         </Row>
 
         <Card className="shadow-sm" title={"Package Purchase History"}>
-          {/* <List
-            itemLayout="horizontal"
-            dataSource={data}
-            renderItem={(item, index) => (
-              <List.Item
-                actions={[
-                  <Button disabled={item.available === 0}>Book</Button>,
-                ]}
-              >
-                <Row className="wrap-none items-center gap-4">
-                  <Col>
-                    <Avatar
-                      className="border-gray-500 border"
-                      size={60}
-                      src={`https://api.dicebear.com/7.x/miniavs/svg?seed=${index}`}
-                    />
-                    <p>
-                      <span className="font-light">{item.instructor}</span>
-                    </p>
-                  </Col>
-                  <Col>
-                    <p>
-                      <span className="font-semibold">{`${item.time}`} </span>
-                    </p>
-                    <p>
-                      <span className="font-light">{item.date}</span>
-                    </p>
-                    <p>
-                      <span className="font-light">{item.duration}</span>
-                    </p>
-                    <p>
-                      <span
-                        className={`${
-                          item.available === 1 || item.available === 0
-                            ? `text-red-500`
-                            : ``
-                        } font-semibold`}
-                      >
-                        {item.available === 1
-                          ? `Last Slot`
-                          : item.available > 1
-                          ? `${item.available} slots left`
-                          : ``}
-                        {item.available <= 0 && `Full`}
+          <List
+            grid={{
+              gutter: 16,
+              xs: 1,
+              sm: 2,
+              md: 3,
+              lg: 3,
+              xl: 4,
+              xxl: 5,
+            }}
+            dataSource={packages}
+            renderItem={(item) => (
+              <List.Item>
+                <Card
+                  className="w-full shadow-sm transition-shadow border-none relative"
+                  style={{
+                    minWidth: 200,
+                    cursor: checkIfExpired(dayjs(item.expirationDate))
+                      ? "not-allowed"
+                      : "pointer",
+                  }}
+                  title={item.packages.title}
+                  styles={{
+                    header: {
+                      ...(checkIfExpired(dayjs(item.expirationDate))
+                        ? {}
+                        : {
+                            transition: "box-shadow 0.3s ease",
+                            borderInline: "3px solid #22c55e",
+                            borderTop: "3px solid #22c55e",
+                          }),
+                      color: checkIfExpired(dayjs(item.expirationDate))
+                        ? "#888"
+                        : "white",
+                      fontSize: 20,
+                      paddingInline: 15,
+                      backgroundColor: checkIfExpired(
+                        dayjs(item.expirationDate)
+                      )
+                        ? "rgba(0,0,0,0.3)"
+                        : "#36013F",
+                    },
+                    body: {
+                      ...(checkIfExpired(dayjs(item.expirationDate))
+                        ? { border: "1px solid gray" }
+                        : {
+                            transition: "box-shadow 0.3s ease",
+                            borderInline: "3px solid #22c55e",
+                            borderBottom: "3px solid #22c55e",
+                          }),
+                      backgroundColor: checkIfExpired(
+                        dayjs(item.expirationDate)
+                      )
+                        ? "rgba(0,0,0,0.1)"
+                        : "white",
+                      color: checkIfExpired(dayjs(item.expirationDate))
+                        ? "#888"
+                        : "inherit",
+                      opacity: checkIfExpired(dayjs(item.expirationDate))
+                        ? 0.6
+                        : 1,
+                      paddingInline: 15,
+                    },
+                  }}
+                >
+                  <Row className="flex flex-col">
+                    <Text style={{ fontSize: 16 }}>
+                      <span style={{ fontWeight: 600 }}>
+                        {item?.packageCredits ?? "Unlimited"}
+                      </span>{" "}
+                      Sessions
+                    </Text>
+                    <Text style={{ fontSize: 16 }}>
+                      Valid for{" "}
+                      <span style={{ fontWeight: 600 }}>
+                        {item.validityPeriod} days
                       </span>
-                    </p>
-                  </Col>
-                </Row>
+                    </Text>
+                    <Text style={{ fontSize: 16 }}>
+                      Purchased on{" "}
+                      <span style={{ fontWeight: 600 }}>
+                        {formatDate(dayjs(item.purchaseDate))}
+                      </span>
+                    </Text>
+                    <div style={{ minHeight: 24 }}>
+                      <Text style={{ fontSize: 16 }}>
+                        {checkIfExpired(dayjs(item.expirationDate))
+                          ? "Expired"
+                          : "Expires"}{" "}
+                        on{" "}
+                        <span style={{ fontWeight: 600, color: "#f87171" }}>
+                          {formatDate(dayjs(item.expirationDate))}
+                        </span>
+                      </Text>
+                    </div>
+                  </Row>
+                </Card>
               </List.Item>
             )}
-          /> */}
-          {data.length === 0 && (
+          />
+
+          {packages.length === 0 && (
             <div className="text-center py-12 text-slate-500">
               <Row className="justify-center">
                 <Col className="flex flex-col justify-center items-center gap-y-[10px]">

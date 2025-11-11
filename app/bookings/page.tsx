@@ -13,6 +13,7 @@ import {
   Checkbox,
   Carousel,
 } from "antd";
+import { ImInfinite } from "react-icons/im";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import dayjs, { Dayjs } from "dayjs";
@@ -28,7 +29,7 @@ import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
 import { ChevronRight, X } from "lucide-react";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const CAROUSEL_SLIDES = {
   TERMS: 0,
@@ -132,6 +133,7 @@ export default function BookingsPage() {
     setAcceptsTerms(e.target.checked);
   };
   const handleOpenModal = (item: any) => {
+    console.log("user: ", user);
     setIsModalOpen(true);
     setSelectedRecord(item);
   };
@@ -151,8 +153,9 @@ export default function BookingsPage() {
   const handleBookClass = async () => {
     try {
       if (user) {
-        const updatedCredits = (user?.credits as number) - 1;
-        await Promise.all([
+        let promises;
+
+        promises = [
           bookClass({
             classDate: dayjs().format("YYYY-MM-DD"),
             classId: selectedRecord.id,
@@ -164,13 +167,21 @@ export default function BookingsPage() {
               taken_slots: selectedRecord.taken_slots + 1,
             },
           }),
-          updateUserCredits({
-            userID: user?.id as string,
-            values: { credits: updatedCredits },
-          }),
-        ]);
+        ];
 
-        dispatch(setUser({ ...user, credits: updatedCredits }));
+        if (user?.credits != null) {
+          const updatedCredits = user.credits - 1;
+          promises.push(
+            updateUserCredits({
+              userID: user.id as string,
+              values: { credits: updatedCredits },
+            })
+          );
+
+          dispatch(setUser({ ...user, credits: updatedCredits }));
+        }
+
+        await Promise.all(promises);
 
         handleFetchClasses();
         handleCloseModal();
@@ -246,11 +257,12 @@ export default function BookingsPage() {
 
               <Row
                 wrap={false}
+                onClick={() => router.push("/credits")}
                 className="cursor-pointer items-center gap-[10px] text-[20px] font-[400] bg-white rounded-lg py-[7px] px-[10px] shadow-sm border border-slate-300"
               >
-                <LiaCoinsSolid size={30} />
+                {user?.credits && <LiaCoinsSolid size={30} />}
+                {user?.credits ? user?.credits : <ImInfinite />}{" "}
                 <span>
-                  <span className="text-red-400">{user?.credits} </span>
                   {user?.credits && user?.credits >= 0 && user?.credits !== 1
                     ? "credits"
                     : user?.credits === 1

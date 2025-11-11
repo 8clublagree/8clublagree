@@ -74,19 +74,22 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    const { data: profile, error } = await supabase
+    const { data: profile, error } = (await supabase
       .from("user_profiles")
       .select(
         `
     *,
     user_credits (
       id,
-      credits
+      credits,
+      created_at
     )
+    .order(created_at, desc)
+    .limit(1)
   `
       )
       .eq("id", session.user.id)
-      .single();
+      .single()) as any;
 
     if (profile) {
       if (profile.is_user === false) {
@@ -96,7 +99,7 @@ export default function AuthenticatedLayout({
       dispatch(
         setUser({
           ...profile,
-          credits: profile.user_credits?.[0]?.credits ?? 0,
+          credits: profile.user_credits?.[0]?.credits,
         })
       );
     }

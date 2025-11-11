@@ -9,6 +9,7 @@ import {
   CreateUserCredits,
 } from "./props";
 import dayjs, { Dayjs } from "dayjs";
+import { getDateFromToday } from "./utils";
 
 export const useSearchUser = () => {
   const [loading, setLoading] = useState(false);
@@ -442,7 +443,66 @@ export const usePackageManagement = () => {
     return data;
   };
 
-  return { loading, updatePackage, createPackage, fetchPackages };
+  const purchasePackage = async ({
+    userID,
+    packageID,
+    paymentMethod,
+    validityPeriod,
+    packageCredits,
+  }: {
+    userID: string;
+    packageID: string;
+    paymentMethod: string;
+    packageCredits: number;
+    validityPeriod: number;
+  }) => {
+    setLoading(true);
+
+    const today = dayjs();
+
+    const { data, error } = await supabase
+      .from("client_packages")
+      .insert({
+        user_id: userID,
+        package_id: packageID,
+        status: "active",
+        validity_period: validityPeriod,
+        package_credits: packageCredits,
+        purchase_date: today,
+        payment_method: paymentMethod,
+        expiration_date: getDateFromToday(validityPeriod),
+      })
+      .select();
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
+  const fetchClientPackages = async ({ clientID }: { clientID: string }) => {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("client_packages")
+      .select(`*, packages(*)`)
+      .eq("user_id", clientID)
+      .order("created_at", { ascending: false });
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
+  return {
+    loading,
+    fetchClientPackages,
+    purchasePackage,
+    updatePackage,
+    createPackage,
+    fetchPackages,
+  };
 };
 
 export const useClientBookings = () => {

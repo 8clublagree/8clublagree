@@ -74,6 +74,15 @@ export const formatTime = (dateTime: Dayjs) => {
   return dateTime.format("hh:mm A");
 };
 
+export const checkIfExpired = (expirationDate: Dayjs) => {
+  const today = dayjs();
+  return today.isAfter(expirationDate);
+};
+
+export const formatDate = (date: Dayjs, format: string = "MMM DD YYYY") => {
+  return date.format(format);
+};
+
 export const calculateDuration = (start: Dayjs, end: Dayjs): string => {
   let endTime = isDayjs(end) ? end : dayjs(end);
   let startTime = isDayjs(start) ? start : dayjs(start);
@@ -107,3 +116,7 @@ export function decimalToMilitaryTime(decimalHour: number): string {
     "0"
   )}`;
 }
+
+export const getDateFromToday = (daysFromToday: number) => {
+  return dayjs().add(daysFromToday, "day");
+};
