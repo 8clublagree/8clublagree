@@ -95,9 +95,9 @@ export const calculateDuration = (start: Dayjs, end: Dayjs): string => {
   const hours = Math.floor(diffInMinutes / 60);
   const minutes = diffInMinutes % 60;
 
-  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-  if (hours > 0) return `${hours}h`;
-  return `${minutes}m`;
+  if (hours > 0 && minutes > 0) return `${hours} hours ${minutes} mins`;
+  if (hours > 0) return `${hours} hours`;
+  return `${minutes} mins`;
 };
 
 export const getSlotsLeft = (

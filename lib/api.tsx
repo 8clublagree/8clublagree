@@ -260,11 +260,13 @@ export const useClassManagement = () => {
   };
 
   const fetchClasses = async ({
+    isAdmin = false,
     userId,
     startDate,
     endDate,
     selectedDate,
   }: {
+    isAdmin?: boolean;
     userId?: string;
     startDate?: Dayjs;
     endDate?: Dayjs;
@@ -272,30 +274,60 @@ export const useClassManagement = () => {
   }) => {
     setLoading(true);
 
+    // now in UTC ISO (matches timestamptz stored in DB)
+    const nowISO = dayjs().toISOString();
+    const today = dayjs().startOf("day");
+
     let query = supabase.from("classes").select(`
-      *,
-      class_bookings (
-        id,
-        booker_id,
-        class_id
-      ),
-      instructors (
+    *,
+    class_bookings (
+      id,
+      booker_id,
+      class_id
+    ),
+    instructors (
       avatar_path
     )
-    `);
+  `);
 
     if (userId) {
       query = query.eq("class_bookings.booker_id", userId);
     }
 
+    // date range filter (if provided)
     if (startDate && endDate) {
       query = query
         .gte("class_date", startDate.format("YYYY-MM-DD"))
         .lte("class_date", endDate.format("YYYY-MM-DD"));
     }
 
+    // selectedDate => filter to that local day (converted to UTC range)
     if (selectedDate) {
-      query = query.eq("class_date", selectedDate.format("YYYY-MM-DD"));
+      const startOfSelectedUTC = selectedDate
+        .startOf("day")
+        .subtract(8, "hour")
+        .toISOString();
+      const endOfSelectedUTC = selectedDate
+        .endOf("day")
+        .subtract(8, "hour")
+        .toISOString();
+
+      query = query
+        .gte("class_date", startOfSelectedUTC)
+        .lte("class_date", endOfSelectedUTC);
+
+      // If selected day is today AND caller is not admin, only show classes that haven't started yet
+      if (!isAdmin && selectedDate.isSame(today, "day")) {
+        query = query.gte("start_time", nowISO);
+      }
+    } else {
+      // No selectedDate provided:
+      // If NOT admin, still filter out classes that already started (global protection)
+      // — but only if that's desired. If you only want start_time filtering when selectedDate === today,
+      // remove this block. Keeping it commented as an option:
+      // if (!isAdmin) {
+      //   query = query.gte("start_time", nowISO);
+      // }
     }
 
     const { data, error } = await query;
