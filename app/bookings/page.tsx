@@ -160,7 +160,7 @@ export default function BookingsPage() {
 
         promises = [
           bookClass({
-            classDate: dayjs().format("YYYY-MM-DD"),
+            classDate: dayjs().toISOString(),
             classId: selectedRecord.id,
             bookerId: user?.id as string,
           }),
@@ -246,6 +246,70 @@ export default function BookingsPage() {
     carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
   };
 
+  const RenderClassList = useMemo(() => {
+    return (
+      <List
+        loading={loading}
+        itemLayout="horizontal"
+        dataSource={classes}
+        locale={{
+          emptyText: "A class hasn't been created for this day",
+        }}
+        renderItem={(item, index) => {
+          const slotsRemaining = item.available_slots - item.taken_slots;
+          return (
+            <List.Item key={index} actions={[renderActionButton(item)]}>
+              <Row className="wrap-none items-center gap-4">
+                <Col className="flex flex-col items-center">
+                  <Avatar
+                    className="border-gray-500 border"
+                    size={60}
+                    src={item.avatar_url}
+                  />
+                  <p>
+                    <span className="font-light">{item.instructor_name}</span>
+                  </p>
+                </Col>
+                <Col>
+                  <p>
+                    <span className="font-semibold">
+                      {dayjs(item.start_time).format("hh:mm")}
+                    </span>
+                  </p>
+                  <p>
+                    {/* calc start and end time */}
+                    <span className="font-light">
+                      {calculateDuration(item.start_time, item.end_time)}
+                    </span>
+                  </p>
+                  <p>
+                    <span>{item.slots}</span>
+                  </p>
+                  <p>
+                    <span
+                      className={`font-bold ${
+                        // calc available slots
+                        slotsRemaining === 1 || slotsRemaining === 0
+                          ? `text-red-500 font-semibold`
+                          : ``
+                      }`}
+                    >
+                      {slotsRemaining <= 0
+                        ? "Full"
+                        : slotsRemaining === 1
+                        ? "Last Slot"
+                        : `${slotsRemaining} slots left`}
+                    </span>
+                  </p>
+                </Col>
+              </Row>
+            </List.Item>
+          );
+        }}
+      />
+    );
+  }, [classes]);
+
   return (
     <AuthenticatedLayout>
       <div className="space-y-6">
@@ -302,65 +366,7 @@ export default function BookingsPage() {
               }}
               className="max-h-[500px] overflow-y-auto"
             >
-              <List
-                loading={loading}
-                itemLayout="horizontal"
-                dataSource={classes}
-                locale={{
-                  emptyText: "A class hasn't been created for this day",
-                }}
-                renderItem={(item, index) => (
-                  <List.Item key={index} actions={[renderActionButton(item)]}>
-                    <Row className="wrap-none items-center gap-4">
-                      <Col className="flex flex-col items-center">
-                        <Avatar
-                          className="border-gray-500 border"
-                          size={60}
-                          src={item.avatar_url}
-                        />
-                        <p>
-                          <span className="font-light">
-                            {item.instructor_name}
-                          </span>
-                        </p>
-                      </Col>
-                      <Col>
-                        <p>
-                          <span className="font-semibold">
-                            {dayjs(item.start_time).format("hh:mm")}
-                          </span>
-                        </p>
-                        <p>
-                          {/* calc start and end time */}
-                          <span className="font-light">
-                            {calculateDuration(item.start_time, item.end_time)}
-                          </span>
-                        </p>
-                        <p>
-                          <span>{item.slots}</span>
-                        </p>
-                        <p>
-                          <span
-                            className={`${
-                              // calc available slots
-                              item.available_slots === 1 ||
-                              item.available_slots === 0
-                                ? `text-red-500 font-semibold`
-                                : ``
-                            }`}
-                          >
-                            {item.available_slots <= 0
-                              ? "Full"
-                              : item.available_slots === 1
-                              ? "Last Slot"
-                              : `${item.available_slots} slots left`}
-                          </span>
-                        </p>
-                      </Col>
-                    </Row>
-                  </List.Item>
-                )}
-              />
+              {RenderClassList}
             </div>
 
             {/* {classes.length === 0 && (

@@ -90,7 +90,10 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
     currentDate.diff(today, "day") + daysToShow >= maxDaysAhead;
 
   return (
-    <Row className="flex items-center justify-center gap-[20px] bg-transparent p-4 rounded-xl w-full mx-auto">
+    <Row
+      wrap={false}
+      className="flex items-center justify-center gap-[20px] bg-transparent p-4 rounded-xl w-full mx-auto"
+    >
       {/* Left Arrow */}
       <Button
         shape="circle"
