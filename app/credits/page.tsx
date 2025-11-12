@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Row, Col, Typography, Button, List } from "antd";
+import { Card, Row, Col, Typography, Button, List, Divider } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useRouter } from "next/navigation";
 import { MdErrorOutline } from "react-icons/md";
@@ -289,23 +289,29 @@ export default function CreditsPage() {
                         {item.validityPeriod} days
                       </span>
                     </Text>
-                    <Text style={{ fontSize: 16 }}>
-                      Purchased on{" "}
-                      <span style={{ fontWeight: 600 }}>
-                        {formatDate(dayjs(item.purchaseDate))}
-                      </span>
+                    <Divider className="m-0 my-[5px] p-0" />
+                    <Text style={{ fontSize: 16 }}>Purchased on </Text>
+                    <Text style={{ fontSize: 16, fontWeight: 600 }}>
+                      {formatDate(dayjs(item.purchaseDate))}
                     </Text>
-                    <div style={{ minHeight: 24 }}>
+                    <Divider className="m-0 my-[5px] p-0" />
+                    <Row className="flex flex-col min-h-[24]">
                       <Text style={{ fontSize: 16 }}>
                         {checkIfExpired(dayjs(item.expirationDate))
                           ? "Expired"
                           : "Expires"}{" "}
                         on{" "}
-                        <span style={{ fontWeight: 600, color: "#f87171" }}>
-                          {formatDate(dayjs(item.expirationDate))}
-                        </span>
                       </Text>
-                    </div>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 600,
+                          color: "#f87171",
+                        }}
+                      >
+                        {formatDate(dayjs(item.expirationDate))}
+                      </Text>
+                    </Row>
                   </Row>
                 </Card>
               </List.Item>

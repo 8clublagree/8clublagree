@@ -34,16 +34,18 @@ const CAROUSEL_SLIDES = {
 
 export default function PackagesPage() {
   const dispatch = useDispatch();
-  const user = useAppSelector((state) => state.auth.user);
   const carouselRef = useRef<any>(null);
-  const [packages, setPackages] = useState<PackageProps[]>();
-  const [carouselSlide, setCarouselSlide] = useState(1);
-  const [acceptsTerms, setAcceptsTerms] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const { updateUserCredits } = useManageCredits();
+  const user = useAppSelector((state) => state.auth.user);
   const { fetchPackages, purchasePackage } = usePackageManagement();
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [carouselSlide, setCarouselSlide] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [acceptsTerms, setAcceptsTerms] = useState(false);
+  const [packages, setPackages] = useState<PackageProps[]>();
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [delayedOverflow, setDelayedOverflow] = useState("hidden");
 
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function PackagesPage() {
   };
 
   const handleNext = async () => {
+    setIsSubmitting(true);
     const purchasedPackage = await handlePurchasePackage();
 
     console.log("purchasedPackage: ", purchasedPackage);
@@ -146,6 +149,7 @@ export default function PackagesPage() {
     //temporary behavior
     setIsModalOpen(false);
     setSelectedRecord(null);
+    setIsSubmitting(false);
   };
 
   const handlePurchasePackage = async () => {
@@ -392,7 +396,14 @@ export default function PackagesPage() {
               </Row>
               <Button
                 onClick={handleNext}
-                disabled={!acceptsTerms}
+                /**
+                 * temporary button disable since payment
+                 * is not integrated yet
+                 * to prevent multiple clicking
+                 */
+                loading={isSubmitting}
+                disabled={!acceptsTerms || isSubmitting}
+                // disabled={!acceptsTerms}
                 className={`bg-[#36013F] ${
                   acceptsTerms ? "hover:!bg-[#36013F]" : ""
                 } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}

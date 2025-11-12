@@ -38,17 +38,20 @@ const CAROUSEL_SLIDES = {
 
 export default function BookingsPage() {
   const router = useRouter();
-  const carouselRef = useRef<any>(null);
-  const [carouselSlide, setCarouselSlide] = useState(1);
   const dispatch = useDispatch();
+  const carouselRef = useRef<any>(null);
   const user = useAppSelector((state) => state.auth.user);
+
+  const { updateUserCredits } = useManageCredits();
   const { fetchClasses, updateClass, bookClass, loading } =
     useClassManagement();
-  const { updateUserCredits } = useManageCredits();
-  const [classes, setClasses] = useState<any[]>([]);
-  const [acceptsTerms, setAcceptsTerms] = useState(false);
+
   const [isMobile, setIsMobile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [carouselSlide, setCarouselSlide] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [delayedOverflow, setDelayedOverflow] = useState("hidden");
@@ -151,6 +154,7 @@ export default function BookingsPage() {
 
   const handleBookClass = async () => {
     try {
+      setIsSubmitting(true);
       if (user) {
         let promises;
 
@@ -188,6 +192,8 @@ export default function BookingsPage() {
     } catch (error) {
       console.log(error);
     }
+
+    setIsSubmitting(false);
   };
 
   const handleScheduleAction = (item: any) => {
@@ -432,9 +438,14 @@ export default function BookingsPage() {
                 </Checkbox>
               </Row>
               <Button
-                loading={loading}
+                /**
+                 * temporary button disable since payment
+                 * is not integrated yet
+                 * to prevent multiple clicking
+                 */
+                loading={loading || isSubmitting}
                 onClick={handleBookClass}
-                disabled={!acceptsTerms || loading}
+                disabled={!acceptsTerms || loading || isSubmitting}
                 className={`bg-[#36013F] ${
                   acceptsTerms ? "hover:!bg-[#36013F]" : ""
                 } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full h-[40px]`}

@@ -9,6 +9,7 @@ import { useAppSelector } from "@/lib/hooks";
 import { supabase } from "@/lib/supabase";
 import { User } from "lucide-react";
 import dayjs from "dayjs";
+import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 
 const { Title, Text } = Typography;
@@ -88,9 +89,9 @@ export default function DashboardPage() {
             <Card className="shadow-sm hover:shadow-md transition-shadow">
               <Statistic
                 title="Total Credits"
-                value={user?.credits as number}
+                value={(user?.credits as number) ?? "Unlimited"}
                 prefix={<CalendarOutlined className="text-blue-600" />}
-                valueStyle={{ color: "#1e293b" }}
+                valueStyle={{ color: "#1e293b", margin: 0, padding: 0 }}
               />
             </Card>
           </Col>
