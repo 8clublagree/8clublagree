@@ -81,7 +81,10 @@ export default function ClassManagementPage() {
   }, [selectedDate]);
 
   const handleFetchClasses = async () => {
-    const data = await fetchClasses({ selectedDate: selectedDate as Dayjs });
+    const data = await fetchClasses({
+      selectedDate: selectedDate as Dayjs,
+      isAdmin: true,
+    });
 
     if (data) {
       const mapped = data?.map((item: any, index: number) => ({
@@ -149,7 +152,7 @@ export default function ClassManagementPage() {
       if (selectedRecord) {
         await updateClass({
           id: selectedRecord.id as string,
-          values: { ...values, class_date: selectedDate?.format("YYYY-MM-DD") },
+          values: { ...values, class_date: selectedDate?.toISOString() },
         });
 
         handleFetchClasses();
@@ -160,7 +163,7 @@ export default function ClassManagementPage() {
           await createClass({
             values: {
               ...values,
-              class_date: selectedDate?.format("YYYY-MM-DD"),
+              class_date: selectedDate?.toISOString(),
             },
           });
 
