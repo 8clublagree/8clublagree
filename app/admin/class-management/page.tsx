@@ -150,7 +150,6 @@ export default function ClassManagementPage() {
 
     setSelectedRecord(record);
     setViewModalOpen(true);
-    console.log("mapped: ", mapped);
     setAttendees(mapped as []);
   };
 
