@@ -39,26 +39,42 @@ export const useSearchUser = () => {
       .from("user_profiles")
       .select(
         `*,
-        user_credits (
-          id,
-          credits
-        ),
-        class_bookings(
-        *,
-        classes (
-          id,
-          start_time,
-          end_time,
-          instructor_id,
-          instructors (
-            id,
-            full_name,
-            avatar_path
-          )
-        )
-      )`
+     user_credits (
+       id,
+       credits
+     ),
+     class_bookings (
+       *,
+       classes (
+         id,
+         start_time,
+         end_time,
+         instructor_id,
+         instructors (
+           id,
+           full_name,
+           avatar_path
+         )
+       )
+     ),
+     client_packages (
+       *,
+       package_id,
+       status,
+       package_name,
+       purchase_date, 
+       package_credits,
+       validity_period,
+       expiration_date
+     )
+    `
       )
-      .eq("is_user", true);
+      .eq("is_user", true)
+      .eq("client_packages.status", "active")
+      .order("created_at", {
+        ascending: false,
+        foreignTable: "class_bookings",
+      });
 
     if (!!name?.length) {
       query = query.ilike("full_name", `%${name}%`);
@@ -214,20 +230,50 @@ export const useClassManagement = () => {
   };
 
   const rebookAttendee = async ({
+    oldClassID,
     newClassID,
     bookingID,
+    oldTakenSlots,
+    newTakenSlots,
   }: {
+    oldTakenSlots: number;
+    newTakenSlots: number;
+    oldClassID: string;
     bookingID: string;
     newClassID: string;
   }) => {
     let query = supabase
       .from("class_bookings")
       .update({ class_id: newClassID })
-      .eq("id", bookingID);
+      .eq("id", bookingID)
+      .select();
+
+    console.log({
+      oldClassID,
+      newClassID,
+      bookingID,
+      oldTakenSlots,
+      newTakenSlots,
+    });
+
+    const updateOldClassResponse = await updateClass({
+      id: oldClassID,
+      ...(oldTakenSlots !== 0 && {
+        values: { taken_slots: oldTakenSlots - 1 },
+      }),
+    });
+    const updateNewClassResponse = await updateClass({
+      id: newClassID,
+      values: { taken_slots: newTakenSlots + 1 },
+    });
 
     const { data, error } = await query;
 
-    if (error) {
+    if (
+      error ||
+      updateOldClassResponse === null ||
+      updateNewClassResponse === null
+    ) {
       console.error("Error rebooking attendee:", error);
       return null;
     }
@@ -287,7 +333,11 @@ export const useClassManagement = () => {
       id,
       attendance_status,
       booker_id,
-      class_id
+      class_id,
+      user_profiles (
+        id,
+        full_name
+      )
     ),
     instructors (
       avatar_path
@@ -298,14 +348,12 @@ export const useClassManagement = () => {
       query = query.eq("class_bookings.booker_id", userId);
     }
 
-    // date range filter (if provided)
     if (startDate && endDate) {
       query = query
         .gte("class_date", startDate.format("YYYY-MM-DD"))
         .lte("class_date", endDate.format("YYYY-MM-DD"));
     }
 
-    // selectedDate => filter to that local day (converted to UTC range)
     if (selectedDate) {
       const startOfSelectedUTC = selectedDate
         .startOf("day")
@@ -324,15 +372,9 @@ export const useClassManagement = () => {
       if (!isAdmin && selectedDate.isSame(today, "day")) {
         query = query.gte("start_time", nowISO);
       }
-    } else {
-      // No selectedDate provided:
-      // If NOT admin, still filter out classes that already started (global protection)
-      // — but only if that's desired. If you only want start_time filtering when selectedDate === today,
-      // remove this block. Keeping it commented as an option:
-      // if (!isAdmin) {
-      //   query = query.gte("start_time", nowISO);
-      // }
     }
+
+    query = query.order("created_at", { ascending: true });
 
     const { data, error } = await query;
 
@@ -365,7 +407,7 @@ export const useClassManagement = () => {
     values,
   }: {
     id: string;
-    values: CreateClassProps;
+    values?: CreateClassProps;
   }) => {
     setLoading(true);
 

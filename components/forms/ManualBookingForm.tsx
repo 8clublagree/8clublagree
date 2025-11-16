@@ -69,6 +69,7 @@ export default function ManualBookingForm({
         key: key,
       };
     });
+    console.log("mapped: ", mapped);
     setSchedules(mapped);
   };
 

@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
-import { Row, Typography, Spin, Drawer, Col } from "antd";
+import { Row, Typography, Spin, Drawer, Col, Segmented } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useManageCredits, useSearchUser, useUpdateUser } from "@/lib/api";
 import { useEffect, useState } from "react";
@@ -14,6 +14,7 @@ import { omit } from "lodash";
 import { useAppSelector } from "@/lib/hooks";
 import dayjs from "dayjs";
 import { attendanceStatus } from "@/lib/utils";
+import UserBookingHistory from "@/components/ui/user-booking-history";
 
 const { Title, Text } = Typography;
 
@@ -23,8 +24,6 @@ export default function ClientManagementPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
   const [clients, setClients] = useState<any[]>([]);
-  // const [input, setInput] = useState<string>("");
-  // const { debouncedValue } = useDebounce(input, 1000);
   const { updateUserCredits } = useManageCredits();
   const { searchClients, loading } = useSearchUser();
   const { updateUser, loading: updating } = useUpdateUser();
@@ -59,12 +58,16 @@ export default function ClientManagementPage() {
   const handleSearchClients = async () => {
     // const data = await searchClients({ name: debouncedValue });
     const data = await searchClients({});
+
     try {
       if (data) {
         const mapped = await Promise.all(
           data.map(async (user: any) => {
             let classBookings: any[] = [];
             let signedUrl: string | undefined = "";
+            let clientPackage = !!user.client_packages.length
+              ? user.client_packages[0]
+              : null;
 
             //if user has an avatar
             if (user.avatar_path) {
@@ -88,6 +91,7 @@ export default function ClientManagementPage() {
                   id: classBooking.id,
                   attendance: classBooking.attendance_status,
                   classDate: classBooking.class_date,
+
                   classDetails: {
                     id: classBooking.classes.id,
                     instructor: classBooking.classes.instructors.full_name,
@@ -98,8 +102,22 @@ export default function ClientManagementPage() {
               });
             }
 
+            if (clientPackage) {
+              clientPackage = {
+                status: clientPackage.status,
+                packages: {
+                  title: clientPackage.package_name,
+                },
+                packageCredits: clientPackage.package_credits,
+                validityPeriod: clientPackage.validity_period,
+                purchaseDate: clientPackage.purchase_date,
+                expirationDate: clientPackage.expiration_date,
+              };
+            }
+
             return {
               ...user,
+              clientPackage,
               key: user.id,
               avatar_url: signedUrl,
               bookingHistory: classBookings,
@@ -108,6 +126,7 @@ export default function ClientManagementPage() {
           })
         );
 
+        console.log("mapped: ", mapped);
         setClients(mapped);
       }
     } catch (error) {
@@ -132,61 +151,6 @@ export default function ClientManagementPage() {
   const handleCloseBookingHistory = (record: any) => {
     setSelectedRecord(record);
     setIsViewingHistory(false);
-  };
-
-  const UserBookingHistory = ({
-    bookingHistory,
-  }: {
-    bookingHistory: any[];
-  }) => {
-    return (
-      <>
-        <Col className="flex flex-col gap-y-[10px] cursor-pointer">
-          {bookingHistory.map((booking, index) => (
-            <Row
-              key={index}
-              justify={"space-between"}
-              className="border rounded-[10px] p-[10px] items-center"
-            >
-              <Col className="flex flex-col">
-                <Row>
-                  <Text>
-                    {dayjs(booking.classDate).format("MMM DD YYYY")} (
-                    {dayjs(booking.classDetails.startTime).format("hh:mm")} to{" "}
-                    {dayjs(booking.classDetails.endTime).format("hh:mm")})
-                  </Text>
-                </Row>
-
-                <Row>
-                  <Text>
-                    Class with{" "}
-                    <span className="text-red-400">
-                      {booking.classDetails.instructor}
-                    </span>
-                  </Text>
-                </Row>
-              </Col>
-              <Row>
-                <Text
-                  strong
-                  className={`text-[${
-                    attendanceStatus?.[booking.attendance]?.color
-                  }]`}
-                >
-                  {attendanceStatus?.[booking.attendance]?.status ?? "No Show"}
-                </Text>
-              </Row>
-            </Row>
-          ))}
-        </Col>
-
-        {!bookingHistory.length && (
-          <Row className="w-full p-[20px] justify-center">
-            <Text strong>No booking history</Text>
-          </Row>
-        )}
-      </>
-    );
   };
 
   const handleSubmit = async (values: any) => {
@@ -278,9 +242,6 @@ export default function ClientManagementPage() {
               isEdit={!!selectedRecord}
             />
           )}
-          {/* {isViewingHistory &&
-
-          } */}
         </Drawer>
       ) : (
         <Drawer
@@ -288,7 +249,6 @@ export default function ClientManagementPage() {
           open={isEditing}
           width={"30%"}
           onClose={handleCloseModal}
-          // onCancel={handleCloseModal}
           footer={null}
           styles={{
             body: { paddingTop: 10 },
@@ -339,6 +299,7 @@ export default function ClientManagementPage() {
             body: { paddingTop: 10 },
           }}
         >
+          <Segmented options={["Bookings", "Payments"]} block />
           <div className="pt-4">
             <UserBookingHistory
               bookingHistory={selectedRecord?.bookingHistory ?? []}

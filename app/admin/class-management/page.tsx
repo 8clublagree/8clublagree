@@ -24,6 +24,12 @@ import { IoMdPersonAdd } from "react-icons/io";
 import ManualBookingForm from "@/components/forms/ManualBookingForm";
 import { useClassManagement } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
+import { HiOutlineSwitchHorizontal } from "react-icons/hi";
+import { supabase } from "@/lib/supabase";
+import utc from "dayjs/plugin/utc";
+import RebookAttendeeForm from "@/components/forms/RebookAttendeeForm";
+
+dayjs.extend(utc);
 
 const { Text } = Typography;
 
@@ -53,11 +59,15 @@ export default function ClassManagementPage() {
   } = useClassManagement();
   const [classes, setClasses] = useState<any[]>([]);
   const [attendees, setAttendees] = useState<any[]>([]);
+  const [allBookings, setAllBookings] = useState<any[]>([]);
+  const [fullAttendeeListToday, setFullAttendeeListToday] = useState<any[]>([]);
 
   const [isMobile, setIsMobile] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isRebookModalOpen, setIsRebookModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [cannotRebook, setCannotRebook] = useState<boolean>(false);
 
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -98,16 +108,77 @@ export default function ClassManagementPage() {
     });
 
     if (data) {
-      const mapped = data?.map((item: any, index: number) => ({
-        key: index,
-        id: item.id,
-        instructor_id: item.instructor_id,
-        instructor_name: item.instructor_name,
-        start_time: dayjs(item.start_time),
-        end_time: dayjs(item.end_time),
-        slots: `${item.taken_slots} / ${item.available_slots}`,
-      }));
+      const mapped = data?.map((item: any, index: number) => {
+        return {
+          key: index,
+          id: item.id,
+          instructor_id: item.instructor_id,
+          instructor_name: item.instructor_name,
+          start_time: dayjs(item.start_time),
+          end_time: dayjs(item.end_time),
+          slots: `${item.taken_slots} / ${item.available_slots}`,
+          taken_slots: item.taken_slots,
+          available_slots: item.available_slots,
+        };
+      });
 
+      const allBookings = data.flatMap((cls) =>
+        cls.class_bookings.map((booking: any) => ({
+          classID: cls.id,
+          value: booking.booker_id,
+          label: booking.user_profiles.full_name,
+          class_id: cls.id,
+          class_name: cls.instructor_name,
+          start_time: cls.start_time,
+          end_time: cls.end_time,
+          taken_slots: cls.taken_slots,
+          available_slots: cls.available_slots,
+          bookingID: booking.id,
+        }))
+      );
+
+      // console.log("allBookings: ", allBookings);
+
+      setAllBookings(allBookings);
+
+      const grouped = allBookings.reduce((acc, booking) => {
+        if (!acc[booking.value]) {
+          acc[booking.value] = {
+            bookingID: booking.bookingID,
+            classID: booking.classID,
+            value: booking.value,
+            label: booking.label,
+            originalClasses: [
+              {
+                value: booking.class_id,
+                label: `${booking.class_name} ${dayjs(
+                  booking.start_time
+                ).format("hh:mm A")} - ${dayjs(booking.end_time).format(
+                  "hh:mm A"
+                )}`,
+                takenSlots: booking.taken_slots,
+                availableSlots: booking.available_slots,
+                bookingID: booking.bookingID,
+              },
+            ],
+          };
+        } else {
+          acc[booking.value].originalClasses.push({
+            bookingID: booking.bookingID,
+            value: booking.class_id,
+            label: `${booking.class_name} ${dayjs(booking.start_time).format(
+              "HH:mm A"
+            )} - ${dayjs(booking.end_time).format("HH:mm A")}`,
+            takenSlots: booking.taken_slots,
+            availableSlots: booking.available_slots,
+          });
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      const result = Object.values(grouped);
+
+      setFullAttendeeListToday(result);
       setClasses(mapped);
     }
   };
@@ -121,6 +192,12 @@ export default function ClassManagementPage() {
     setIsFormModalOpen(true);
   };
 
+  const handleOpenRebookModal = () => {
+    // setSelectedRecord(null);
+    console.log("fullAttendeeListToday: ", fullAttendeeListToday);
+    setIsRebookModalOpen(true);
+  };
+
   const handleEdit = (record: CreateClassProps) => {
     setSelectedRecord(record);
     setIsFormModalOpen(true);
@@ -128,6 +205,11 @@ export default function ClassManagementPage() {
 
   const handleCloseModal = () => {
     setIsFormModalOpen(false);
+    setSelectedRecord(null);
+  };
+
+  const handleCloseRebookModal = () => {
+    setIsRebookModalOpen(false);
     setSelectedRecord(null);
   };
   const handleCloseBookingModal = () => {
@@ -193,6 +275,40 @@ export default function ClassManagementPage() {
     }
   };
 
+  const handleRebookAttendee = async ({
+    originalClass,
+    newClassID,
+    bookerName,
+  }: {
+    originalClass: string;
+    newClassID: string;
+    bookerName: string;
+  }) => {
+    const originalBookingRecord = allBookings.find(
+      (item: any) => item.classID === originalClass && item.label === bookerName
+    );
+
+    const originalClassRecord = classes.find(
+      (item: any) => item.id === originalClass
+    );
+
+    const newClassRecord = classes.find((item: any) => item.id === newClassID);
+
+    await rebookAttendee({
+      oldTakenSlots: originalClassRecord.taken_slots,
+      oldClassID: originalClassRecord.id,
+      bookingID: originalBookingRecord.bookingID,
+      newClassID: newClassID,
+      newTakenSlots: newClassRecord.taken_slots,
+    });
+
+    // CLEAR REBOOK FORM STATES
+    // RE RUN TESTS
+
+    handleFetchClasses();
+    handleCloseRebookModal();
+  };
+
   const handleChange = async ({
     bookingID,
     status,
@@ -229,28 +345,19 @@ export default function ClassManagementPage() {
             <span className="font-semibold">Attendees</span>
           </div>
 
-          {/* Empty State for 0 attendees */}
-          {attendees.length === 0 && (
-            <Row wrap={false} className="justify-center">
-              <span className="font-semibold p-4">
-                Nobody has booked this class yet
-              </span>
-            </Row>
-          )}
-
-          {/* Non-empty state */}
           <div
             style={{
               overflowY: "auto",
               maxHeight: "30vh",
-              scrollbarWidth: "none", // Firefox
-              msOverflowStyle: "none", // IE and Edge
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
             }}
             className="overflow-y-auto"
           >
             <List
               itemLayout="horizontal"
               dataSource={attendees}
+              locale={{ emptyText: "Nobody has booked this class yet" }}
               loading={loading}
               renderItem={(item, index) => (
                 <Row
@@ -266,7 +373,9 @@ export default function ClassManagementPage() {
                   />
 
                   <Select
-                    disabled={item?.attendanceStatus === "cancelled"}
+                    disabled={
+                      item?.attendanceStatus === "cancelled" || cannotRebook
+                    }
                     defaultValue={item?.attendanceStatus}
                     placeholder="Status"
                     className="!outline-none"
@@ -293,6 +402,10 @@ export default function ClassManagementPage() {
     );
   };
 
+  const handleSelectedDateChange = (e) => {
+    setSelectedDate(dayjs(e));
+    setCannotRebook(dayjs(e).isBefore(dayjs().subtract(1, "day")));
+  };
   return (
     <AdminAuthenticatedLayout>
       <div className="space-y-6">
@@ -303,7 +416,7 @@ export default function ClassManagementPage() {
         <Row className="wrap-none justify-center bg-transparent !mt-0">
           <DatePickerCarousel
             isAdmin={true}
-            onDateSelect={(e) => setSelectedDate(dayjs(e))}
+            onDateSelect={handleSelectedDateChange}
           />
         </Row>
 
@@ -315,16 +428,19 @@ export default function ClassManagementPage() {
               onClick={handleOpenModal}
               className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
-              Create
+              Create a Class
             </Button>
-            {/* <Button
+            <Button
+              disabled={cannotRebook || !classes?.length}
               type="primary"
               icon={<HiOutlineSwitchHorizontal />}
-              onClick={handleOpenModal}
-              className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+              onClick={handleOpenRebookModal}
+              className={`bg-[#36013F] ${
+                !!classes?.length && !cannotRebook && "hover:!bg-[#36013F]"
+              } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
               Rebook Attendee
-            </Button> */}
+            </Button>
             <Button
               type="primary"
               icon={<IoMdPersonAdd />}
@@ -432,6 +548,7 @@ export default function ClassManagementPage() {
             onClose={handleCloseView}
             open={viewModalOpen}
             width="100%"
+            maskClosable={false}
             styles={{
               body: { paddingTop: 24 },
             }}
@@ -449,6 +566,48 @@ export default function ClassManagementPage() {
             maskClosable={false}
           >
             {RenderViewClass()}
+          </Modal>
+        )}
+
+        {/* Rebook Modal */}
+        {isMobile ? (
+          <Drawer
+            closable={!loading}
+            title="Rebook Attendee"
+            placement="right"
+            onClose={handleCloseRebookModal}
+            open={isRebookModalOpen}
+            maskClosable={false}
+            width="100%"
+            styles={{
+              body: { paddingTop: 24 },
+            }}
+          >
+            <RebookAttendeeForm
+              onSubmit={(e) => handleRebookAttendee(e)}
+              loading={loading}
+              onCancel={handleCloseRebookModal}
+              attendees={fullAttendeeListToday}
+              classes={classes}
+            />
+          </Drawer>
+        ) : (
+          <Modal
+            closable={!loading}
+            title="Rebook Attendee"
+            open={isRebookModalOpen}
+            onCancel={handleCloseRebookModal}
+            width={600}
+            maskClosable={false}
+            footer={null}
+          >
+            <RebookAttendeeForm
+              onSubmit={(e) => handleRebookAttendee(e)}
+              loading={loading}
+              onCancel={handleCloseRebookModal}
+              attendees={fullAttendeeListToday}
+              classes={classes}
+            />
           </Modal>
         )}
       </div>

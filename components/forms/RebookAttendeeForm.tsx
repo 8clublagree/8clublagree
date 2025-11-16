@@ -1,0 +1,166 @@
+"use client";
+
+import { Select, Row, Typography, Divider, Button, Tooltip } from "antd";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { useSearchUser } from "@/lib/api";
+
+interface RebookAttendeeProps {
+  onSubmit: (values: any) => void;
+  onCancel: () => void;
+  loading?: boolean;
+  attendees: any[];
+  classes: any[];
+}
+
+const { Text } = Typography;
+
+export default function RebookAttendeeForm({
+  onSubmit,
+  onCancel,
+  loading = false,
+  attendees,
+  classes,
+}: RebookAttendeeProps) {
+  const [selectedOriginalSchedule, setSelectedOriginalSchedule] =
+    useState<any>(null);
+  const [selectedNewSchedule, setSelectedNewSchedule] = useState<any>(null);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+
+  useEffect(() => {
+    console.log("attendees: ", attendees);
+    console.log("classes: ", classes);
+  }, []);
+
+  const handleSelect = (selected: string) => {
+    const found = attendees?.find((item) => item.value === selected);
+
+    console.log("found: ", found);
+
+    if (!found) return null;
+
+    const availableClasses = classes
+      .filter(
+        (item: any) =>
+          !(found.originalClasses.map((x: any) => x.value) as any[]).includes(
+            item.id
+          )
+      )
+      .map((item: any) => {
+        return {
+          value: item.id,
+          label: `${item.instructor_name} (${dayjs(item.start_time).format(
+            "hh:mm A"
+          )} - ${dayjs(item.end_time).format("hh:mm A")}) (${
+            item.taken_slots
+          } / ${item.available_slots} slots remaining)`,
+          disabled: item.taken_slots === item.available_slots,
+        };
+      });
+
+    setSelectedRecord({
+      bookerID: found.value,
+      classID: found.classID,
+      bookerName: found.label,
+      originalClasses: found.originalClasses,
+      availableClasses: availableClasses,
+    });
+  };
+
+  const handleClear = () => {
+    setSelectedRecord(null);
+    setSelectedOriginalSchedule(null);
+    setSelectedNewSchedule(null);
+  };
+
+  const handleFinish = () => {
+    onSubmit({
+      bookerName: selectedRecord.bookerName,
+      originalClass: selectedOriginalSchedule,
+      newClassID: selectedNewSchedule,
+    });
+
+    handleClear();
+  };
+
+  const handleClose = () => {
+    handleClear();
+    onCancel();
+  };
+
+  return (
+    <Row className="flex flex-col gap-y-[20px] pb-[20px]">
+      <Row wrap={false} className="gap-x-[20px]">
+        <Row className="w-full flex flex-col">
+          <Text>Attendee</Text>
+          <Select
+            allowClear
+            value={selectedRecord?.bookerName}
+            onClear={handleClear}
+            onSelect={(e) => handleSelect(e)}
+            placeholder="Select an attendee from today"
+            options={attendees}
+          />
+        </Row>
+        <Tooltip
+          title={
+            selectedRecord &&
+            !selectedRecord?.availableClasses.length &&
+            "Attendee is in all classes, or there are no other classes."
+          }
+        >
+          <Row className="w-full flex flex-col">
+            <Text>Original Schedule</Text>
+            <Select
+              value={selectedOriginalSchedule}
+              onSelect={(e) => setSelectedOriginalSchedule(e)}
+              options={selectedRecord?.originalClasses ?? []}
+              disabled={selectedRecord === null}
+              placeholder="Select attendee original class"
+            />
+          </Row>
+        </Tooltip>
+      </Row>
+      <Divider>Rebook to</Divider>
+      <Tooltip
+        title={
+          selectedRecord &&
+          !selectedRecord?.availableClasses.length &&
+          "Attendee is in all classes, or there are no other classes."
+        }
+      >
+        <Row className="w-full flex flex-col">
+          <Text>New Schedule</Text>
+          <Select
+            value={selectedNewSchedule}
+            onSelect={(e) => setSelectedNewSchedule(e)}
+            disabled={
+              selectedRecord === null ||
+              !selectedRecord?.availableClasses.length
+            }
+            placeholder="Select a new schedule"
+            options={selectedRecord?.availableClasses ?? []}
+          />
+        </Row>
+      </Tooltip>
+
+      <Row wrap={false} justify={"end"} className="gap-x-[10px]">
+        <Button
+          onClick={handleClose}
+          disabled={loading}
+          className="font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] h-[40px]"
+        >
+          Cancel
+        </Button>
+        <Button
+          disabled={loading}
+          loading={loading}
+          onClick={handleFinish}
+          className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] h-[40px]`}
+        >
+          Rebook
+        </Button>
+      </Row>
+    </Row>
+  );
+}

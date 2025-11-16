@@ -18,7 +18,7 @@ import { CreatePackageProps, UserProps } from "@/lib/props";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { formatPrice } from "@/lib/utils";
 import { UserIcon } from "lucide-react";
-import { FaBook } from "react-icons/fa";
+import { FaBook, FaHistory } from "react-icons/fa";
 
 type DataIndex = keyof UserProps;
 
@@ -248,7 +248,7 @@ const AdminClientTable = ({
         fixed: isMobile ? undefined : "right",
         render: (_, record) => (
           <Row className="justify-center cursor-pointer gap-3">
-            <FaBook size={20} onClick={() => viewBookingHistory(record)} />
+            <FaHistory size={20} onClick={() => viewBookingHistory(record)} />
             <MdEdit size={20} color="#733AC6" onClick={() => onEdit(record)} />
             <MdDelete
               size={20}

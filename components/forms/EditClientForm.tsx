@@ -20,6 +20,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
+import PackageHistoryCard from "../ui/package-history-card";
 
 interface EditClientProps {
   onSubmit: (values: any) => void;
@@ -58,6 +59,7 @@ const EditClientForm = ({
 
   useEffect(() => {
     if (initialValues) {
+      console.log("initialValues: ", initialValues);
       if (initialValues?.avatar_url) {
         setFile([
           {
@@ -256,43 +258,71 @@ const EditClientForm = ({
         </Col>
       </Row>
 
-      <Title level={3}>Package and Credits</Title>
+      <Title level={3} className="!mb-[30px]">
+        Active Package and Credits
+      </Title>
       <Row gutter={[16, 0]}>
         {/* Remaining Credits */}
-        <Col xs={24} sm={12}>
-          <Form.Item
-            label="Remaining Credits"
-            name="credits"
-            rules={[
-              {
-                required: true,
-                message: "Please enter amount of credits",
-              },
-            ]}
-          >
-            <InputNumber
-              placeholder="Enter credits"
-              // prefix={<TeamOutlined className="text-slate-400" />}
-              className="w-full"
-              min={1}
-              precision={0}
-              onKeyDown={(e) => {
-                if (!/[0-9]/.test(e.key) && e.code !== "Backspace") {
-                  e.preventDefault();
-                }
-              }}
-              onPaste={(e) => {
-                const paste = e.clipboardData.getData("text");
-                if (!/^\d+$/.test(paste)) {
-                  e.preventDefault();
-                }
-              }}
-            />
-          </Form.Item>
-        </Col>
+
+        <Row className="w-full mb-[40px]" justify={"center"}>
+          {initialValues?.clientPackage && (
+            <Row justify={"center"}>
+              <PackageHistoryCard item={initialValues?.clientPackage as any} />
+            </Row>
+          )}
+          {!initialValues?.clientPackage && (
+            <Row justify={"center"}>
+              <Title className="!font-light" level={4}>
+                Client has no active package
+              </Title>
+            </Row>
+          )}
+        </Row>
+
+        {initialValues?.clientPackage && (
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Remaining Credits"
+              name="credits"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter amount of credits",
+                },
+              ]}
+            >
+              <InputNumber
+                placeholder="Enter credits"
+                // prefix={<TeamOutlined className="text-slate-400" />}
+                className="w-full"
+                min={1}
+                precision={0}
+                onKeyDown={(e) => {
+                  if (!/[0-9]/.test(e.key) && e.code !== "Backspace") {
+                    e.preventDefault();
+                  }
+                }}
+                onPaste={(e) => {
+                  const paste = e.clipboardData.getData("text");
+                  if (!/^\d+$/.test(paste)) {
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </Form.Item>
+          </Col>
+        )}
       </Row>
 
-      <div className="flex justify-center sm:justify-end mt-6">
+      <Row className="flex gap-x-[10px] justify-center sm:justify-end mt-6">
+        <Button
+          onClick={() => console.log(form)}
+          loading={loading}
+          disabled={loading}
+          className=" font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+        >
+          Cancel
+        </Button>
         <Button
           type="primary"
           loading={loading}
@@ -302,7 +332,7 @@ const EditClientForm = ({
         >
           Save Changes
         </Button>
-      </div>
+      </Row>
     </Form>
   );
 };
