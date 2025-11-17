@@ -108,6 +108,52 @@ export const useSearchUser = () => {
   return { validateEmail, searchClients, searchInstructors, loading };
 };
 
+export const useManagePassword = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const validatePassword = async ({
+    email,
+    currentPassword,
+  }: {
+    email: string;
+    currentPassword: string;
+  }) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+
+      setLoading(false);
+      if (error) return null;
+
+      return data;
+    } catch (error) {
+      console.log("error validating password: ", error);
+    }
+    setLoading(false);
+  };
+
+  const changePassword = async ({ newPassword }: { newPassword: string }) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) return null;
+
+      return data;
+    } catch (error) {
+      console.log("error changing password: ", error);
+    }
+    setLoading(false);
+  };
+
+  return { validatePassword, changePassword, loading };
+};
+
 export const useUpdateUser = () => {
   const [loading, setLoading] = useState(false);
 
