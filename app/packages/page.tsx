@@ -105,7 +105,7 @@ export default function PackagesPage() {
 
   const handleUpdateUserCredits = async ({ credits }: { credits: number }) => {
     try {
-      const response = await updateUserCredits({
+      await updateUserCredits({
         userID: user?.id as string,
         values: { credits },
       });
@@ -135,6 +135,23 @@ export default function PackagesPage() {
     setSelectedRecord(null);
   };
 
+  const handleSendConfirmationEmail = async () => {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: user?.email,
+        title: selectedRecord.title,
+        // subject: "Hello from Next.js App Router",
+        // text: "This is a test email",
+        // html: "<p style={{fontFamily: 'Inter'}}>This is a <strong>test</strong> email</p>",
+        emailType: "package_purchase",
+      }),
+    });
+    const data = await res.json();
+    console.log(data);
+  };
+
   const handleNext = async () => {
     setIsSubmitting(true);
     const purchasedPackage = await handlePurchasePackage();
@@ -144,6 +161,8 @@ export default function PackagesPage() {
       credits: selectedRecord.packageCredits,
     });
     console.log("response: ", response);
+
+    await handleSendConfirmationEmail();
 
     // temporarily commented out until payments is integrated
     // setCarouselSlide(2);
@@ -197,11 +216,18 @@ export default function PackagesPage() {
           </Title>
         </div>
 
-        <Row gutter={[20, 20]} justify="start">
+        <Row gutter={[20, 20]} className="gap-x-[20px] xl:justify-start">
           {packages &&
-            packages.map((item, index) => (
-              <Col key={index} xs={24} sm={12} md={8} lg={6} xl={5}>
+            packages.map((item, index) => {
+              const disablePurchase =
+                (user?.currentPackage !== null ||
+                  user?.currentPackage !== undefined) &&
+                user?.credits !== 0;
+
+              const showToolTip = user?.currentPackage && user?.credits !== 0;
+              return (
                 <Card
+                  key={index}
                   title={
                     item.packageCredits ? `${item.packageCredits}` : `Unlimited`
                   }
@@ -224,10 +250,10 @@ export default function PackagesPage() {
                       paddingTop: "15px",
                     },
                   }}
-                  className="border-[#fbe2ff] rounded-[24px] shadow-sm transition-all duration-300 flex-nowrap"
+                  className="w-[270px] border-[#fbe2ff] rounded-[24px] shadow-sm transition-all duration-300 flex-nowrap"
                 >
-                  <Col className="flex flex-col gap-y-[10px]">
-                    <Col>
+                  <Col className="flex flex-col gap-y-[10px] flex-nowrap">
+                    <Col className="flex-nowrap">
                       <p>
                         <span className="font-bold text-[16px]">
                           {item.title}
@@ -256,87 +282,32 @@ export default function PackagesPage() {
                       </p>
                     </Col>
 
-                    {user?.currentPackage && user?.credits !== 0 && (
-                      <Tooltip title="You still have an active package">
-                        <Button
-                          disabled={
-                            user?.currentPackage !== null ||
-                            user?.currentPackage !== undefined
-                          }
-                          onClick={() => handleOpenModal(item)}
-                          className={`${
-                            !user?.currentPackage
-                              ? "!bg-[#36013F] !border-[#36013F]"
-                              : "!bg-[#c8c7c7]"
-                          } ${
-                            !user?.currentPackage &&
-                            "hover:!bg-[#36013F]  hover:scale-[1.03]"
-                          }  h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
-                        >
-                          Purchase
-                        </Button>
-                      </Tooltip>
-                    )}
-                    {(user?.currentPackage === undefined ||
-                      user?.credits === 0) && (
+                    <Tooltip
+                      title={showToolTip && "You still have an active package"}
+                    >
                       <Button
+                        disabled={disablePurchase}
                         onClick={() => handleOpenModal(item)}
-                        className={`!bg-[#36013F] !border-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03] h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                        className={`${
+                          !disablePurchase
+                            ? "!bg-[#36013F] !border-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                            : "!bg-slate-200 !border-slate-bg-slate-200 hover:!bg-slate-200"
+                        } h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
                       >
                         Purchase
                       </Button>
-                    )}
+                    </Tooltip>
                   </Col>
                 </Card>
-              </Col>
-            ))}
+              );
+            })}
         </Row>
 
         {packages && packages.length === 0 && (
           <Card className="shadow-sm">
-            {/* <List
-            itemLayout="horizontal"
-            dataSource={data}
-            renderItem={(item, index) => (
-              <List.Item
-                actions={[
-                  <Button
-                    type="primary"
-                    className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
-                  >
-                    Buy
-                  </Button>,
-                ]}
-              >
-                <Row className="wrap-none items-center gap-4">
-                  <Avatar
-                    className="border-gray-500 border"
-                    size={60}
-                    src={`https://api.dicebear.com/7.x/miniavs/svg?seed=${index}`}
-                  />
-                  <Col>
-                    <p>
-                      <span className="font-semibold">{`${item.title}`}</span>
-                    </p>
-                    <p>
-                      <span className="font-light">
-                        PHP {formatPrice(item.price)}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-light">
-                        Valid for {item.validity} days
-                      </span>
-                    </p>
-                  </Col>
-                </Row>
-              </List.Item>
-            )}
-          /> */}
-
             <div className="text-center py-12 text-slate-500">
               <CalendarOutlined className="text-4xl mb-4" />
-              <p>No bookings yet. Start by creating your first booking.</p>
+              <p>No packages are being offered at this time.</p>
             </div>
           </Card>
         )}

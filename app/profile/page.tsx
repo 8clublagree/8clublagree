@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -11,17 +11,16 @@ import {
   Col,
   Tabs,
   TabsProps,
-  InputRef,
 } from "antd";
 import dayjs from "dayjs";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useAppSelector } from "@/lib/hooks";
 import { useManagePassword, useUpdateUser } from "@/lib/api";
-import { supabase, UpdateUserProfile } from "@/lib/supabase";
+import { UpdateUserProfile } from "@/lib/supabase";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
-import useDebounce from "@/hooks/use-debounce";
 import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
+import { useAppMessage } from "@/components/ui/message-popup";
 
 export default function ProfilePage() {
   const [personalInfoForm] = Form.useForm();
@@ -31,10 +30,10 @@ export default function ProfilePage() {
   const user = useAppSelector((state) => state.auth.user);
   const [profileTab, setProfileTab] = useState<string>("personal-information");
   const { changePassword } = useManagePassword();
-  const [messageApi, contextHolder] = message.useMessage();
+  const { showMessage, contextHolder } = useAppMessage();
 
   useEffect(() => {
-    if (user) {
+    if (user && profileTab === "personal-information") {
       personalInfoForm.setFieldsValue({
         first_name: user.first_name,
         last_name: user.last_name,
@@ -48,25 +47,37 @@ export default function ProfilePage() {
     } else {
       personalInfoForm.resetFields();
     }
-  }, [user, personalInfoForm]);
+  }, [user, personalInfoForm, profileTab]);
 
   const handleSubmit = async (formData: UpdateUserProfile) => {
-    const values = {
-      ...formData,
-      location: formData.location,
-      birthday: dayjs(formData.birthday).toISOString(),
-      full_name: `${formData.first_name} ${formData.last_name}`,
-    };
+    try {
+      const values = {
+        ...formData,
+        location: formData.location,
+        birthday: dayjs(formData.birthday).toISOString(),
+        full_name: `${formData.first_name} ${formData.last_name}`,
+      };
 
-    const response = await updateUser({
-      values,
-      id: user?.id as string,
-    });
+      const response = await updateUser({
+        values,
+        id: user?.id as string,
+      });
 
-    if (response) {
-      const updated = { ...formData, ...user, id: user?.id as string };
-      dispatch(setUser(updated as any));
-      message.success("Profile updated successfully!");
+      if (response) {
+        showMessage({
+          type: "success",
+          content: "Updated personal information!",
+        });
+
+        const updated = { ...formData, ...user, id: user?.id as string };
+        dispatch(setUser(updated as any));
+        message.success("Profile updated successfully!");
+      }
+    } catch (error) {
+      showMessage({
+        type: "error",
+        content: "Error updating personal information.",
+      });
     }
   };
 
@@ -234,19 +245,16 @@ export default function ProfilePage() {
       confirm_new_password: string;
     };
   }) => {
-    console.log("values: ", values);
     try {
       await changePassword({ newPassword: values.new_password });
-      messageApi.open({
+      showMessage({
         type: "success",
         content: "Updated password!",
-        duration: 10,
       });
     } catch (error) {
-      messageApi.open({
+      showMessage({
         type: "error",
         content: "Failed to update password.",
-        duration: 10,
       });
     }
   };

@@ -28,6 +28,8 @@ import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
 import { ChevronRight, X } from "lucide-react";
+import { useAppMessage } from "@/components/ui/message-popup";
+import axios from "axios";
 
 const { Title } = Typography;
 
@@ -43,6 +45,7 @@ export default function BookingsPage() {
   const user = useAppSelector((state) => state.auth.user);
 
   const { updateUserCredits } = useManageCredits();
+  const { showMessage, contextHolder } = useAppMessage();
   const { fetchClasses, updateClass, bookClass, loading } =
     useClassManagement();
 
@@ -148,11 +151,33 @@ export default function BookingsPage() {
       return;
     }
 
+    setAcceptsTerms(false);
     setIsModalOpen(false);
     setSelectedRecord(null);
   };
 
+  const handleSendConfirmationEmail = async () => {
+    const classDate = `${dayjs(selectedRecord?.date).format("MMMM")} ${dayjs(
+      selectedRecord?.date
+    ).format("DD")} ${dayjs(selectedRecord?.date).format("YYYY")}`;
+
+    const classTime = dayjs(selectedRecord?.start_time).format("hh:mm A");
+
+    const res = await axios.post("/api/send-email", {
+      to: user?.email,
+      instructor: selectedRecord.instructor_name,
+      date: classDate,
+      time: classTime,
+      className: "Regular Class",
+      emailType: "class_booking_confirmation",
+    });
+
+    const data = await res.data;
+    console.log(data);
+  };
+
   const handleBookClass = async () => {
+    console.log("selectedRecord: ", selectedRecord);
     try {
       setIsSubmitting(true);
       if (user) {
@@ -184,16 +209,21 @@ export default function BookingsPage() {
           dispatch(setUser({ ...user, credits: updatedCredits }));
         }
 
-        await Promise.all(promises);
+        await Promise.all([...promises, handleSendConfirmationEmail()]);
 
-        handleFetchClasses();
+        setIsSubmitting(false);
         handleCloseModal();
+        showMessage({
+          type: "success",
+          content: "Successfully booked a class!",
+        });
+        handleFetchClasses();
       }
     } catch (error) {
       console.log(error);
+      setIsSubmitting(false);
+      showMessage({ type: "error", content: "Error while booking a class" });
     }
-
-    setIsSubmitting(false);
   };
 
   const handleScheduleAction = (item: any) => {
@@ -321,6 +351,7 @@ export default function BookingsPage() {
 
   return (
     <AuthenticatedLayout>
+      {contextHolder}
       <div className="space-y-6">
         <Row className="flex flex-col wrap-none justify-center bg-transparent">
           <Col>
@@ -394,7 +425,7 @@ export default function BookingsPage() {
         placement="right"
         title={carouselSlide === CAROUSEL_SLIDES.TERMS && "Back to Agreement"}
         closeIcon={carouselSlide === CAROUSEL_SLIDES.TERMS && <ChevronRight />}
-        closable
+        closable={!isSubmitting}
         onClose={handleCloseModal}
         open={isModalOpen}
         width={isMobile ? "100%" : "30%"}
@@ -464,8 +495,8 @@ export default function BookingsPage() {
                 loading={loading || isSubmitting}
                 onClick={handleBookClass}
                 disabled={!acceptsTerms || loading || isSubmitting}
-                className={`bg-[#36013F] ${
-                  acceptsTerms ? "hover:!bg-[#36013F]" : ""
+                className={`${acceptsTerms && "hover:!bg-[#36013F]"} ${
+                  loading || isSubmitting ? "!bg-[gray]" : "!bg-[#36013F]"
                 } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full h-[40px]`}
               >
                 Book

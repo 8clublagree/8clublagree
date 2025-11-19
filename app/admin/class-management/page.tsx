@@ -402,7 +402,7 @@ export default function ClassManagementPage() {
     );
   };
 
-  const handleSelectedDateChange = (e) => {
+  const handleSelectedDateChange = (e: any) => {
     setSelectedDate(dayjs(e));
     setCannotRebook(dayjs(e).isBefore(dayjs().subtract(1, "day")));
   };

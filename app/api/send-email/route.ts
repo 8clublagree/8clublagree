@@ -1,0 +1,78 @@
+import nodemailer from "nodemailer";
+import { NextRequest, NextResponse } from "next/server";
+import { EMAIL_TEMPLATE } from "@/lib/email-templates";
+
+type EmailTypes = "package_purchase" | "class_booking_confirmation";
+
+export async function POST(req: NextRequest) {
+  try {
+    let body: any;
+    let subject: any;
+    let template: any;
+    const request = await req.json();
+    const {
+      to,
+      emailType,
+      title: packageTitle,
+      instructor,
+      date,
+      time,
+      className,
+    } = request;
+
+    if (!emailType) {
+      return NextResponse.json(
+        { message: "No email type provided" },
+        { status: 500 }
+      );
+    }
+
+    if (emailType === "package_purchase") {
+      template = EMAIL_TEMPLATE[emailType];
+      const { subject: templateSubject, body: templateBody } = template({
+        packageTitle,
+      });
+
+      subject = templateSubject;
+      body = templateBody;
+    }
+
+    if (emailType === "class_booking_confirmation") {
+      template = EMAIL_TEMPLATE[emailType];
+      const { subject: templateSubject, body: templateBody } = template({
+        instructor,
+        date,
+        time,
+        className,
+      });
+
+      subject = templateSubject;
+      body = templateBody;
+    }
+
+    // Mailtrap SMTP transporter
+    const transporter = nodemailer.createTransport({
+      host: process.env.MAILTRAP_HOST,
+      port: Number(process.env.MAILTRAP_PORT) || 587,
+      auth: {
+        user: process.env.MAILTRAP_USERNAME,
+        pass: process.env.MAILTRAP_PASSWORD,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: '"My App" <no-reply@myapp.com>',
+      to,
+      subject,
+      html: body,
+    });
+
+    return NextResponse.json({ message: "Email sent", info });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { message: "Error sending email", error },
+      { status: 500 }
+    );
+  }
+}

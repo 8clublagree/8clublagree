@@ -77,13 +77,9 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
     }
 
     setIsValidating(false);
-    console.log(user);
-
-    console.log("response: ", response);
   };
 
   const handleClear = () => {
-    form.resetFields();
     form.setFields([
       {
         name: "current_password",
@@ -100,6 +96,7 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
     ]);
     setInvalidCurrentPassword(true);
     setCurrentPassword("");
+    form.resetFields();
   };
 
   const handleSubmit = (values: any) => {
@@ -137,8 +134,6 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
         },
       ]);
 
-      console.log("here");
-      console.log(values);
       onSubmit(values);
     }
   };
@@ -222,11 +217,21 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
         </Col>
       </Row>
 
-      <div className="flex justify-center sm:justify-end mt-6">
+      <div className="flex justify-center sm:justify-end mt-6 gap-x-[15px]">
         <Button
+          onClick={handleClear}
+          type="primary"
+          className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+        >
+          Reset
+        </Button>
+        <Button
+          disabled={invalidCurrentPassword}
           type="primary"
           htmlType="submit"
-          className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+          className={`${
+            !invalidCurrentPassword && "!bg-[#36013F] hover:!bg-[#36013F]"
+          } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
         >
           Change Password
         </Button>

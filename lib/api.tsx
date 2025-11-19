@@ -169,7 +169,8 @@ export const useUpdateUser = () => {
     const { data, error } = await supabase
       .from("user_profiles")
       .update(values)
-      .eq("id", id);
+      .eq("id", id)
+      .select();
 
     if (error) return null;
 
