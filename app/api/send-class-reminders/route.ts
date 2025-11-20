@@ -1,7 +1,6 @@
 import "dotenv/config";
-import cron from "node-cron";
 import dayjs from "dayjs";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 
@@ -68,7 +67,7 @@ async function checkUpcomingClasses() {
 
     await transporter.sendMail({
       from: '"My App" <no-reply@myapp.com>',
-      to: "email@mail.com",
+      to: user?.email,
       subject: `Reminder: Your class is tomorrow!`,
       html: `
      <div style="width:100%; background:#f4f4f4; padding:40px 0;">
