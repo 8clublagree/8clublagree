@@ -68,18 +68,19 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
 
   // ⏪ Previous week
   const handlePrev = () => {
-    const newDate = currentDate.subtract(7, "day"); // move one week back
+    const newDate = currentDate.subtract(daysToShow, "day"); // move back by visible range
     if (!isAdmin && newDate.isBefore(today, "day")) return;
     setCurrentDate(newDate);
+    setSelectedDate(newDate.startOf("day")); // select first date in new range
   };
 
   // ⏩ Next week
   const handleNext = () => {
-    const newDate = currentDate.add(7, "day"); // move one week forward
+    const newDate = currentDate.add(daysToShow, "day"); // move forward by visible range
     if (newDate.diff(today, "day") >= maxDaysAhead) return;
     setCurrentDate(newDate);
+    setSelectedDate(newDate.startOf("day")); // select first date in new range
   };
-
   const handleSelect = (date: Dayjs) => {
     if (!isAdmin && date.isBefore(today, "day")) return;
     setSelectedDate(date);
