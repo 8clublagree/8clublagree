@@ -1,8 +1,8 @@
 import "dotenv/config";
 import dayjs from "dayjs";
-import { supabase } from "@/lib/supabase";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
+import supabaseServer from "../supabase";
 
 // --- Move your main logic here ---
 async function checkUpcomingClasses() {
@@ -12,7 +12,7 @@ async function checkUpcomingClasses() {
   const in24h = now.add(24, "hour");
 
   // SQL filter only by class_date so it stays lightweight
-  const { data: bookings, error } = await supabase
+  const { data: bookings, error } = await supabaseServer
     .from("class_bookings")
     .select(
       `
@@ -127,7 +127,7 @@ async function checkUpcomingClasses() {
     `,
     });
 
-    await supabase
+    await supabaseServer
       .from("class_bookings")
       .update({ sent_email_reminder: true })
       .eq("id", booking.id);
