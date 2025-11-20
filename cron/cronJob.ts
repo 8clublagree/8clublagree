@@ -1,9 +1,10 @@
 import "dotenv/config";
 import cron from "node-cron";
 import dayjs from "dayjs";
-import { supabase } from "../lib/supabase";
+
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
+import supabaseServer from "../app/api/supabase";
 
 // --- Move your main logic here ---
 async function checkUpcomingClasses() {
@@ -13,7 +14,7 @@ async function checkUpcomingClasses() {
   const in24h = now.add(24, "hour");
 
   // SQL filter only by class_date so it stays lightweight
-  const { data: bookings, error } = await supabase
+  const { data: bookings, error } = await supabaseServer
     .from("class_bookings")
     .select(
       `
@@ -123,7 +124,7 @@ async function checkUpcomingClasses() {
     `,
       });
 
-      await supabase
+      await supabaseServer
         .from("class_bookings")
         .update({ sent_email_reminder: true })
         .eq("id", booking.id);
@@ -145,7 +146,7 @@ async function checkExpiringPackages() {
   const now = dayjs();
   const tenDays = now.add(10, "day");
 
-  const { data: packages, error }: any = await supabase
+  const { data: packages, error }: any = await supabaseServer
     .from("client_packages")
     .select(
       `
@@ -287,7 +288,7 @@ async function checkExpiringPackages() {
     });
 
     // Mark package as notified
-    await supabase
+    await supabaseServer
       .from("client_packages")
       .update({ sent_initial_expiration_email: true })
       .eq("id", pkg.id);
