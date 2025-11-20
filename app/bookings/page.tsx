@@ -130,7 +130,6 @@ export default function BookingsPage() {
           };
         })
       );
-      console.log("mapped: ", mapped);
       setClasses(mapped);
     }
   };
@@ -173,11 +172,9 @@ export default function BookingsPage() {
     });
 
     const data = await res.data;
-    console.log(data);
   };
 
   const handleBookClass = async () => {
-    console.log("selectedRecord: ", selectedRecord);
     try {
       setIsSubmitting(true);
       if (user) {
@@ -486,6 +483,7 @@ export default function BookingsPage() {
                   </span>
                 </Checkbox>
               </Row>
+
               <Button
                 /**
                  * temporary button disable since payment
@@ -495,9 +493,13 @@ export default function BookingsPage() {
                 loading={loading || isSubmitting}
                 onClick={handleBookClass}
                 disabled={!acceptsTerms || loading || isSubmitting}
-                className={`${acceptsTerms && "hover:!bg-[#36013F]"} ${
-                  loading || isSubmitting ? "!bg-[gray]" : "!bg-[#36013F]"
-                } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full h-[40px]`}
+                className={`${
+                  acceptsTerms && "hover:!bg-[#36013F] hover:scale-[1.03]"
+                } ${
+                  !acceptsTerms || loading || isSubmitting
+                    ? "!bg-[gray]"
+                    : "!bg-[#36013F]"
+                } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}
               >
                 Book
               </Button>

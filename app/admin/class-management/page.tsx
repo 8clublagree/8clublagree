@@ -431,12 +431,17 @@ export default function ClassManagementPage() {
               Create a Class
             </Button>
             <Button
-              disabled={cannotRebook || !classes?.length}
+              disabled={
+                cannotRebook || !classes?.length || !allBookings?.length
+              }
               type="primary"
               icon={<HiOutlineSwitchHorizontal />}
               onClick={handleOpenRebookModal}
               className={`bg-[#36013F] ${
-                !!classes?.length && !cannotRebook && "hover:!bg-[#36013F]"
+                !!allBookings?.length &&
+                !!classes?.length &&
+                !cannotRebook &&
+                "hover:!bg-[#36013F]"
               } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
               Rebook Attendee
