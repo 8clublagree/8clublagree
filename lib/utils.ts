@@ -36,6 +36,7 @@ export function formatClassesForChart(data: any[]): ChartData[] {
     start: formatDailyTime(item.start_time),
     end: formatDailyTime(item.end_time),
     color: ganttColors[index],
+    takenSlots: item.taken_slots,
   }));
 }
 

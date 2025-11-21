@@ -421,7 +421,7 @@ export const useClassManagement = () => {
       }
     }
 
-    query = query.order("created_at", { ascending: true });
+    query = query.order("start_time", { ascending: true });
 
     const { data, error } = await query;
 

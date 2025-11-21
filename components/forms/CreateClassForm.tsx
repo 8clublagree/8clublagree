@@ -127,21 +127,6 @@ export default function CreateClassForm({
               suffixIcon={<ClockCircleOutlined className="text-slate-400" />}
               className="w-full"
               needConfirm={false}
-              disabledTime={() => ({
-                disabledHours: () => {
-                  const hours = [];
-
-                  // Disable hours before 8 AM
-                  for (let h = 0; h < 8; h++) hours.push(h);
-
-                  // Disable hours after 9 PM (21)
-                  for (let h = 23; h <= 24; h++) hours.push(h);
-
-                  return hours;
-                },
-                disabledMinutes: () => [],
-                disabledSeconds: () => [],
-              })}
             />
           </Form.Item>
         </Col>

@@ -6,7 +6,6 @@ import {
   Button,
   Modal,
   Drawer,
-  message,
   Divider,
   Col,
   Typography,
@@ -25,9 +24,12 @@ import ManualBookingForm from "@/components/forms/ManualBookingForm";
 import { useClassManagement } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 import { HiOutlineSwitchHorizontal } from "react-icons/hi";
-import { supabase } from "@/lib/supabase";
 import utc from "dayjs/plugin/utc";
 import RebookAttendeeForm from "@/components/forms/RebookAttendeeForm";
+import { useAppSelector } from "@/lib/hooks";
+import { useDispatch } from "react-redux";
+import { setClickedDashboardDate } from "@/lib/features/paramSlice";
+import { useAppMessage } from "@/components/ui/message-popup";
 
 dayjs.extend(utc);
 
@@ -57,6 +59,9 @@ export default function ClassManagementPage() {
     rebookAttendee,
     fetchClassAttendees,
   } = useClassManagement();
+  const dispatch = useDispatch();
+  const { showMessage, contextHolder } = useAppMessage();
+  const param = useAppSelector((state) => state.param);
   const [classes, setClasses] = useState<any[]>([]);
   const [attendees, setAttendees] = useState<any[]>([]);
   const [allBookings, setAllBookings] = useState<any[]>([]);
@@ -102,84 +107,98 @@ export default function ClassManagementPage() {
   }, [selectedDate]);
 
   const handleFetchClasses = async () => {
-    const data = await fetchClasses({
-      selectedDate: selectedDate as Dayjs,
-      isAdmin: true,
-    });
+    try {
+      let dateQuery = selectedDate;
+      if (param?.clickedDashboardDate) {
+        dateQuery = dayjs(param?.clickedDashboardDate);
+      }
 
-    if (data) {
-      const mapped = data?.map((item: any, index: number) => {
-        return {
-          key: index,
-          id: item.id,
-          instructor_id: item.instructor_id,
-          instructor_name: item.instructor_name,
-          start_time: dayjs(item.start_time),
-          end_time: dayjs(item.end_time),
-          slots: `${item.taken_slots} / ${item.available_slots}`,
-          taken_slots: item.taken_slots,
-          available_slots: item.available_slots,
-        };
+      const data = await fetchClasses({
+        selectedDate: dateQuery as Dayjs,
+        isAdmin: true,
       });
 
-      const allBookings = data.flatMap((cls) =>
-        cls.class_bookings.map((booking: any) => ({
-          classID: cls.id,
-          value: booking.booker_id,
-          label: booking.user_profiles.full_name,
-          class_id: cls.id,
-          class_name: cls.instructor_name,
-          start_time: cls.start_time,
-          end_time: cls.end_time,
-          taken_slots: cls.taken_slots,
-          available_slots: cls.available_slots,
-          bookingID: booking.id,
-        }))
-      );
-
-      // console.log("allBookings: ", allBookings);
-
-      setAllBookings(allBookings);
-
-      const grouped = allBookings.reduce((acc, booking) => {
-        if (!acc[booking.value]) {
-          acc[booking.value] = {
-            bookingID: booking.bookingID,
-            classID: booking.classID,
-            value: booking.value,
-            label: booking.label,
-            originalClasses: [
-              {
-                value: booking.class_id,
-                label: `${booking.class_name} ${dayjs(
-                  booking.start_time
-                ).format("hh:mm A")} - ${dayjs(booking.end_time).format(
-                  "hh:mm A"
-                )}`,
-                takenSlots: booking.taken_slots,
-                availableSlots: booking.available_slots,
-                bookingID: booking.bookingID,
-              },
-            ],
+      if (data) {
+        const mapped = data?.map((item: any, index: number) => {
+          return {
+            key: index,
+            id: item.id,
+            instructor_id: item.instructor_id,
+            instructor_name: item.instructor_name,
+            start_time: dayjs(item.start_time),
+            end_time: dayjs(item.end_time),
+            slots: `${item.taken_slots} / ${item.available_slots}`,
+            taken_slots: item.taken_slots,
+            available_slots: item.available_slots,
           };
-        } else {
-          acc[booking.value].originalClasses.push({
-            bookingID: booking.bookingID,
-            value: booking.class_id,
-            label: `${booking.class_name} ${dayjs(booking.start_time).format(
-              "HH:mm A"
-            )} - ${dayjs(booking.end_time).format("HH:mm A")}`,
-            takenSlots: booking.taken_slots,
-            availableSlots: booking.available_slots,
-          });
-        }
-        return acc;
-      }, {} as Record<string, any>);
+        });
 
-      const result = Object.values(grouped);
+        const allBookings = data.flatMap((cls) =>
+          cls.class_bookings.map((booking: any) => ({
+            classID: cls.id,
+            value: booking.booker_id,
+            label: booking.user_profiles.full_name,
+            class_id: cls.id,
+            class_name: cls.instructor_name,
+            start_time: cls.start_time,
+            end_time: cls.end_time,
+            taken_slots: cls.taken_slots,
+            available_slots: cls.available_slots,
+            bookingID: booking.id,
+          }))
+        );
 
-      setFullAttendeeListToday(result);
-      setClasses(mapped);
+        setAllBookings(allBookings);
+
+        const grouped = allBookings.reduce((acc, booking) => {
+          if (!acc[booking.value]) {
+            acc[booking.value] = {
+              bookingID: booking.bookingID,
+              classID: booking.classID,
+              value: booking.value,
+              label: booking.label,
+              originalClasses: [
+                {
+                  value: booking.class_id,
+                  label: `${booking.class_name} ${dayjs(
+                    booking.start_time
+                  ).format("hh:mm A")} - ${dayjs(booking.end_time).format(
+                    "hh:mm A"
+                  )}`,
+                  takenSlots: booking.taken_slots,
+                  availableSlots: booking.available_slots,
+                  bookingID: booking.bookingID,
+                },
+              ],
+            };
+          } else {
+            acc[booking.value].originalClasses.push({
+              bookingID: booking.bookingID,
+              value: booking.class_id,
+              label: `${booking.class_name} ${dayjs(booking.start_time).format(
+                "HH:mm A"
+              )} - ${dayjs(booking.end_time).format("HH:mm A")}`,
+              takenSlots: booking.taken_slots,
+              availableSlots: booking.available_slots,
+            });
+          }
+          return acc;
+        }, {} as Record<string, any>);
+
+        const result = Object.values(grouped);
+
+        setFullAttendeeListToday(result);
+        setClasses(mapped);
+      }
+
+      if (param.clickedDashboardDate) {
+        dispatch(setClickedDashboardDate(null));
+      }
+    } catch (error) {
+      showMessage({
+        type: "error",
+        content: "Please try refreshing your browser",
+      });
     }
   };
 
@@ -194,7 +213,6 @@ export default function ClassManagementPage() {
 
   const handleOpenRebookModal = () => {
     // setSelectedRecord(null);
-    console.log("fullAttendeeListToday: ", fullAttendeeListToday);
     setIsRebookModalOpen(true);
   };
 
@@ -250,7 +268,7 @@ export default function ClassManagementPage() {
         });
 
         handleFetchClasses();
-        message.success("Class has been updated");
+        showMessage({ type: "success", content: "Class has been updated!" });
       } else {
         // CREATE INSTRUCTOR MANAGEMENT FIRST
         try {
@@ -262,16 +280,16 @@ export default function ClassManagementPage() {
           });
 
           handleFetchClasses();
-          message.success("Class has been created!");
+          showMessage({ type: "success", content: "Class has been created!" });
         } catch (error) {
-          message.error("Failed to create class.");
+          showMessage({ type: "error", content: "Failed to create class" });
         }
       }
 
       setIsFormModalOpen(false);
       setSelectedRecord(null);
     } catch (error) {
-      message.error("An error occurred. Please try again.");
+      showMessage({ type: "error", content: "Error. Please try again" });
     }
   };
 
@@ -316,10 +334,13 @@ export default function ClassManagementPage() {
     bookingID: string;
     status: string;
   }) => {
-    console.log(`selected ${status}`);
+    try {
+      await markAttendance({ bookingID, status });
 
-    const response = await markAttendance({ bookingID, status });
-    console.log("response: ", response);
+      showMessage({ type: "success", content: "Marked Attendance" });
+    } catch (error) {
+      showMessage({ type: "error", content: "Please try refreshing" });
+    }
   };
 
   const RenderViewClass = () => {
@@ -402,12 +423,20 @@ export default function ClassManagementPage() {
     );
   };
 
-  const handleSelectedDateChange = (e: any) => {
-    setSelectedDate(dayjs(e));
-    setCannotRebook(dayjs(e).isBefore(dayjs().subtract(1, "day")));
+  const handleSelectedDateChange = (date: any) => {
+    if (param.clickedDashboardDate) {
+      setSelectedDate(dayjs(param.clickedDashboardDate));
+      setCannotRebook(
+        dayjs(param.clickedDashboardDate).isBefore(dayjs().subtract(1, "day"))
+      );
+    } else {
+      setSelectedDate(dayjs(date));
+      setCannotRebook(dayjs(date).isBefore(dayjs().subtract(1, "day")));
+    }
   };
   return (
     <AdminAuthenticatedLayout>
+      {contextHolder}
       <div className="space-y-6">
         <p className="!mb-0 !pb-0 text-[42px] font-[400]">
           {`${dayjs().format("MMMM").toLowerCase()} ${dayjs().format("YYYY")}`}
@@ -416,6 +445,11 @@ export default function ClassManagementPage() {
         <Row className="wrap-none justify-center bg-transparent !mt-0">
           <DatePickerCarousel
             isAdmin={true}
+            initialDate={
+              param.clickedDashboardDate
+                ? dayjs(param.clickedDashboardDate)
+                : undefined
+            }
             onDateSelect={handleSelectedDateChange}
           />
         </Row>

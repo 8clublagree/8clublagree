@@ -3,7 +3,7 @@
 import { Card, Row, Col, Statistic, Typography, Segmented } from "antd";
 import { CalendarOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -23,6 +23,10 @@ import {
   ganttColors,
   timeToDecimal,
 } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/lib/hooks";
+import { useDispatch } from "react-redux";
+import { setClickedDashboardDate } from "@/lib/features/paramSlice";
 dayjs.extend(isoWeek);
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -38,14 +42,23 @@ type EventItem = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  const [classes, setClasses] = useState<any[]>([]);
   const [dashboardKPI, setDashboardKPI] = useState<any>({
     totalClasses: 0,
     confirmedBookings: 0,
   });
-  const [classes, setClasses] = useState<any[]>([]);
   const { fetchClasses, loading } = useClassManagement();
-  const monday = dayjs().startOf("isoWeek").format("YYYY-MM-DD");
-  const sunday = dayjs().endOf("isoWeek").format("YYYY-MM-DD");
+  const monday = useMemo(
+    () => dayjs().startOf("isoWeek").format("YYYY-MM-DD"),
+    []
+  );
+  const sunday = useMemo(
+    () => dayjs().endOf("isoWeek").format("YYYY-MM-DD"),
+    []
+  );
   const [dashboardPeriod, setDashboardPeriod] = useState<"Daily" | "Weekly">(
     "Daily"
   );
@@ -63,11 +76,10 @@ export default function DashboardPage() {
         endDate: dayjs(sunday),
       };
     } else {
-      params = { selectedDate: dayjs() };
+      params = { selectedDate: dayjs(), isAdmin: true };
     }
 
     const data = await fetchClasses(params);
-
     if (data) {
       //  {
       //   label: "Launching new features",
@@ -86,6 +98,7 @@ export default function DashboardPage() {
           endTime: dayjs(item.end_time).format("HH:mm"),
           slots: `${item.taken_slots} / ${item.available_slots}`,
           color: ganttColors[index],
+          classDate: item.class_date,
         }));
       } else {
         mapped = formatClassesForChart(data);
@@ -93,8 +106,8 @@ export default function DashboardPage() {
 
       setDashboardKPI({
         totalClasses: mapped.length,
-        confirmedBookings: mapped.reduce(
-          (acc: number, curr: any) => acc + curr.taken_slots,
+        confirmedBookings: data.reduce(
+          (acc: number, curr: any) => acc + curr.class_bookings.length,
           0
         ),
       });
@@ -103,23 +116,50 @@ export default function DashboardPage() {
     }
   };
 
-  const DailyGanttChart = () => {
+  const formatDecimalHour = (decimal: number) => {
+    const hour = Math.floor(decimal);
+    const minutes = Math.round((decimal - hour) * 60);
+
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    const paddedMinutes = minutes.toString().padStart(2, "0");
+
+    return `${displayHour}:${paddedMinutes} ${suffix}`;
+  };
+
+  const DailyGanttChart = useCallback(() => {
     // Labels on the Y-axis — each activity name
-    const labels = classes?.map((a) => a.label);
+    const labels = classes?.map((a) => a.label) ?? [];
+
+    // Row metrics
+    const CANDLE_HEIGHT = 40; // desired candle height in px
+    const ROW_GAP = 1; // gap between rows in px
+    const ROW_HEIGHT = CANDLE_HEIGHT + ROW_GAP; // total per-row required height
+    const MIN_CANVAS_HEIGHT = 460; // keep your previous minimum
+
+    // compute height needed to display all rows at 30px each (plus a little padding)
+    const computedHeight = Math.max(
+      MIN_CANVAS_HEIGHT,
+      labels.length * ROW_HEIGHT + 20
+    );
 
     const data = {
       labels,
       datasets: [
         {
           label: "Daily Schedule",
-          data: classes?.map((a) => ({
-            x: [a.start, a.end],
-            y: a.label,
-          })),
-          backgroundColor: classes?.map((a) => a.color),
+          data:
+            classes?.map((a) => ({
+              x: [a.start, a.end],
+              y: a.label,
+            })) ?? [],
+          backgroundColor: classes?.map((a) => a.color) ?? [],
           borderRadius: 8,
           borderSkipped: false,
-          barPercentage: 0.8,
+          barThickness: CANDLE_HEIGHT,
+          maxBarThickness: CANDLE_HEIGHT,
+          categoryPercentage: 1,
+          barPercentage: 1,
         },
       ],
     };
@@ -128,6 +168,21 @@ export default function DashboardPage() {
       indexAxis: "y" as const,
       responsive: true,
       maintainAspectRatio: false,
+
+      // Detect click on a bar/candle
+      onClick: () => {
+        router.push("/admin/class-management");
+      },
+
+      // Make cursor pointer when hovering
+      onHover: (event: any, elements: any[]) => {
+        if (elements.length > 0) {
+          event.native.target.style.cursor = "pointer";
+        } else {
+          event.native.target.style.cursor = "default";
+        }
+      },
+
       scales: {
         x: {
           type: "linear" as const,
@@ -157,13 +212,17 @@ export default function DashboardPage() {
           },
         },
       },
+
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
             label: (ctx: any) => {
               const [start, end] = ctx.raw.x;
-              return `${start}:00 - ${end}:00`;
+              const startTime = formatDecimalHour(start);
+              const endTime = formatDecimalHour(end);
+
+              return `${startTime} - ${endTime}`;
             },
           },
         },
@@ -171,15 +230,17 @@ export default function DashboardPage() {
     };
 
     return (
-      <div style={{ width: "100%", height: 500, padding: 12 }}>
-        <div style={{ height: 460 }}>
+      <div style={{ width: "100%", height: computedHeight, padding: 12 }}>
+        <div
+          style={{ height: computedHeight - 40 /* inner padding reserve */ }}
+        >
           <Bar data={data} options={options} />
         </div>
       </div>
     );
-  };
+  }, [classes]);
 
-  const WeeklyScheduleChart = () => {
+  const WeeklyScheduleChart = useCallback(() => {
     const dataPoints = classes?.map((ev) => ({
       x: ev.day, // <-- use 'Wed' / 'Thu' etc. (string), not numeric index
       y: [timeToDecimal(ev.startTime), timeToDecimal(ev.endTime)],
@@ -211,6 +272,24 @@ export default function DashboardPage() {
     const options: ChartOptions<"bar"> = {
       responsive: true,
       maintainAspectRatio: false,
+      onClick: (_, elements: any[]) => {
+        if (elements.length > 0) {
+          const element = elements[0];
+          const index = element.index;
+          const clicked = classes[index];
+
+          console.log("Clicked candle:", clicked);
+          dispatch(setClickedDashboardDate(clicked.classDate));
+          router.push("/admin/class-management");
+        }
+      },
+      onHover: (event: any, elements: any[]) => {
+        if (elements.length > 0) {
+          event.native.target.style.cursor = "pointer";
+        } else {
+          event.native.target.style.cursor = "default";
+        }
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -219,16 +298,12 @@ export default function DashboardPage() {
             label: (ctx: any) => {
               const raw = ctx.raw as any;
               if (!raw || !raw.y) return "";
-              const [s, e] = raw.y as number[];
-              const fmt = (h: number) => {
-                const hh = Math.floor(h);
-                const mm = Math.round((h % 1) * 60);
-                return `${String(hh).padStart(2, "0")}:${String(mm).padStart(
-                  2,
-                  "0"
-                )}`;
-              };
-              return `${fmt(s)} — ${fmt(e)}`;
+
+              const [start, end] = raw.y;
+              const startTime = formatDecimalHour(start);
+              const endTime = formatDecimalHour(end);
+
+              return `${startTime} - ${endTime}`;
             },
           },
         },
@@ -272,7 +347,7 @@ export default function DashboardPage() {
         </div>
       </div>
     );
-  };
+  }, [classes]);
 
   return (
     <AdminAuthenticatedLayout>
