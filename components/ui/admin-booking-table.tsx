@@ -1,14 +1,24 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import { Button, Input, Row, Space, Table, Modal, Typography } from "antd";
+import {
+  Button,
+  Input,
+  Row,
+  Space,
+  Table,
+  Modal,
+  Typography,
+  Tooltip,
+} from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
 import { formatTime } from "@/lib/utils";
 import { CreateClassProps } from "@/lib/props";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { IoEye } from "react-icons/io5";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
+import { useClassManagement } from "@/lib/api";
 
 type DataIndex = keyof CreateClassProps;
 
@@ -16,6 +26,7 @@ interface AdminBookingTableProps {
   data: CreateClassProps[];
   loading?: boolean;
   onEdit: (record: CreateClassProps) => void;
+  onDelete: (id: string) => void;
   onView: (record: CreateClassProps) => void;
 }
 
@@ -26,13 +37,17 @@ const AdminBookingTable = ({
   loading,
   onEdit,
   onView,
+  onDelete,
 }: AdminBookingTableProps) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedRecordToDelete, setSelectedRecordToDelete] = useState<
+    any | null
+  >(null);
 
   const searchInput = useRef<InputRef>(null);
-  const { confirm } = Modal;
 
   useEffect(() => {
     const handleResize = () => {
@@ -72,22 +87,22 @@ const AdminBookingTable = ({
     setSearchText("");
   };
 
-  const showDeleteConfirm = (record: CreateClassProps) => {
-    confirm({
-      title: "Delete Class",
-      icon: null,
-      content: `Are you sure you want to delete the class with instructor ${record.instructor_name}?`,
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      width: isMobile ? "90%" : 416,
-      onOk() {
-        console.log("Deleted:", record);
-      },
-      onCancel() {
-        console.log("Cancelled delete");
-      },
-    });
+  const showDeleteConfirm = (record: any) => {
+    setSelectedRecordToDelete(record);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedRecordToDelete) {
+      onDelete(selectedRecordToDelete.id as string);
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedRecordToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedRecordToDelete(null);
   };
 
   const getColumnSearchProps = (
@@ -221,21 +236,35 @@ const AdminBookingTable = ({
         key: "action",
         width: isMobile ? undefined : "10%",
         fixed: isMobile ? undefined : "right",
-        render: (_, record) => (
-          <Row className="justify-center cursor-pointer gap-3">
-            <IoEye
-              size={20}
-              // color="#1890ff"
-              onClick={() => onView(record)}
-            />
-            <MdEdit size={20} color="#733AC6" onClick={() => onEdit(record)} />
-            <MdDelete
-              size={20}
-              color="red"
-              onClick={() => showDeleteConfirm(record)}
-            />
-          </Row>
-        ),
+        render: (_, record) => {
+          const canDelete = (record?.start_time as Dayjs).isSameOrAfter(
+            dayjs()
+          );
+          return (
+            <Row className="justify-center cursor-pointer gap-3">
+              <IoEye
+                size={20}
+                // color="#1890ff"
+                onClick={() => onView(record)}
+              />
+              <MdEdit
+                size={20}
+                color="#733AC6"
+                onClick={() => onEdit(record)}
+              />
+              <Tooltip title={!canDelete && "Cannot delete past classes"}>
+                <MdDelete
+                  size={20}
+                  color="red"
+                  onClick={() => {
+                    // if (canDelete) showDeleteConfirm(record);
+                    showDeleteConfirm(record);
+                  }}
+                />
+              </Tooltip>
+            </Row>
+          );
+        },
       },
     ],
     [isMobile, searchedColumn, searchText, data]
@@ -259,6 +288,21 @@ const AdminBookingTable = ({
         size={isMobile ? "small" : "middle"}
         className="admin-booking-table"
       />
+
+      <Modal
+        title="Delete Class"
+        open={isDeleteModalOpen}
+        onOk={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        okText="Delete"
+        okType="danger"
+        cancelText="Cancel"
+        width={isMobile ? "90%" : 430}
+      >
+        <Row className="py-[20px]">
+          <Text>Are you sure you want to delete this class?</Text>
+        </Row>
+      </Modal>
     </>
   );
 };

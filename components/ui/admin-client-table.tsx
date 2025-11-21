@@ -17,7 +17,7 @@ import { UserProps } from "@/lib/props";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { UserIcon } from "lucide-react";
 import { FaHistory } from "react-icons/fa";
-import { useDeleteUser } from "@/lib/api";
+import { useClassManagement, useDeleteUser } from "@/lib/api";
 
 type DataIndex = keyof UserProps;
 const { Text } = Typography;

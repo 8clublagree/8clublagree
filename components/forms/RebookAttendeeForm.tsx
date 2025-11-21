@@ -13,17 +13,20 @@ interface RebookAttendeeProps {
   loading?: boolean;
   attendees: any[];
   classes: any[];
+  clearSignal?: boolean;
 }
 
 const { Text } = Typography;
 
 export default function RebookAttendeeForm({
+  clearSignal,
   onSubmit,
   onCancel,
   loading = false,
   attendees,
   classes,
 }: RebookAttendeeProps) {
+  const now = dayjs();
   const [selectedOriginalSchedule, setSelectedOriginalSchedule] =
     useState<any>(null);
   const [selectedNewSchedule, setSelectedNewSchedule] = useState<any>(null);
@@ -31,21 +34,23 @@ export default function RebookAttendeeForm({
   const [availableAttendees, setAvailableAttendees] = useState<any[]>([]);
 
   useEffect(() => {
-    const now = dayjs();
-
-    const rebookableAttendees = attendees.flatMap((attendee) =>
-      attendee.originalClasses.filter((oc: any) =>
+    const rebookableAttendees = attendees.map((attendee) => {
+      const filtered = attendee.originalClasses.filter((oc: any) =>
         dayjs(oc.startTime).isSameOrAfter(now)
-      )
-    );
+      );
+
+      return { ...attendee, originalClasses: filtered };
+    });
 
     setAvailableAttendees(rebookableAttendees);
   }, []);
 
-  const handleSelect = (selected: string) => {
-    const found = attendees?.find((item) => item.value === selected);
+  useEffect(() => {
+    handleClear();
+  }, [clearSignal]);
 
-    console.log("found: ", found);
+  const handleSelect = (selected: string) => {
+    const found = availableAttendees?.find((item) => item.value === selected);
 
     if (!found) return null;
 
@@ -54,7 +59,7 @@ export default function RebookAttendeeForm({
         (item: any) =>
           !(found.originalClasses.map((x: any) => x.value) as any[]).includes(
             item.id
-          )
+          ) && item.start_time.isSameOrAfter(now)
       )
       .map((item: any) => {
         return {
@@ -81,6 +86,7 @@ export default function RebookAttendeeForm({
     setSelectedRecord(null);
     setSelectedOriginalSchedule(null);
     setSelectedNewSchedule(null);
+    // setAvailableAttendees([]);
   };
 
   const handleFinish = () => {
@@ -122,7 +128,7 @@ export default function RebookAttendeeForm({
           title={
             selectedRecord &&
             !selectedRecord?.availableClasses.length &&
-            "Attendee is in all classes, or there are no other classes."
+            "Attendee is in all available classes, or there are no other classes scheduled."
           }
         >
           <Row className="w-full flex flex-col">

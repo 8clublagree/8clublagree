@@ -526,6 +526,21 @@ export const useClassManagement = () => {
     return data;
   };
 
+  const deleteClass = async ({ id }: { id: string }) => {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("classes")
+      .delete()
+      .eq("id", id)
+      .select();
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
   const bookClass = async ({
     classDate,
     bookerId,
@@ -549,6 +564,7 @@ export const useClassManagement = () => {
   };
 
   return {
+    deleteClass,
     loading,
     bookClass,
     cancelClass,

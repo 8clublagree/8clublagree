@@ -52,6 +52,7 @@ interface ClassBooking {
 export default function ClassManagementPage() {
   const {
     loading,
+    deleteClass,
     createClass,
     updateClass,
     fetchClasses,
@@ -151,7 +152,6 @@ export default function ClassManagementPage() {
         setAllBookings(allBookings);
 
         const grouped = allBookings.reduce((acc, booking) => {
-          console.log("booking: ", booking);
           if (!acc[booking.value]) {
             acc[booking.value] = {
               bookingID: booking.bookingID,
@@ -437,6 +437,22 @@ export default function ClassManagementPage() {
       setCannotRebook(dayjs(date).isBefore(dayjs().subtract(1, "day")));
     }
   };
+
+  const handleConfirmDelete = async (id: string) => {
+    try {
+      await deleteClass({ id: id as string });
+
+      showMessage({
+        type: "success",
+        content: "Successfully deleted the class!",
+      });
+
+      handleFetchClasses();
+    } catch (error) {
+      showMessage({ type: "error", content: "Failed to delete the class" });
+    }
+  };
+
   return (
     <AdminAuthenticatedLayout>
       {contextHolder}
@@ -497,6 +513,7 @@ export default function ClassManagementPage() {
             data={[...classes]}
             onEdit={handleEdit}
             onView={handleView}
+            onDelete={handleConfirmDelete}
           />
         </div>
         {/* Manual Booking */}
@@ -614,7 +631,8 @@ export default function ClassManagementPage() {
         {/* Rebook Modal */}
         {isMobile ? (
           <Drawer
-            closable={!loading}
+            keyboard={false}
+            closable={false}
             title="Rebook Attendee"
             placement="right"
             onClose={handleCloseRebookModal}
@@ -631,11 +649,13 @@ export default function ClassManagementPage() {
               onCancel={handleCloseRebookModal}
               attendees={fullAttendeeListToday}
               classes={classes}
+              clearSignal={isRebookModalOpen}
             />
           </Drawer>
         ) : (
           <Modal
-            closable={!loading}
+            keyboard={false}
+            closable={false}
             title="Rebook Attendee"
             open={isRebookModalOpen}
             onCancel={handleCloseRebookModal}
@@ -649,6 +669,7 @@ export default function ClassManagementPage() {
               onCancel={handleCloseRebookModal}
               attendees={fullAttendeeListToday}
               classes={classes}
+              clearSignal={isRebookModalOpen}
             />
           </Modal>
         )}
