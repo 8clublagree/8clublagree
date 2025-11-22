@@ -336,7 +336,7 @@ export default function ClientManagementPage() {
       )}
 
       <Drawer
-        title={"Booking History"}
+        title={"History"}
         maskClosable={false}
         open={isViewingHistory}
         width={isMobile ? "100%" : "35%"}

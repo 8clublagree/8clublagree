@@ -53,14 +53,22 @@ export default function CreditsPage() {
           paymentMethod: data.payment_method,
           packageCredits: data.package_credits,
           validityPeriod: data.validity_period,
+
           packages: {
-            id: data.packages.id,
-            price: data.packages.price,
-            title: data.packages.title,
-            createdAt: data.packages.created_at,
-            packageType: data.packages.package_type,
-            packageCredits: data.packages.package_credits,
-            validityPeriod: data.packages.validity_period,
+            id: data.packages?.id ? data.packages.id : null,
+            price: data.packages?.price ? data.packages.price : "00000",
+            title: data.packages?.title
+              ? data.packages?.title
+              : data.package_name,
+            createdAt: data.packages?.created_at
+              ? data.packages.created_at
+              : data.created_at,
+            packageCredits: data.packages?.package_credits
+              ? data.packages.package_credits
+              : data.package_credits,
+            validityPeriod: data.packages?.validity_period
+              ? data.packages.validity_period
+              : data.validity_period,
           },
         }));
 

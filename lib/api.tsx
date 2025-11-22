@@ -654,6 +654,21 @@ export const usePackageManagement = () => {
     return data;
   };
 
+  const deletePackage = async ({ id }: { id: string }) => {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("packages")
+      .delete()
+      .eq("id", id)
+      .select();
+
+    if (error) return null;
+
+    setLoading(false);
+    return data;
+  };
+
   const purchasePackage = async ({
     userID,
     packageID,
@@ -747,6 +762,7 @@ export const usePackageManagement = () => {
 
   return {
     loading,
+    deletePackage,
     updateClientPackage,
     fetchClientPackages,
     purchasePackage,

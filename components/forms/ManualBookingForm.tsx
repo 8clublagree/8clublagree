@@ -28,6 +28,7 @@ interface CreateClassFormProps {
   onCancel: () => void;
   loading?: boolean;
   initialValues?: CreateClassProps | null;
+  clearSignal?: boolean;
 }
 
 export default function ManualBookingForm({
@@ -37,6 +38,7 @@ export default function ManualBookingForm({
   onCancel,
   loading = false,
   initialValues = null,
+  clearSignal,
 }: CreateClassFormProps) {
   const [form] = Form.useForm();
   const [schedules, setSchedules] = useState<any>([]);
@@ -44,6 +46,10 @@ export default function ManualBookingForm({
   useEffect(() => {
     handleParseClasses();
   }, [selectedDate]);
+
+  useEffect(() => {
+    form.resetFields();
+  }, [onCancel]);
 
   useEffect(() => {
     if (initialValues) {
@@ -56,7 +62,6 @@ export default function ManualBookingForm({
   }, [initialValues, form]);
 
   const handleParseClasses = async () => {
-    console.log("classes: ", classes);
     const mapped = classes.map((cls, key) => {
       return {
         value: cls.id,
@@ -68,7 +73,6 @@ export default function ManualBookingForm({
         takenSlots: cls.taken_slots,
       };
     });
-    console.log("mapped: ", mapped);
     setSchedules(mapped);
   };
 
@@ -76,7 +80,6 @@ export default function ManualBookingForm({
     const found = schedules.find(
       (item: any) => item.value === values.class_schedule
     );
-    console.log("found: ", found);
     const formattedValues = {
       ...values,
       taken_slots: found.takenSlots,
@@ -108,6 +111,7 @@ export default function ManualBookingForm({
             ]}
           >
             <Select
+              allowClear
               placeholder="Select a class schedule"
               suffixIcon={<MdOutlineSchedule className="text-slate-400" />}
               options={schedules}

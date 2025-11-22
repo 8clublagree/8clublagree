@@ -257,8 +257,7 @@ const AdminBookingTable = ({
                   size={20}
                   color="red"
                   onClick={() => {
-                    // if (canDelete) showDeleteConfirm(record);
-                    showDeleteConfirm(record);
+                    if (canDelete) showDeleteConfirm(record);
                   }}
                 />
               </Tooltip>

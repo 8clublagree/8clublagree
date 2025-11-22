@@ -575,6 +575,7 @@ export default function ClassManagementPage() {
               onCancel={handleCloseBookingModal}
               initialValues={selectedRecord}
               loading={loading}
+              clearSignal={isBookingModalOpen}
             />
           </Drawer>
         ) : (
@@ -593,6 +594,7 @@ export default function ClassManagementPage() {
                 onCancel={handleCloseBookingModal}
                 initialValues={selectedRecord}
                 loading={loading}
+                clearSignal={isBookingModalOpen}
               />
             </div>
           </Modal>

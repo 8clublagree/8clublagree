@@ -16,16 +16,22 @@ interface AdminPackageTableProps {
   data: CreatePackageProps[];
   loading?: boolean;
   onEdit: (record: CreatePackageProps) => void;
+  onDelete: (id: string) => void;
 }
 
 const AdminPackageTable = ({
   data,
   onEdit,
   loading = false,
+  onDelete,
 }: AdminPackageTableProps) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedRecordToDelete, setSelectedRecordToDelete] = useState<
+    any | null
+  >(null);
   const searchInput = useRef<InputRef>(null);
 
   const { confirm } = Modal;
@@ -68,22 +74,9 @@ const AdminPackageTable = ({
     setSearchText("");
   };
 
-  const showDeleteConfirm = (record: CreatePackageProps) => {
-    confirm({
-      title: "Delete Package",
-      icon: null,
-      content: `Are you sure you want to delete this package?`,
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      width: isMobile ? "90%" : 416,
-      onOk() {
-        console.log("Deleted:", record);
-      },
-      onCancel() {
-        console.log("Cancelled delete");
-      },
-    });
+  const showDeleteConfirm = (record: any) => {
+    setSelectedRecordToDelete(record);
+    setIsDeleteModalOpen(true);
   };
 
   const getColumnSearchProps = (
@@ -179,6 +172,19 @@ const AdminPackageTable = ({
       ),
   });
 
+  const handleConfirmDelete = () => {
+    if (selectedRecordToDelete) {
+      onDelete(selectedRecordToDelete.id as string);
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedRecordToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedRecordToDelete(null);
+  };
+
   const columns = useMemo<TableColumnsType<CreatePackageProps>>(
     () => [
       {
@@ -220,55 +226,65 @@ const AdminPackageTable = ({
         width: isMobile ? undefined : "20%",
         ...getColumnSearchProps("validity_period"),
       },
-      // {
-      //   title: "Package Type",
-      //   dataIndex: "promo",
-      //   key: "promo",
-      //   width: isMobile ? undefined : "20%",
-      //   ...getColumnSearchProps("promo"),
-      //   render: (_, record) => (
-      //     <Row>
-      //       <Text>{record.promo ? "Promo" : "Regular"}</Text>
-      //     </Row>
-      //   ),
-      // },
       {
         title: "Action",
         key: "action",
         width: isMobile ? undefined : "10%",
         fixed: isMobile ? undefined : "right",
-        render: (_, record) => (
-          <Row className="justify-center cursor-pointer gap-3">
-            <MdEdit size={20} color="#733AC6" onClick={() => onEdit(record)} />
-            <MdDelete
-              size={20}
-              color="red"
-              onClick={() => showDeleteConfirm(record)}
-            />
-          </Row>
-        ),
+        render: (_, record) => {
+          return (
+            <Row className="justify-center cursor-pointer gap-3">
+              <MdEdit
+                size={20}
+                color="#733AC6"
+                onClick={() => onEdit(record)}
+              />
+              <MdDelete
+                size={20}
+                color="red"
+                onClick={() => showDeleteConfirm(record)}
+              />
+            </Row>
+          );
+        },
       },
     ],
     [isMobile, searchedColumn, searchText, data]
   );
 
   return (
-    <Table<CreatePackageProps>
-      loading={loading}
-      columns={columns}
-      dataSource={data}
-      scroll={{ x: isMobile ? 600 : undefined }}
-      pagination={{
-        defaultPageSize: 10,
-        showSizeChanger: true,
-        pageSizeOptions: ["10", "20", "50"],
-        responsive: true,
-        showTotal: (total, range) =>
-          `${range[0]}-${range[1]} of ${total} items`,
-      }}
-      size={isMobile ? "small" : "middle"}
-      className="admin-booking-table"
-    />
+    <>
+      <Table<CreatePackageProps>
+        loading={loading}
+        columns={columns}
+        dataSource={data}
+        scroll={{ x: isMobile ? 600 : undefined }}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          pageSizeOptions: ["10", "20", "50"],
+          responsive: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} items`,
+        }}
+        size={isMobile ? "small" : "middle"}
+        className="admin-booking-table"
+      />
+      <Modal
+        title="Delete Package"
+        open={isDeleteModalOpen}
+        onOk={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        okText="Delete"
+        okType="danger"
+        cancelText="Cancel"
+        width={isMobile ? "90%" : 430}
+      >
+        <Row className="py-[20px]">
+          <Text>Are you sure you want to delete this package?</Text>
+        </Row>
+      </Modal>
+    </>
   );
 };
 

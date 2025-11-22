@@ -8,6 +8,7 @@ import { CreatePackageProps } from "@/lib/props";
 import AdminPackageTable from "@/components/ui/admin-package-table";
 import CreatePackageForm from "@/components/forms/CreatePackageForm";
 import { usePackageManagement } from "@/lib/api";
+import { useAppMessage } from "@/components/ui/message-popup";
 
 const { Title } = Typography;
 
@@ -44,8 +45,14 @@ let data: CreatePackageProps[] = [
 
 export default function PackageManagementPage() {
   const [packages, setPackages] = useState<any[]>([]);
-  const { createPackage, updatePackage, fetchPackages, loading } =
-    usePackageManagement();
+  const { showMessage, contextHolder } = useAppMessage();
+  const {
+    createPackage,
+    updatePackage,
+    fetchPackages,
+    deletePackage,
+    loading,
+  } = usePackageManagement();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [editingRecord, setEditingRecord] = useState<CreatePackageProps | null>(
@@ -84,6 +91,7 @@ export default function PackageManagementPage() {
     if (response) {
       const mapped = response.map((pkg: any, index: number) => ({
         key: pkg.id,
+        id: pkg.id,
         title: pkg.title,
         price: pkg.price,
         validity_period: pkg.validity_period,
@@ -136,8 +144,24 @@ export default function PackageManagementPage() {
     }
   };
 
+  const handleConfirmDelete = async (id: string) => {
+    try {
+      await deletePackage({ id: id as string });
+
+      showMessage({
+        type: "success",
+        content: "Successfully deleted the package!",
+      });
+
+      handleFetchPackages();
+    } catch (error) {
+      showMessage({ type: "error", content: "Failed to delete the package" });
+    }
+  };
+
   return (
     <AdminAuthenticatedLayout>
+      {contextHolder}
       <div className="space-y-6">
         <div>
           <Title level={2} className="!mb-2">
@@ -151,7 +175,7 @@ export default function PackageManagementPage() {
               type="primary"
               icon={<PlusOutlined />}
               onClick={handleOpenModal}
-              className={`bg-[#733AC6] hover:!bg-[#5B2CA8] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+              className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
               Create
             </Button>
@@ -160,6 +184,7 @@ export default function PackageManagementPage() {
             loading={loading}
             data={[...packages]}
             onEdit={handleEdit}
+            onDelete={handleConfirmDelete}
           />
         </div>
         {isMobile ? (
