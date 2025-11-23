@@ -15,11 +15,18 @@ export interface CreateClassProps {
   taken_slots?: number;
 }
 export interface CreateInstructorProps {
-  first_name: string;
-  last_name: string;
-  full_name: string;
+  user_id?: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
   avatar_url?: string;
   avatar_path?: string;
+  certification?: string;
+  employment_start_date?: string;
+  emergency_contact_name?: string;
+  emergency_contact_number?: string;
+  contact_number?: string;
+  email?: string;
 }
 export interface UserProps {
   id?: string;

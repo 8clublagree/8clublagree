@@ -5,12 +5,13 @@ import { Form, Tabs, TabsProps } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useAppSelector } from "@/lib/hooks";
 import { useManagePassword, useUpdateUser } from "@/lib/api";
-import { UpdateUserProfile } from "@/lib/supabase";
+import { supabase, UpdateUserProfile } from "@/lib/supabase";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
 import { useAppMessage } from "@/components/ui/message-popup";
 import EditProfileForm from "@/components/forms/EditProfileForm";
+import axios from "axios";
 
 export default function ProfilePage() {
   const [personalInfoForm] = Form.useForm();
@@ -32,6 +33,17 @@ export default function ProfilePage() {
         values,
         id: user?.id as string,
       });
+
+      const { data: emailResponse, error } = await supabase.auth.updateUser({
+        email: values.email,
+      });
+
+      if (error) {
+        showMessage({
+          type: "error",
+          content: "Error updating email",
+        });
+      }
 
       if (response) {
         showMessage({

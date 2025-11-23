@@ -41,7 +41,7 @@ export default function LoginPage() {
         router.push("/instructor/assigned-schedules");
       }
     } catch (error: any) {
-      showMessage({ type: "error", content: "Login failed" });
+      showMessage({ type: "error", content: "Email or password is incorrect" });
     } finally {
       setLoading(false);
     }

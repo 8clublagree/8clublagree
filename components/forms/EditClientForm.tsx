@@ -232,7 +232,6 @@ const EditClientForm = ({
   };
 
   const handleSubmit = async (values: any) => {
-    // let imageURL: string = initialValues?.avatar_url as string;
     let imageURL: string | File = "";
     const clientFile = file?.[0];
 
@@ -344,7 +343,12 @@ const EditClientForm = ({
           <>
             <Form.Item
               className="!mb-[5px]"
-              label="Email Address"
+              label={
+                <Row wrap={false} className="items-center gap-x-[10px]">
+                  <p>Email Address</p>
+                  {debouncing && <Spin spinning={debouncing} size="small" />}
+                </Row>
+              }
               name="email"
               rules={[
                 {
@@ -362,7 +366,6 @@ const EditClientForm = ({
                 placeholder="Enter email address"
               />
             </Form.Item>
-            {debouncing && <Spin spinning={debouncing} size="small" />}
           </>
         </Col>
       </Row>

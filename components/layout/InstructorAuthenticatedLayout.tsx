@@ -106,7 +106,7 @@ export default function InstructorAuthenticatedLayout({
       console.error(error);
     }
 
-    let signedUrl: string | undefined = "";
+    let signedUrl: string | undefined = undefined;
 
     //if user has an avatar
     if (profile.avatar_path) {

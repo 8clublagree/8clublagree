@@ -232,6 +232,7 @@ const InstructorScheduleTable = ({
         loading={loading}
         columns={columns}
         dataSource={data}
+        locale={{ emptyText: "You have no assigned classes for this day" }}
         scroll={{ x: isMobile ? 600 : undefined }}
         pagination={{
           defaultPageSize: 10,

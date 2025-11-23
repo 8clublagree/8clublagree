@@ -50,6 +50,7 @@ export const useSearchUser = () => {
          start_time,
          end_time,
          instructor_id,
+         instructor_name,
          instructors (
            id,
            full_name,
@@ -90,7 +91,12 @@ export const useSearchUser = () => {
   const searchInstructors = async ({ name }: { name?: string }) => {
     setLoading(true);
 
-    let query = supabase.from("instructors").select("*");
+    let query = supabase.from("instructors").select(`
+      *,
+      user_profiles (
+        *
+      )
+      `);
 
     if (!!name?.length) {
       query = query.ilike("full_name", `%${name}%`);
@@ -234,7 +240,10 @@ export const useInstructorManagement = () => {
   }) => {
     setLoading(true);
 
-    const { data, error } = await supabase.from("instructors").insert(values);
+    const { data, error } = await supabase
+      .from("instructors")
+      .insert(values)
+      .select();
 
     if (error) return null;
 
@@ -254,7 +263,8 @@ export const useInstructorManagement = () => {
     const { data, error } = await supabase
       .from("instructors")
       .update(values)
-      .eq("id", id);
+      .eq("id", id)
+      .select();
 
     if (error) {
       console.log("error: ", error);

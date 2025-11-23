@@ -12,13 +12,28 @@ import {
   Image,
   GetProp,
   UploadProps,
+  Typography,
+  Divider,
+  Select,
+  DatePicker,
+  Spin,
 } from "antd";
-import { UserOutlined, PlusOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import {
+  UserOutlined,
+  PlusOutlined,
+  MailOutlined,
+  LockOutlined,
+  PhoneOutlined,
+} from "@ant-design/icons";
+import { useEffect, useRef, useState } from "react";
 import { CreateInstructorProps } from "@/lib/props";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/lib/hooks";
 import dayjs from "dayjs";
+import { MdContactEmergency } from "react-icons/md";
+import useDebounce from "@/hooks/use-debounce";
+import { useSearchUser } from "@/lib/api";
+import { keys } from "lodash";
 
 interface CreateClassFormProps {
   onSubmit: (values: any) => void;
@@ -31,6 +46,8 @@ interface CreateClassFormProps {
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
+const { Title } = Typography;
+
 export default function CreateInstructorForm({
   onSubmit,
   onCancel,
@@ -40,12 +57,75 @@ export default function CreateInstructorForm({
   isEdit = false,
 }: CreateClassFormProps) {
   const [form] = Form.useForm();
+  const watchedValues = Form.useWatch([], form);
   const BUCKET_NAME = "user-photos";
   const user = useAppSelector((state) => state.auth.user);
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [file, setFile] = useState<UploadFile[] | null>(null);
+  const [initialFileState, setInitialFileState] = useState<UploadFile[] | null>(
+    null
+  );
+  const { validateEmail } = useSearchUser();
+  const [email, setEmail] = useState<string>("");
+  const { debouncedValue: debouncedEmail, loading: debouncing } = useDebounce(
+    email,
+    1500
+  );
+  const [emailTaken, setEmailTaken] = useState<boolean>(false);
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+  const initialValuesRef = useRef<any>(null);
+  const certifications = [
+    { value: "lagree_certified_instructor", label: "Lagree Certified Trainer" },
+    {
+      value: "licensed_physical_therapist",
+      label: "Licensed Physical Therapist",
+    },
+    {
+      value: "pilates_certified_instructor",
+      label: " Pilates Certified Instructor",
+    },
+    { value: "yoga_instructor", label: "Yoga Instructor" },
+    {
+      value: "strength_conditioning_coach",
+      label: "Strength & Conditioning Coach",
+    },
+    {
+      value: "fitness_coach_personal_trainer",
+      label: "Fitness Coach / Personal Trainer",
+    },
+    { value: "group_fitness_instructor", label: "Group Fitness Instructor" },
+  ];
+  const [isModified, setIsModified] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (
+      (!!debouncedEmail?.length &&
+        initialValuesRef.current?.email !== debouncedEmail) ||
+      initialValuesRef.current?.email !== email
+    ) {
+      handleValidateEmail({ debouncedEmail: debouncedEmail });
+    } else {
+      setIsValidating(false);
+    }
+  }, [debouncedEmail]);
+
+  useEffect(() => {
+    const fileKeys = keys(file?.[0]);
+
+    let formCopy = { ...watchedValues };
+
+    if (
+      JSON.stringify(formCopy) !== JSON.stringify(initialValuesRef.current) ||
+      (!!fileKeys.length && !fileKeys.includes("url")) ||
+      file?.length !== initialFileState?.length
+    ) {
+      setIsModified(true);
+    } else {
+      setIsModified(false);
+    }
+  }, [watchedValues, file, initialValuesRef.current]);
 
   useEffect(() => {
     if (initialValues) {
@@ -58,12 +138,29 @@ export default function CreateInstructorForm({
             url: initialValues?.avatar_url,
           },
         ]);
+
+        setInitialFileState([
+          {
+            uid: "-1",
+            name: "existing_image.png",
+            status: "done",
+            url: initialValues?.avatar_url,
+          },
+        ]);
       }
-      form.setFieldsValue({
+      const initial = {
         first_name: initialValues.first_name,
         last_name: initialValues.last_name,
-        full_name: `${initialValues.first_name} ${initialValues.last_name}`,
-      });
+        contact_number: initialValues.contact_number,
+        email: initialValues.email,
+        certification: initialValues.certification,
+        employment_start_date: dayjs(initialValues.employment_start_date),
+        emergency_contact_name: initialValues.emergency_contact_name,
+        emergency_contact_number: initialValues.emergency_contact_number,
+      };
+
+      initialValuesRef.current = initial;
+      form.setFieldsValue(initial);
     } else {
       form.resetFields();
       setFile(null);
@@ -71,6 +168,26 @@ export default function CreateInstructorForm({
       setPreviewOpen(false);
     }
   }, [initialValues, form]);
+
+  const handleValidateEmail = async ({
+    debouncedEmail,
+  }: {
+    debouncedEmail: string;
+  }) => {
+    const response = await validateEmail({ email: debouncedEmail });
+    const isTaken =
+      response !== null && initialValuesRef.current.email !== debouncedEmail;
+
+    setEmailTaken(isTaken);
+
+    form.setFields([
+      {
+        name: "email",
+        errors: !isTaken ? [] : ["Email has already been taken"],
+      },
+    ]);
+    setIsValidating(false);
+  };
 
   const handleUpload = async (file: any) => {
     try {
@@ -129,30 +246,33 @@ export default function CreateInstructorForm({
   const handleChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
     setFile(newFileList);
   };
-  const handleFinish = async (values: any) => {
-    let imageURL: string = "";
-    const formattedValues = {
-      ...values,
-    };
+  const handleSubmit = async (values: any) => {
+    let imageURL: string | File = "";
 
-    if (file) {
+    const instructorFile = file?.[0];
+
+    if (instructorFile?.name !== "existing_image.png") {
       const response = await handleUpload(file);
+
       if (response) {
         imageURL = response;
       }
-
-      const formData = { ...formattedValues, avatar_path: imageURL };
-
-      onSubmit(formData);
-      form.resetFields();
     }
+
+    const formData = {
+      ...values,
+      ...(!!imageURL.length && { avatar_path: imageURL }),
+    };
+
+    onSubmit(formData);
+    form.resetFields();
   };
 
   return (
     <Form
       form={form}
       layout="vertical"
-      onFinish={handleFinish}
+      onFinish={handleSubmit}
       requiredMark="optional"
       className="w-full"
     >
@@ -181,6 +301,7 @@ export default function CreateInstructorForm({
         )}
       </Row>
 
+      <Title level={4}>Personal Information</Title>
       <Row gutter={[16, 0]}>
         <Row wrap={false} className="w-full gap-[10px] px-[8px]">
           <Form.Item
@@ -217,6 +338,178 @@ export default function CreateInstructorForm({
             />
           </Form.Item>
         </Row>
+
+        <Row wrap={false} className="w-full gap-[10px] px-[8px]">
+          <Form.Item
+            label="Contact Number"
+            className="w-[50%]"
+            name="contact_number"
+            rules={[
+              { required: true, message: "Please enter your contact number" },
+              {
+                pattern: /^[0-9+\s-()]+$/,
+                message: "Please enter a valid phone number",
+              },
+            ]}
+          >
+            <Input
+              prefix={<PhoneOutlined className="text-slate-400" />}
+              placeholder="Contact Number"
+            />
+          </Form.Item>
+        </Row>
+      </Row>
+
+      <Divider className="md:m-0 pb-[10px]" />
+
+      <Title level={4}>Account Information</Title>
+      <Row gutter={[16, 0]}>
+        <Row wrap={false} className="w-full gap-[10px] px-[8px] mb-[20px]">
+          <Row wrap={false} className="flex flex-col justify-start">
+            <Form.Item
+              className="!mb-[5px]"
+              label={
+                <Row wrap={false} className="items-center gap-x-[10px]">
+                  <p>Email Address</p>
+                  {debouncing && <Spin spinning={debouncing} size="small" />}
+                </Row>
+              }
+              name="email"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter your email address",
+                },
+                { type: "email", message: "Please enter a valid email" },
+              ]}
+            >
+              <Input
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setIsValidating(true);
+                }}
+                placeholder="Enter email address"
+              />
+            </Form.Item>
+            {/* {debouncing && <Spin spinning={debouncing} size="small" />} */}
+          </Row>
+        </Row>
+
+        {/**
+         * think about how to apply change password in the edit
+         */}
+        {/* <Row wrap={false} className="w-full gap-[10px] px-[8px]">
+          <Form.Item
+            label="Password"
+            className="w-full"
+            name="password"
+            rules={[
+              { required: true, message: "Please enter your password" },
+              { min: 6, message: "Password must be at least 6 characters" },
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined className="text-slate-400" />}
+              placeholder="Password"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Confirm Password"
+            className="w-full"
+            name="confirm_password"
+            dependencies={["password"]}
+            rules={[
+              { required: true, message: "Please confirm your password" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error("Passwords do not match"));
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined className="text-slate-400" />}
+              placeholder="Confirm Password"
+            />
+          </Form.Item>
+        </Row> */}
+      </Row>
+
+      <Divider className="md:m-0 pb-[10px]" />
+
+      <Title level={4}>Professional Information</Title>
+      <Row gutter={[16, 0]}>
+        <Row wrap={false} className="w-full gap-[10px] px-[8px]">
+          <Form.Item
+            label="Certification / Specialty"
+            className="w-full"
+            name="certification"
+            rules={[
+              { required: true, message: "Please select a certification" },
+            ]}
+          >
+            <Select
+              options={certifications}
+              prefix={<MailOutlined className="text-slate-400" />}
+              placeholder="Select a certification"
+            />
+          </Form.Item>
+
+          <Form.Item
+            className="w-full"
+            label="Employment Start Date"
+            name="employment_start_date"
+            rules={[
+              { required: true, message: "Please select start of employment" },
+            ]}
+          >
+            <DatePicker
+              placeholder="Start Date"
+              className="w-full"
+              format="YYYY-MM-DD"
+            />
+          </Form.Item>
+        </Row>
+
+        <Row wrap={false} className="w-full gap-[10px] px-[8px]">
+          <Form.Item
+            className="w-full"
+            name="emergency_contact_name"
+            label="Emergency Contact Name"
+            rules={[
+              {
+                required: true,
+                message: "Please enter an emergency contact name",
+              },
+            ]}
+          >
+            <Input
+              prefix={<MdContactEmergency className="text-slate-400" />}
+              placeholder="Emergency Contact Name"
+            />
+          </Form.Item>
+
+          <Form.Item
+            className="w-full"
+            name="emergency_contact_number"
+            label="Emergency Contact Number"
+            rules={[
+              {
+                required: true,
+                message: "Please enter an emergency contact number",
+              },
+            ]}
+          >
+            <Input
+              prefix={<PhoneOutlined className="text-slate-400" />}
+              placeholder="Emergency Contact Number"
+            />
+          </Form.Item>
+        </Row>
       </Row>
 
       <Form.Item className="mb-0 mt-6">
@@ -228,7 +521,12 @@ export default function CreateInstructorForm({
               size="large"
               loading={loading}
               block
-              className="bg-[#36013F] hover:!bg-[#36013F] !border-none"
+              disabled={loading || isValidating || emailTaken || !isModified}
+              className={`${
+                !isValidating && !emailTaken && isModified
+                  ? "!bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                  : "!bg-[gray] hover:!bg-[gray]"
+              } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
             >
               {isEdit ? "Update" : "Create"}
             </Button>

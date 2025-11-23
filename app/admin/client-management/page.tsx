@@ -19,6 +19,7 @@ import UserBookingHistory from "@/components/ui/user-booking-history";
 import { useAppMessage } from "@/components/ui/message-popup";
 import UserPurchaseHistory from "@/components/ui/user-purchase-history";
 import dayjs from "dayjs";
+import axios from "axios";
 
 const { Title, Text } = Typography;
 
@@ -101,6 +102,7 @@ export default function ClientManagementPage() {
             //if user has bookings
             if (!!user.class_bookings.length) {
               classBookings = user.class_bookings.map((classBooking: any) => {
+                console.log("classBooking: ", classBooking);
                 return {
                   id: classBooking.id,
                   attendance: classBooking.attendance_status,
@@ -108,7 +110,7 @@ export default function ClientManagementPage() {
 
                   classDetails: {
                     id: classBooking.classes.id,
-                    instructor: classBooking.classes.instructors.full_name,
+                    instructor: classBooking.classes.instructor_name,
                     startTime: classBooking.classes.start_time,
                     endTime: classBooking.classes.end_time,
                   },
@@ -202,6 +204,18 @@ export default function ClientManagementPage() {
             values: omit(values, ["credits"]),
           }),
         ];
+
+        const { data } = await axios.post("/api/update-user-email", {
+          id: selectedRecord.id,
+          email: values.email,
+        });
+
+        if (!data) {
+          showMessage({
+            type: "error",
+            content: "Error updating email",
+          });
+        }
 
         if (values.credits) {
           promises.push(

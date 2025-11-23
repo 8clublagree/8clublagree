@@ -25,6 +25,8 @@ import {
 } from "@/lib/api";
 import { User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAppMessage } from "@/components/ui/message-popup";
+import axios from "axios";
 
 const { Title, Text } = Typography;
 
@@ -33,6 +35,7 @@ export default function InstructorManagementPage() {
   const [input, setInput] = useState<string>("");
   const { debouncedValue } = useDebounce(input, 1000);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modifyingInstructor, setModifyingInstructor] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any | null>(null);
   const { searchInstructors, loading } = useSearchUser();
@@ -42,6 +45,7 @@ export default function InstructorManagementPage() {
     loading: loadingInstructor,
   } = useInstructorManagement();
   const { removeImage } = useManageImage();
+  const { showMessage, contextHolder } = useAppMessage();
 
   useEffect(() => {
     handleSearchInstructors();
@@ -75,20 +79,27 @@ export default function InstructorManagementPage() {
     try {
       if (data) {
         const usersWithSignedUrls = await Promise.all(
-          data.map(async (instructor) => {
-            if (!instructor.avatar_path) return instructor; // skip if no avatar
+          data.map(async (record) => {
+            let imageURL: string | null | undefined = undefined;
+            const instructor = {
+              ...record,
+              ...record.user_profiles,
+              first_name: record?.user_profiles?.first_name,
+              last_name: record?.user_profiles?.last_name,
+              full_name: record?.user_profiles?.full_name,
+              avatar_path: record?.user_profiles?.avatar_path,
+            };
 
             // generate signed URL valid for 1 hour (3600s)
-            const { data, error: urlError } = await supabase.storage
-              .from("user-photos")
-              .createSignedUrl(`${instructor.avatar_path}`, 3600);
+            if (instructor.avatar_path) {
+              const { data: signedUrlData } = await supabase.storage
+                .from("user-photos")
+                .createSignedUrl(`${instructor.avatar_path}`, 3600);
 
-            if (urlError) {
-              console.error("Error generating signed URL:", urlError);
-              return { ...instructor, avatar_url: null };
+              imageURL = signedUrlData?.signedUrl;
             }
 
-            return { ...instructor, avatar_url: data?.signedUrl };
+            return { ...instructor, avatar_url: imageURL };
           })
         );
 
@@ -115,41 +126,144 @@ export default function InstructorManagementPage() {
   };
 
   const handleSubmit = async (values: any) => {
-    const inputs = {
+    setModifyingInstructor(true);
+    const professionalDetails = {
+      certification: values.certification,
+      employment_start_date: values.employment_start_date,
+    };
+
+    const credentials = {
+      email: values.email,
+      password: values.password,
+    };
+    const userProfile = {
+      email: values.email,
       first_name: values.first_name,
       last_name: values.last_name,
       full_name: `${values.first_name} ${values.last_name}`,
       avatar_path: values.avatar_path,
+      contact_number: values.contact_number,
+      emergency_contact_name: values.emergency_contact_name,
+      emergency_contact_number: values.emergency_contact_number,
+      user_type: "instructor",
     };
+
+    /**
+     *
+     * in updating email, we need to make sure that we're also updating the email in Authentication
+     * this also MUST be applied to client management and user profile editing
+     *
+     * DEV NOTE:
+     * Server-side routing is created. Refer to /update-user-email
+     */
 
     if (instructors && editingRecord) {
       try {
-        await removeImage({ id: editingRecord.id });
+        const updateResponse = await updateInstructor({
+          id: editingRecord.id,
+          values: { ...professionalDetails },
+        });
 
-        await updateInstructor({ id: editingRecord.id, values: inputs });
+        if (!updateResponse) {
+          showMessage({
+            type: "error",
+            content: "Error updating instructor",
+          });
+        }
 
-        handleSearchInstructors();
-        message.success("Instructor has been updated!");
+        const { data } = await axios.post("/api/update-user-email", {
+          id: editingRecord.id,
+          email: credentials.email,
+        });
+
+        if (!data) {
+          showMessage({
+            type: "error",
+            content: "Error updating email",
+          });
+        }
+
+        const { error: profileError } = await supabase
+          .from("user_profiles")
+          .update({
+            ...userProfile,
+          })
+          .eq("id", editingRecord.id);
+
+        if (profileError) {
+          showMessage({
+            type: "error",
+            content: "Error updating profile",
+          });
+        }
+
+        showMessage({
+          type: "success",
+          content: "Instructor has been updated!",
+        });
       } catch (error) {
-        message.error("Error updating instructor");
-        return;
+        showMessage({
+          type: "error",
+          content: "Error updating instructor",
+        });
+        setModifyingInstructor(false);
       }
     } else {
       try {
-        await createInstructor({ values: inputs });
-        handleSearchInstructors();
-        message.success("Instructor has been created!");
+        const { data } = await axios.post("/api/create-instructor", {
+          email: credentials.email,
+          password: credentials.password,
+        });
+
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from("user_profiles")
+            .insert({
+              id: data.user.id,
+              ...userProfile,
+            });
+
+          if (profileError) {
+            showMessage({
+              type: "error",
+              content: "Error creating profile",
+            });
+          }
+
+          const createInstructorResponse = await createInstructor({
+            values: { ...professionalDetails, user_id: data.user.id },
+          });
+
+          if (!createInstructorResponse) {
+            showMessage({
+              type: "error",
+              content: "Error creating instructor",
+            });
+          }
+        }
+
+        showMessage({
+          type: "success",
+          content: "Instructor has been created!",
+        });
       } catch (error) {
-        message.error("Error creating instructor");
+        showMessage({
+          type: "error",
+          content: "Instructor creation failed.",
+        });
+        setModifyingInstructor(false);
       }
     }
 
+    handleSearchInstructors();
     setIsModalOpen(false);
     setEditingRecord(null);
+    setModifyingInstructor(false);
   };
 
   return (
     <AdminAuthenticatedLayout>
+      {contextHolder}
       <div className="space-y-6">
         <Row wrap={false} className="flex flex-col gap-y-[15px]">
           <Row className="items-center justify-between">
@@ -225,7 +339,7 @@ export default function InstructorManagementPage() {
 
       {isMobile ? (
         <Drawer
-          title={editingRecord ? "Edit Instructor" : "Create New Instructor"}
+          title={editingRecord ? "Edit" : "Create"}
           placement="right"
           onClose={handleCloseModal}
           open={isModalOpen}
@@ -235,7 +349,7 @@ export default function InstructorManagementPage() {
           }}
         >
           <CreateInstructorForm
-            loading={loadingInstructor}
+            loading={loadingInstructor || modifyingInstructor}
             isModalOpen={isModalOpen}
             onSubmit={handleSubmit}
             onCancel={handleCloseModal}
@@ -245,7 +359,7 @@ export default function InstructorManagementPage() {
         </Drawer>
       ) : (
         <Modal
-          title={editingRecord ? "Edit Instructor" : "Create New Instructor"}
+          title={editingRecord ? "Edit" : "Create"}
           open={isModalOpen}
           onCancel={handleCloseModal}
           footer={null}
@@ -254,7 +368,7 @@ export default function InstructorManagementPage() {
         >
           <div className="pt-4">
             <CreateInstructorForm
-              loading={loadingInstructor}
+              loading={loadingInstructor || modifyingInstructor}
               isModalOpen={isModalOpen}
               onSubmit={handleSubmit}
               onCancel={handleCloseModal}
