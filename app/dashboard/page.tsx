@@ -137,7 +137,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div>
           <Title level={2} className="!mb-2">
-            Dashboard
+            Quick View
           </Title>
         </div>
 
@@ -155,6 +155,9 @@ export default function DashboardPage() {
         </Row>
 
         <Col>
+          <Title level={2} className="!mb-2">
+            Upcoming Classes
+          </Title>
           <Row gutter={[16, 16]}>
             {upcomingBookings &&
               upcomingBookings.map((data, idx) => {
@@ -216,9 +219,20 @@ export default function DashboardPage() {
                       ]}
                     >
                       <Card.Meta
-                        title={`${dayjs(data.class_date).format(
-                          "MMM DD (dddd)"
-                        )}`}
+                        title={
+                          <Row wrap={false} className="flex flex-col">
+                            <Text>
+                              {dayjs(data.class_date).format("MMM DD (ddd)")}
+                            </Text>
+                            <Text>
+                              {`${dayjs(data.classStartTime).format(
+                                "hh:mm A"
+                              )} to ${dayjs(data.classEndTime).format(
+                                "hh:mm A"
+                              )}`}
+                            </Text>
+                          </Row>
+                        }
                         description={
                           <Col className="m-0 !p-0">
                             <Text>Class with {data.instructorName}</Text>

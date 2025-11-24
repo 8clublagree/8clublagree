@@ -36,20 +36,6 @@ dayjs.extend(utc);
 
 const { Text } = Typography;
 
-interface ClassBooking {
-  id: string;
-  created_at: string;
-  booker_id: string;
-  class_id: string;
-  attendance_status: string | null;
-  class_date: string;
-  user_profiles: {
-    full_name: string;
-  };
-  attendanceStatus: string | null;
-  attendeeName: string;
-}
-
 export default function ClassManagementPage() {
   const {
     loading,
@@ -384,6 +370,8 @@ export default function ClassManagementPage() {
   };
 
   const RenderViewClass = () => {
+    const cannotMarkAttendance = dayjs().isAfter(selectedRecord?.end_time);
+
     return (
       <Col className="flex flex-col pt-0 space-y-4">
         <Row wrap={false} className="justify-between">
@@ -420,42 +408,55 @@ export default function ClassManagementPage() {
               dataSource={attendees}
               locale={{ emptyText: "Nobody has booked this class yet" }}
               loading={loading}
-              renderItem={(item, index) => (
-                <Row
-                  key={index}
-                  wrap={false}
-                  className={`${
-                    attendees.length > 1 && "border-b"
-                  } py-3 justify-between`}
-                >
-                  <List.Item.Meta
-                    title={item.attendeeName}
-                    className="flex items-center"
-                  />
+              renderItem={(item, index) => {
+                return (
+                  <Row
+                    key={index}
+                    wrap={false}
+                    className={`${
+                      attendees.length > 1 && "border-b"
+                    } py-3 justify-between`}
+                  >
+                    <List.Item.Meta
+                      title={item.attendeeName}
+                      className="flex items-center"
+                    />
 
-                  <Select
-                    disabled={
-                      item?.attendanceStatus === "cancelled" || cannotRebook
-                    }
-                    defaultValue={item?.attendanceStatus}
-                    placeholder="Status"
-                    className="!outline-none"
-                    style={{ width: 120 }}
-                    onChange={(e) =>
-                      handleChange({ bookingID: item.id, status: e })
-                    }
-                    options={[
-                      { value: "no-show", label: "No Show" },
-                      { value: "attended", label: "Attended" },
-                      {
-                        value: "cancelled",
-                        label: "Cancelled",
-                        disabled: true,
-                      },
-                    ]}
-                  />
-                </Row>
-              )}
+                    <Tooltip
+                      title={
+                        (item?.attendanceStatus === "cancelled" ||
+                          cannotRebook ||
+                          cannotMarkAttendance) &&
+                        "Cannot modify the attendance of classes that are over, or clients who have cancelled."
+                      }
+                    >
+                      <Select
+                        disabled={
+                          item?.attendanceStatus === "cancelled" ||
+                          cannotRebook ||
+                          cannotMarkAttendance
+                        }
+                        defaultValue={item?.attendanceStatus}
+                        placeholder="Status"
+                        className="!outline-none"
+                        style={{ width: 120 }}
+                        onChange={(e) =>
+                          handleChange({ bookingID: item.id, status: e })
+                        }
+                        options={[
+                          { value: "no-show", label: "No Show" },
+                          { value: "attended", label: "Attended" },
+                          {
+                            value: "cancelled",
+                            label: "Cancelled",
+                            disabled: true,
+                          },
+                        ]}
+                      />
+                    </Tooltip>
+                  </Row>
+                );
+              }}
             />
           </div>
         </Col>
