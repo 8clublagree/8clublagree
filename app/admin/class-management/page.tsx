@@ -11,6 +11,7 @@ import {
   Typography,
   List,
   Select,
+  Tooltip,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
@@ -519,30 +520,43 @@ export default function ClassManagementPage() {
             >
               Create a Class
             </Button>
-            <Button
-              disabled={
-                cannotRebook || !classes?.length || !allBookings?.length
+            <Tooltip
+              title={
+                (cannotRebook || !classes?.length || !allBookings?.length) &&
+                "No available classes"
               }
-              type="primary"
-              icon={<HiOutlineSwitchHorizontal />}
-              onClick={handleOpenRebookModal}
-              className={`bg-[#36013F] ${
-                !!allBookings?.length &&
-                !!classes?.length &&
-                !cannotRebook &&
-                "hover:!bg-[#36013F]"
-              } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
-              Rebook Attendee
-            </Button>
-            <Button
-              type="primary"
-              icon={<IoMdPersonAdd />}
-              onClick={handleOpenBookingModal}
-              className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
-            >
-              Manual Booking
-            </Button>
+              <Button
+                disabled={
+                  cannotRebook || !classes?.length || !allBookings?.length
+                }
+                type="primary"
+                icon={<HiOutlineSwitchHorizontal />}
+                onClick={handleOpenRebookModal}
+                className={`${
+                  !!allBookings?.length &&
+                  !!classes?.length &&
+                  !cannotRebook &&
+                  "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+              >
+                Rebook Attendee
+              </Button>
+            </Tooltip>
+            <Tooltip title={!classes.length && "No available classes"}>
+              <Button
+                type="primary"
+                icon={<IoMdPersonAdd />}
+                disabled={!classes.length}
+                onClick={handleOpenBookingModal}
+                className={`${
+                  !!classes?.length &&
+                  "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+              >
+                Manual Booking
+              </Button>
+            </Tooltip>
           </Row>
           <AdminBookingTable
             loading={loading}

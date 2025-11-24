@@ -13,6 +13,7 @@ import {
   Spin,
   Typography,
 } from "antd";
+import axios from "axios";
 import { useEffect, useState } from "react";
 
 interface Props {
@@ -23,11 +24,21 @@ interface Props {
     new_password: string;
     confirm_new_password: string;
   }) => void;
+  isAdmin?: boolean;
+  userEmail?: string;
+  loading?: boolean;
 }
 
 const { Text } = Typography;
 
-const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
+const ChangePasswordForm = ({
+  isAdmin = false,
+  userEmail,
+  clearSignal,
+  onSubmit,
+  form,
+  loading,
+}: Props) => {
   const user = useAppSelector((state) => state.auth.user);
   const { validatePassword } = useManagePassword();
 
@@ -41,34 +52,40 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
   );
 
   useEffect(() => {
-    console.log("clearing");
     handleClear();
   }, [clearSignal]);
 
   useEffect(() => {
-    if (user && !!currentPassword?.length) {
+    if ((user || !!userEmail?.length) && !!currentPassword?.length) {
       handleValidatePassword();
     }
   }, [debouncedCurrentPassword]);
 
   const handleValidatePassword = async () => {
-    const response = await validatePassword({
-      email: user?.email as string,
-      currentPassword: debouncedCurrentPassword,
+    const email = isAdmin ? userEmail : user?.email;
+
+    const response = await axios.post("/api/validate-account", {
+      email,
+      password: debouncedCurrentPassword,
     });
+
+    const data = response.data;
+    const isValid = data.valid === true;
 
     form.setFields([
       {
         name: "current_password",
-        errors: response ? [] : ["Incorrect password"],
+        errors: isValid ? [] : ["Incorrect password"],
       },
     ]);
 
-    setInvalidCurrentPassword(response ? true : false);
+    setInvalidCurrentPassword(isValid ? false : true);
     setIsValidating(false);
   };
 
   const handleClear = () => {
+    setInvalidCurrentPassword(true);
+    setCurrentPassword("");
     form.setFields([
       {
         name: "current_password",
@@ -83,8 +100,7 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
         errors: [],
       },
     ]);
-    setInvalidCurrentPassword(true);
-    setCurrentPassword("");
+
     form.resetFields();
   };
 
@@ -124,6 +140,10 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
       ]);
 
       onSubmit(values);
+      form.resetFields();
+      setInvalidCurrentPassword(true);
+      setIsValidating(false);
+      setCurrentPassword("");
     }
   };
 
@@ -139,7 +159,12 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
         <Col className="!mb-[30px]" xs={24} sm={12}>
           <Form.Item
             className="!mb-[5px]"
-            label="Current Password"
+            label={
+              <Row wrap={false} className="items-center gap-x-[10px]">
+                <p>Current Password</p>
+                {isValidating && <Spin spinning={isValidating} size="small" />}
+              </Row>
+            }
             name="current_password"
             rules={[
               {
@@ -159,7 +184,6 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
               onChange={handleValidate}
             />
           </Form.Item>
-          {isValidating && <Spin size="small" spinning={isValidating} />}
           {!isValidating &&
             !!form?.getFieldValue("current_password")?.length &&
             !form.getFieldError("current_password").length && (
@@ -210,12 +234,13 @@ const ChangePasswordForm = ({ clearSignal, onSubmit, form }: Props) => {
         <Button
           onClick={handleClear}
           type="primary"
+          disabled={loading}
           className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
         >
           Cancel
         </Button>
         <Button
-          disabled={invalidCurrentPassword}
+          disabled={invalidCurrentPassword || loading}
           type="primary"
           htmlType="submit"
           className={`${

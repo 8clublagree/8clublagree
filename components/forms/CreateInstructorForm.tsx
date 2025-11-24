@@ -17,6 +17,7 @@ import {
   Select,
   DatePicker,
   Spin,
+  FormInstance,
 } from "antd";
 import {
   UserOutlined,
@@ -42,6 +43,8 @@ interface CreateClassFormProps {
   loading?: boolean;
   initialValues?: CreateInstructorProps | null;
   isEdit?: boolean;
+  clearSignal?: any;
+  form: FormInstance;
 }
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
@@ -55,8 +58,9 @@ export default function CreateInstructorForm({
   loading = false,
   initialValues = null,
   isEdit = false,
+  clearSignal,
+  form,
 }: CreateClassFormProps) {
-  const [form] = Form.useForm();
   const watchedValues = Form.useWatch([], form);
   const BUCKET_NAME = "user-photos";
   const user = useAppSelector((state) => state.auth.user);
@@ -98,6 +102,10 @@ export default function CreateInstructorForm({
     { value: "group_fitness_instructor", label: "Group Fitness Instructor" },
   ];
   const [isModified, setIsModified] = useState<boolean>(false);
+
+  // useEffect(() => {
+  //   handleReset();
+  // }, [clearSignal]);
 
   useEffect(() => {
     if (
@@ -175,8 +183,9 @@ export default function CreateInstructorForm({
     debouncedEmail: string;
   }) => {
     const response = await validateEmail({ email: debouncedEmail });
-    const isTaken =
-      response !== null && initialValuesRef.current.email !== debouncedEmail;
+    const isTaken = isEdit
+      ? response !== null && initialValuesRef.current.email !== debouncedEmail
+      : response !== null;
 
     setEmailTaken(isTaken);
 
@@ -246,6 +255,15 @@ export default function CreateInstructorForm({
   const handleChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
     setFile(newFileList);
   };
+
+  const handleReset = () => {
+    form.setFieldsValue(initialValuesRef.current);
+    setFile([]);
+    setInitialFileState([]);
+    setIsModified(false);
+    setIsValidating(false);
+    setEmailTaken(false);
+  };
   const handleSubmit = async (values: any) => {
     let imageURL: string | File = "";
 
@@ -264,8 +282,8 @@ export default function CreateInstructorForm({
       ...(!!imageURL.length && { avatar_path: imageURL }),
     };
 
+    handleReset();
     onSubmit(formData);
-    form.resetFields();
   };
 
   return (
@@ -397,46 +415,50 @@ export default function CreateInstructorForm({
 
         {/**
          * think about how to apply change password in the edit
+         * changing password is handled on another tab
          */}
-        {/* <Row wrap={false} className="w-full gap-[10px] px-[8px]">
-          <Form.Item
-            label="Password"
-            className="w-full"
-            name="password"
-            rules={[
-              { required: true, message: "Please enter your password" },
-              { min: 6, message: "Password must be at least 6 characters" },
-            ]}
-          >
-            <Input.Password
-              prefix={<LockOutlined className="text-slate-400" />}
-              placeholder="Password"
-            />
-          </Form.Item>
 
-          <Form.Item
-            label="Confirm Password"
-            className="w-full"
-            name="confirm_password"
-            dependencies={["password"]}
-            rules={[
-              { required: true, message: "Please confirm your password" },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error("Passwords do not match"));
-                },
-              }),
-            ]}
-          >
-            <Input.Password
-              prefix={<LockOutlined className="text-slate-400" />}
-              placeholder="Confirm Password"
-            />
-          </Form.Item>
-        </Row> */}
+        {!isEdit && (
+          <Row wrap={false} className="w-full gap-[10px] px-[8px]">
+            <Form.Item
+              label="Password"
+              className="w-full"
+              name="password"
+              rules={[
+                { required: true, message: "Please enter your password" },
+                { min: 6, message: "Password must be at least 6 characters" },
+              ]}
+            >
+              <Input.Password
+                prefix={<LockOutlined className="text-slate-400" />}
+                placeholder="Password"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Confirm Password"
+              className="w-full"
+              name="confirm_password"
+              dependencies={["password"]}
+              rules={[
+                { required: true, message: "Please confirm your password" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error("Passwords do not match"));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password
+                prefix={<LockOutlined className="text-slate-400" />}
+                placeholder="Confirm Password"
+              />
+            </Form.Item>
+          </Row>
+        )}
       </Row>
 
       <Divider className="md:m-0 pb-[10px]" />

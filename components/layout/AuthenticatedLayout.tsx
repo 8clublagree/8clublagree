@@ -156,7 +156,7 @@ export default function AuthenticatedLayout({
           router.push("/admin/dashboard");
           return;
         } else if (profile.user_type === "instructor") {
-          router.push("/admin/dashboard");
+          router.push("/instructor/assigned-schedules");
           return;
         }
         dispatch(

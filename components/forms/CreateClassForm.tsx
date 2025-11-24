@@ -54,9 +54,17 @@ export default function CreateClassForm({
     const data = await searchInstructors({});
 
     if (data) {
+      console.log("data: ", data);
       const mapped = data.map((inst, key) => {
-        return { value: inst.full_name, label: inst.full_name, id: inst.id };
+        return {
+          key: inst.id,
+          value: inst.user_profiles.full_name,
+          label: inst.user_profiles.full_name,
+          id: inst.id,
+        };
       });
+
+      console.log("mapped: ", mapped);
       setInstructors(mapped);
     }
   };

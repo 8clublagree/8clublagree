@@ -284,6 +284,7 @@ const AdminBookingTable = ({
           showTotal: (total, range) =>
             `${range[0]}-${range[1]} of ${total} items`,
         }}
+        locale={{ emptyText: "Classes have not been created for this date" }}
         size={isMobile ? "small" : "middle"}
         className="admin-booking-table"
       />

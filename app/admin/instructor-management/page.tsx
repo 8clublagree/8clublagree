@@ -12,6 +12,7 @@ import {
   Input,
   message,
   Form,
+  Tabs,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -21,30 +22,37 @@ import useDebounce from "@/hooks/use-debounce";
 import {
   useInstructorManagement,
   useManageImage,
+  useManagePassword,
   useSearchUser,
 } from "@/lib/api";
 import { User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAppMessage } from "@/components/ui/message-popup";
 import axios from "axios";
+import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
 
 const { Title, Text } = Typography;
 
 export default function InstructorManagementPage() {
+  const [accountCreationForm] = Form.useForm();
+  const [changePasswordForm] = Form.useForm();
   const [instructors, setInstructors] = useState<any[] | null>([]);
   const [input, setInput] = useState<string>("");
   const { debouncedValue } = useDebounce(input, 1000);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modifyingInstructor, setModifyingInstructor] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<any | null>(null);
+  const [profileTab, setProfileTab] = useState<
+    "account-creation" | "change-password"
+  >("account-creation");
+  const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
   const { searchInstructors, loading } = useSearchUser();
   const {
     updateInstructor,
     createInstructor,
     loading: loadingInstructor,
   } = useInstructorManagement();
-  const { removeImage } = useManageImage();
+  const { changePassword, loading: changingPassword } = useManagePassword();
   const { showMessage, contextHolder } = useAppMessage();
 
   useEffect(() => {
@@ -73,6 +81,12 @@ export default function InstructorManagementPage() {
       window.removeEventListener("resize", onResize);
     };
   }, []);
+
+  useEffect(() => {
+    if (profileTab === "account-creation") {
+      changePasswordForm.resetFields();
+    }
+  }, [profileTab]);
 
   const handleSearchInstructors = async () => {
     const data = await searchInstructors({ name: debouncedValue });
@@ -111,17 +125,20 @@ export default function InstructorManagementPage() {
   };
 
   const handleOpenModal = () => {
-    setEditingRecord(null);
+    setSelectedRecord(null);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setEditingRecord(null);
+    setSelectedRecord(null);
+    setProfileTab("account-creation");
+    changePasswordForm.resetFields();
+    // accountCreationForm.resetFields();
   };
 
   const handleEdit = (record: any) => {
-    setEditingRecord(record);
+    setSelectedRecord(record);
     setIsModalOpen(true);
   };
 
@@ -157,10 +174,10 @@ export default function InstructorManagementPage() {
      * Server-side routing is created. Refer to /update-user-email
      */
 
-    if (instructors && editingRecord) {
+    if (instructors && selectedRecord) {
       try {
         const updateResponse = await updateInstructor({
-          id: editingRecord.id,
+          id: selectedRecord.id,
           values: { ...professionalDetails },
         });
 
@@ -172,7 +189,7 @@ export default function InstructorManagementPage() {
         }
 
         const { data } = await axios.post("/api/update-user-email", {
-          id: editingRecord.id,
+          id: selectedRecord.id,
           email: credentials.email,
         });
 
@@ -188,7 +205,7 @@ export default function InstructorManagementPage() {
           .update({
             ...userProfile,
           })
-          .eq("id", editingRecord.id);
+          .eq("id", selectedRecord.id);
 
         if (profileError) {
           showMessage({
@@ -257,9 +274,83 @@ export default function InstructorManagementPage() {
 
     handleSearchInstructors();
     setIsModalOpen(false);
-    setEditingRecord(null);
+    setSelectedRecord(null);
     setModifyingInstructor(false);
   };
+
+  const handleChangePassword = async ({
+    values,
+  }: {
+    values: {
+      current_password: string;
+      new_password: string;
+      confirm_new_password: string;
+    };
+  }) => {
+    try {
+      const response = await axios.post("/api/update-password", {
+        id: selectedRecord.id,
+        password: values.new_password,
+      });
+
+      if (response.data.user) {
+        showMessage({
+          type: "success",
+          content: "Updated password!",
+        });
+      } else {
+        showMessage({
+          type: "error",
+          content: "Failed to update password.",
+        });
+      }
+    } catch (error) {
+      showMessage({
+        type: "error",
+        content: "Failed to update password.",
+      });
+    }
+  };
+
+  const formTabs = [
+    {
+      key: "account-creation",
+      label: "Account Creation",
+      children: (
+        <CreateInstructorForm
+          loading={loadingInstructor || modifyingInstructor}
+          isModalOpen={isModalOpen}
+          onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
+          initialValues={selectedRecord}
+          isEdit={!!selectedRecord}
+          clearSignal={isModalOpen || profileTab}
+          form={accountCreationForm}
+        />
+      ),
+    },
+    {
+      key: "change-password",
+      label: "Change Password",
+      children: (
+        <ChangePasswordForm
+          loading={changingPassword}
+          clearSignal={isModalOpen || profileTab}
+          onSubmit={(values: {
+            current_password: string;
+            new_password: string;
+            confirm_new_password: string;
+          }) => {
+            handleChangePassword({ values });
+          }}
+          form={changePasswordForm}
+          isAdmin={true}
+          userEmail={selectedRecord?.email}
+        />
+      ),
+      disabled: !selectedRecord,
+    },
+  ];
 
   return (
     <AdminAuthenticatedLayout>
@@ -339,7 +430,6 @@ export default function InstructorManagementPage() {
 
       {isMobile ? (
         <Drawer
-          title={editingRecord ? "Edit" : "Create"}
           placement="right"
           onClose={handleCloseModal}
           open={isModalOpen}
@@ -348,34 +438,31 @@ export default function InstructorManagementPage() {
             body: { paddingTop: 24 },
           }}
         >
-          <CreateInstructorForm
-            loading={loadingInstructor || modifyingInstructor}
-            isModalOpen={isModalOpen}
-            onSubmit={handleSubmit}
-            onCancel={handleCloseModal}
-            initialValues={editingRecord}
-            isEdit={!!editingRecord}
+          <Tabs
+            activeKey={profileTab}
+            defaultValue={profileTab}
+            onTabClick={(e) =>
+              setProfileTab(e as "account-creation" | "change-password")
+            }
+            items={formTabs}
           />
         </Drawer>
       ) : (
         <Modal
-          title={editingRecord ? "Edit" : "Create"}
           open={isModalOpen}
           onCancel={handleCloseModal}
           footer={null}
           width={600}
           maskClosable={false}
         >
-          <div className="pt-4">
-            <CreateInstructorForm
-              loading={loadingInstructor || modifyingInstructor}
-              isModalOpen={isModalOpen}
-              onSubmit={handleSubmit}
-              onCancel={handleCloseModal}
-              initialValues={editingRecord}
-              isEdit={!!editingRecord}
-            />
-          </div>
+          <Tabs
+            activeKey={profileTab}
+            defaultValue={profileTab}
+            onTabClick={(e) =>
+              setProfileTab(e as "account-creation" | "change-password")
+            }
+            items={formTabs}
+          />
         </Modal>
       )}
     </AdminAuthenticatedLayout>
