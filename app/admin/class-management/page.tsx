@@ -550,11 +550,20 @@ export default function ClassManagementPage() {
               <Button
                 type="primary"
                 icon={<IoMdPersonAdd />}
-                disabled={!classes.length}
+                disabled={
+                  !classes.length ||
+                  !classes.filter((cls) =>
+                    dayjs(cls.start_time).isAfter(dayjs())
+                  ).length
+                }
                 onClick={handleOpenBookingModal}
                 className={`${
                   !!classes?.length &&
-                  "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                  !!classes.filter((cls) =>
+                    dayjs(cls.start_time).isAfter(dayjs())
+                  ).length
+                    ? "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                    : "!bg-slate-200 hover:!bg-slate-200"
                 } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
               >
                 Manual Booking
