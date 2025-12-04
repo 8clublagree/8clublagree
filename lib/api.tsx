@@ -44,8 +44,12 @@ export const useSearchUser = () => {
        id,
        credits
      ),
-     class_bookings (
-       *,
+     class_bookings (      
+        attendance_status,
+        booker_id,
+        class_date,
+        class_id,
+        id,
        classes (
          id,
          start_time,
@@ -485,7 +489,8 @@ export const useClassManagement = () => {
       avatar_path,
       user_profiles (
         id,
-        avatar_path
+        avatar_path,
+        deactivated
       )
     ),
     class_bookings (
@@ -886,6 +891,7 @@ export const useClientBookings = () => {
         id,
         end_time,
         start_time,
+        class_date,
         instructor_id,
         instructor_name,
         taken_slots,

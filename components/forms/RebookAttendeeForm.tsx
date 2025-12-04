@@ -41,9 +41,8 @@ export default function RebookAttendeeForm({
 
       return { ...attendee, originalClasses: filtered };
     });
-
     setAvailableAttendees(rebookableAttendees);
-  }, []);
+  }, [attendees, classes]);
 
   useEffect(() => {
     handleClear();
@@ -137,7 +136,10 @@ export default function RebookAttendeeForm({
               value={selectedOriginalSchedule}
               onSelect={(e) => setSelectedOriginalSchedule(e)}
               options={selectedRecord?.originalClasses ?? []}
-              disabled={selectedRecord === null}
+              disabled={
+                selectedRecord === null ||
+                !selectedRecord?.availableClasses.length
+              }
               placeholder="Select attendee original class"
             />
           </Row>

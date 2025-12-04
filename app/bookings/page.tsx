@@ -315,9 +315,9 @@ export default function BookingsPage() {
                 <Col>
                   <p>
                     <span className="font-semibold">
-                      {`${dayjs(item.start_time).format("hh:mm")} ${dayjs(
-                        item.start_time
-                      ).format("A")}`}
+                      {`${dayjs(item.start_time).format("h:mm A")} to ${dayjs(
+                        item.end_time
+                      ).format("h:mm A")}`}
                     </span>
                   </p>
                   <p>
@@ -434,6 +434,7 @@ export default function BookingsPage() {
         onClose={handleCloseModal}
         open={isModalOpen}
         width={isMobile ? "100%" : "30%"}
+        destroyOnHidden={true}
         styles={{
           body: {
             paddingTop: 24,
@@ -481,7 +482,10 @@ export default function BookingsPage() {
                 </Title>
               </Col>
               <Row justify={"start"} className="w-full mb-[10px]">
-                <Checkbox onChange={handleAcceptTermsChange}>
+                <Checkbox
+                  value={acceptsTerms}
+                  onChange={handleAcceptTermsChange}
+                >
                   I have read the
                 </Checkbox>
                 <span

@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { Table, Tag, Typography } from "antd";
 import { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const { Title } = Typography;
 
@@ -31,82 +31,112 @@ const PaymentsPage = () => {
   const { fetchOrders, loading } = useManageOrders();
   const { showMessage, contextHolder } = useAppMessage();
   const [orders, setOrders] = useState<OrdersTableType[]>([]);
-  const columns: ColumnsType<OrdersTableType> = [
-    {
-      title: "Customer ID",
-      dataIndex: "customer_user_id",
-      key: "customer_user_id",
-      ellipsis: true,
-      width: "12%",
-    },
-    {
-      title: "Customer Name",
-      dataIndex: "customer_name",
-      key: "customer_name",
-      ellipsis: true,
-      width: "12%",
-    },
-    {
-      title: "Purchase Date",
-      dataIndex: "created_at",
-      key: "created_at",
-      width: "12%",
-      ellipsis: true,
-      sorter: (a, b) =>
-        dayjs(a.created_at).toDate().getTime() -
-        dayjs(b.created_at).toDate().getTime(),
-      render: (value) =>
-        value ? dayjs(value).format("MMM DD YYYY hh:mm A") : "",
-    },
-    {
-      title: "Email",
-      dataIndex: "customer_email",
-      key: "customer_email",
-      ellipsis: true,
-      width: "12%",
-    },
-    {
-      title: "Amount (PHP)",
-      dataIndex: "amount",
-      key: "amount",
-      width: "12%",
-      ellipsis: true,
-      sorter: (a, b) => (a.amount || 0) - (b.amount || 0),
-      render: (value, record) => {
-        const amount = value / 100;
-        return value !== undefined ? `${formatPrice(amount)}` : "";
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // rAF throttle
+    let rafId: number | null = null;
+    const onResize = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        handleResize();
+      });
+    };
+
+    handleResize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  const columns = useMemo<ColumnsType<OrdersTableType>>(
+    () => [
+      {
+        title: "Customer ID",
+        dataIndex: "customer_user_id",
+        key: "customer_user_id",
+        ellipsis: true,
+        width: "12%",
       },
-    },
-    {
-      title: "Package",
-      dataIndex: "product_name",
-      key: "product_name",
-      ellipsis: true,
-      width: "12%",
-    },
-    {
-      title: "Description",
-      dataIndex: "product_description",
-      key: "product_description",
-      ellipsis: true,
-      width: "12%",
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: "12%",
-      ellipsis: true,
-      render: (value) => {
-        if (!value) return "";
-        return (
-          <Tag color={value === "paid" ? "green" : "red"}>
-            {value.toUpperCase()}
-          </Tag>
-        );
+      {
+        title: "Customer Name",
+        dataIndex: "customer_name",
+        key: "customer_name",
+        ellipsis: true,
+        width: "12%",
       },
-    },
-  ];
+      {
+        title: "Purchase Date",
+        dataIndex: "created_at",
+        key: "created_at",
+        width: "12%",
+        ellipsis: true,
+        sorter: (a, b) =>
+          dayjs(a.created_at).toDate().getTime() -
+          dayjs(b.created_at).toDate().getTime(),
+        render: (value) =>
+          value ? dayjs(value).format("MMM DD YYYY hh:mm A") : "",
+      },
+      {
+        title: "Email",
+        dataIndex: "customer_email",
+        key: "customer_email",
+        ellipsis: true,
+        width: "12%",
+      },
+      {
+        title: "Amount (PHP)",
+        dataIndex: "amount",
+        key: "amount",
+        width: "12%",
+        ellipsis: true,
+        sorter: (a, b) => (a.amount || 0) - (b.amount || 0),
+        render: (value, record) => {
+          const amount = value / 100;
+          return value !== undefined ? `${formatPrice(amount)}` : "";
+        },
+      },
+      {
+        title: "Package",
+        dataIndex: "product_name",
+        key: "product_name",
+        ellipsis: true,
+        width: "12%",
+      },
+      {
+        title: "Description",
+        dataIndex: "product_description",
+        key: "product_description",
+        ellipsis: true,
+        width: "12%",
+      },
+      {
+        title: "Status",
+        dataIndex: "status",
+        key: "status",
+        width: "12%",
+        ellipsis: true,
+        render: (value) => {
+          if (!value) return "";
+          return (
+            <Tag color={value === "paid" ? "green" : "red"}>
+              {value.toUpperCase()}
+            </Tag>
+          );
+        },
+      },
+    ],
+    [isMobile, orders]
+  );
+
+  //[isMobile, searchedColumn, searchText, data]
 
   useEffect(() => {
     handleFetchOrders();
@@ -132,7 +162,7 @@ const PaymentsPage = () => {
         scroll={{ x: true }}
         columns={columns}
         dataSource={orders}
-        size={"middle"}
+        size={isMobile ? "small" : "middle"}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,

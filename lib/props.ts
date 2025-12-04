@@ -12,6 +12,7 @@ export interface CreateClassProps {
   start_time?: Dayjs;
   end_time?: Dayjs;
   slots?: string;
+  deactivated?: boolean;
   taken_slots?: number;
 }
 export interface CreateInstructorProps {

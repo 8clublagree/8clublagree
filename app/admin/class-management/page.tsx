@@ -22,7 +22,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { CreateClassProps } from "@/lib/props";
 import { IoMdPersonAdd } from "react-icons/io";
 import ManualBookingForm from "@/components/forms/ManualBookingForm";
-import { useClassManagement } from "@/lib/api";
+import { useClassManagement, useManageCredits } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 import utc from "dayjs/plugin/utc";
@@ -31,6 +31,7 @@ import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setClickedDashboardDate } from "@/lib/features/paramSlice";
 import { useAppMessage } from "@/components/ui/message-popup";
+import { omit } from "lodash";
 
 dayjs.extend(utc);
 
@@ -50,6 +51,7 @@ export default function ClassManagementPage() {
   } = useClassManagement();
   const dispatch = useDispatch();
   const { showMessage, contextHolder } = useAppMessage();
+  const { updateUserCredits } = useManageCredits();
   const param = useAppSelector((state) => state.param);
   const [classes, setClasses] = useState<any[]>([]);
   const [attendees, setAttendees] = useState<any[]>([]);
@@ -119,6 +121,7 @@ export default function ClassManagementPage() {
             slots: `${item.taken_slots} / ${item.available_slots}`,
             taken_slots: item.taken_slots,
             available_slots: item.available_slots,
+            deactivated: item.instructors.user_profiles.deactivated,
           };
         });
 
@@ -168,8 +171,8 @@ export default function ClassManagementPage() {
               bookingID: booking.bookingID,
               value: booking.class_id,
               label: `${booking.class_name} ${dayjs(booking.start_time).format(
-                "HH:mm A"
-              )} - ${dayjs(booking.end_time).format("HH:mm A")}`,
+                "hh:mm A"
+              )} - ${dayjs(booking.end_time).format("hh:mm A")}`,
               takenSlots: booking.taken_slots,
               availableSlots: booking.available_slots,
               startTime: booking.start_time,
@@ -225,6 +228,7 @@ export default function ClassManagementPage() {
   };
   const handleCloseBookingModal = () => {
     setIsBookingModalOpen(false);
+    handleFetchClasses();
   };
 
   const handleView = async (record: CreateClassProps) => {
@@ -290,33 +294,70 @@ export default function ClassManagementPage() {
     }
   };
 
-  const handleManualBook = async (values: any) => {
+  const handleManualBook = async (formData: any) => {
     try {
-      let promises = [
-        bookClass({
-          classDate: values.classDate,
-          classId: values.class_id,
-          walkInFirstName: values.first_name,
-          walkInLastName: values.last_name,
-          walkInClientEmail: values.walk_in_client_email,
-          walkInClientContactNumber: values.walk_in_client_contact_number,
-          isWalkIn: true,
-        }),
-        updateClass({
-          id: values.class_id,
-          values: {
-            taken_slots: values.taken_slots + 1,
-          },
-        }),
-      ];
+      let promises;
+      const bookingType = formData.bookingType;
 
-      await Promise.all([...promises]);
-      handleCloseBookingModal();
+      const values = omit(formData, ["bookingType"]);
+
+      if (bookingType === "walk-in") {
+        promises = [
+          bookClass({
+            classDate: values.classDate,
+            classId: values.class_id,
+            walkInFirstName: values.first_name,
+            walkInLastName: values.last_name,
+            walkInClientEmail: values.walk_in_client_email,
+            walkInClientContactNumber: values.walk_in_client_contact_number,
+            isWalkIn: true,
+          }),
+          updateClass({
+            id: values.class_id,
+            values: {
+              taken_slots: values.taken_slots + 1,
+            },
+          }),
+        ];
+
+        await Promise.all([...promises]);
+      }
+
+      if (bookingType === "existing") {
+        const clientID = values.existingClientRecord.id;
+        const clientCredits = values.existingClientRecord.credits;
+
+        promises = [
+          bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: values.class_id,
+            bookerId: clientID,
+            isWalkIn: false,
+          }),
+          updateClass({
+            id: values.class_id,
+            values: {
+              taken_slots: values.taken_slots + 1,
+            },
+          }),
+        ];
+
+        if (clientCredits != null) {
+          const updatedCredits = clientCredits - 1;
+          promises.push(
+            updateUserCredits({
+              userID: clientID,
+              values: { credits: updatedCredits },
+            })
+          );
+        }
+      }
 
       showMessage({
         type: "success",
         content: "Successfully created manual booking",
       });
+      handleCloseBookingModal();
     } catch (error) {
       showMessage({ type: "error", content: "Error in manual booking" });
     }
@@ -498,7 +539,9 @@ export default function ClassManagementPage() {
       {contextHolder}
       <div className="space-y-6">
         <p className="!mb-0 !pb-0 text-[42px] font-[400]">
-          {`${dayjs().format("MMMM").toLowerCase()} ${dayjs().format("YYYY")}`}
+          {`${dayjs(selectedDate)
+            .format("MMMM")
+            .toLowerCase()} ${dayjs().format("YYYY")}`}
         </p>
         <Divider className="m-0 pb-[10px]" />
         <Row className="wrap-none justify-center bg-transparent !mt-0">
@@ -531,7 +574,10 @@ export default function ClassManagementPage() {
             >
               <Button
                 disabled={
-                  cannotRebook || !classes?.length || !allBookings?.length
+                  cannotRebook ||
+                  !classes?.length ||
+                  !allBookings?.length ||
+                  classes?.length === 1
                 }
                 type="primary"
                 icon={<HiOutlineSwitchHorizontal />}
@@ -539,6 +585,7 @@ export default function ClassManagementPage() {
                 className={`${
                   !!allBookings?.length &&
                   !!classes?.length &&
+                  classes?.length !== 1 &&
                   !cannotRebook &&
                   "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
                 } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
@@ -586,6 +633,7 @@ export default function ClassManagementPage() {
             onClose={handleCloseBookingModal}
             open={isBookingModalOpen}
             width={"100%"}
+            destroyOnHidden={true}
             styles={{
               body: { paddingTop: 24 },
             }}
@@ -603,6 +651,7 @@ export default function ClassManagementPage() {
         ) : (
           <Modal
             title={"Manual Booking"}
+            destroyOnHidden={true}
             open={isBookingModalOpen}
             onCancel={handleCloseBookingModal}
             footer={null}
@@ -629,6 +678,7 @@ export default function ClassManagementPage() {
             placement="right"
             onClose={handleCloseModal}
             open={isFormModalOpen}
+            destroyOnHidden={true}
             width={"100%"}
             styles={{
               body: { paddingTop: 24 },
@@ -647,6 +697,7 @@ export default function ClassManagementPage() {
           <Modal
             title={selectedRecord ? "Edit Class" : "Create New Class"}
             open={isFormModalOpen}
+            destroyOnHidden={true}
             onCancel={handleCloseModal}
             footer={null}
             width={600}
@@ -669,6 +720,7 @@ export default function ClassManagementPage() {
           <Drawer
             loading={loading}
             title="View Class Details"
+            destroyOnHidden={true}
             placement="right"
             onClose={handleCloseView}
             open={viewModalOpen}
@@ -684,6 +736,7 @@ export default function ClassManagementPage() {
           <Modal
             loading={loading}
             title="View Class Details"
+            destroyOnHidden={true}
             open={viewModalOpen}
             onCancel={handleCloseView}
             footer={null}
@@ -704,6 +757,7 @@ export default function ClassManagementPage() {
             onClose={handleCloseRebookModal}
             open={isRebookModalOpen}
             maskClosable={false}
+            destroyOnHidden={true}
             width="100%"
             styles={{
               body: { paddingTop: 24 },
@@ -726,6 +780,7 @@ export default function ClassManagementPage() {
             open={isRebookModalOpen}
             onCancel={handleCloseRebookModal}
             width={600}
+            destroyOnHidden={true}
             maskClosable={false}
             footer={null}
           >

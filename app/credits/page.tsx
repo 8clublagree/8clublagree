@@ -201,42 +201,44 @@ export default function CreditsPage() {
           </Col>
         </Row>
 
-        <Card className="shadow-sm" title={"Package Purchase History"}>
-          <List
-            grid={{
-              gutter: 16,
-              xs: 1,
-              sm: 2,
-              md: 3,
-              lg: 3,
-              xl: 4,
-              xxl: 5,
-            }}
-            dataSource={packages}
-            renderItem={(item) => (
-              <List.Item>
-                <PackageHistoryCard item={item} />
-              </List.Item>
-            )}
-            locale={{
-              emptyText: (
-                <div className="text-center py-12 text-slate-500">
-                  <Row className="justify-center">
-                    <Col className="flex flex-col justify-center items-center gap-y-[10px]">
-                      <Text>You haven&apos;t purchased any packages yet</Text>
-                      <Button
-                        type="primary"
-                        onClick={() => router.push("/packages")}
-                        className="w-fit !bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
-                      >
-                        Purchase a package
-                      </Button>
-                    </Col>
-                  </Row>
-                </div>
-              ),
-            }}
-          />
+        <Card className="shadow-sm" title="Package Purchase History">
+          <div className="overflow-y-auto pr-2 max-h-[60vh] sm:max-h-[70vh] md:max-h-[50vh]">
+            <List
+              grid={{
+                gutter: 16,
+                xs: 1, // Mobile: 1 per row
+                sm: 2,
+                md: 3,
+                lg: 3,
+                xl: 4,
+                xxl: 5,
+              }}
+              dataSource={packages}
+              renderItem={(item) => (
+                <List.Item>
+                  <PackageHistoryCard item={item} />
+                </List.Item>
+              )}
+              locale={{
+                emptyText: (
+                  <div className="text-center py-12 text-slate-500">
+                    <Row className="justify-center">
+                      <Col className="flex flex-col justify-center items-center gap-y-[10px]">
+                        <Text>You haven’t purchased any packages yet</Text>
+                        <Button
+                          type="primary"
+                          onClick={() => router.push("/packages")}
+                          className="w-fit !bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+                        >
+                          Purchase a package
+                        </Button>
+                      </Col>
+                    </Row>
+                  </div>
+                ),
+              }}
+            />
+          </div>
         </Card>
       </div>
     </AuthenticatedLayout>

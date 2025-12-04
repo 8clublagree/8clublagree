@@ -13,28 +13,19 @@ import {
   Carousel,
   Tooltip,
 } from "antd";
-import { ImInfinite } from "react-icons/im";
 import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import { formatPrice, getDateFromToday } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  CreditCard,
-  ShoppingBag,
-  Smartphone,
-  Wallet,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useManageCredits, usePackageManagement } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
-import { Order, PackageProps } from "@/lib/props";
+import { PackageProps } from "@/lib/props";
 import dayjs from "dayjs";
 import { useAppMessage } from "@/components/ui/message-popup";
-import axios from "axios";
 
 const { Title } = Typography;
 const CAROUSEL_SLIDES = {
@@ -138,13 +129,14 @@ export default function PackagesPage() {
   };
 
   const handleCloseModal = () => {
+    setAcceptsTerms(false);
+    setSelectedRecord(null);
     if (carouselSlide === CAROUSEL_SLIDES.TERMS) {
       setCarouselSlide(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       carouselRef.current.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       return;
     }
     setIsModalOpen(false);
-    setSelectedRecord(null);
   };
 
   const handleSendConfirmationEmail = async () => {
@@ -163,27 +155,29 @@ export default function PackagesPage() {
 
   const handleNext = async () => {
     try {
-      // setIsSubmitting(true);
-      // await handlePurchasePackage();
-
-      // await handleUpdateUserCredits({
-      //   credits: selectedRecord.packageCredits,
-      // });
-
+      //temporary behavior
+      setIsSubmitting(true);
+      await handlePurchasePackage();
+      await handleUpdateUserCredits({
+        credits: selectedRecord.packageCredits,
+      });
       // await handleSendConfirmationEmail();
+      //temporary behavior
 
       // temporarily commented out until payments is integrated
-      setCarouselSlide(2);
-      carouselRef.current.next();
+      // setCarouselSlide(2);
+      // carouselRef.current.next();
+      // temporarily commented out until payments is integrated
 
       //temporary behavior
-      // showMessage({
-      //   type: "success",
-      //   content: "Successfully purchased package!",
-      // });
-      // setIsModalOpen(false);
-      // setSelectedRecord(null);
-      // setIsSubmitting(false);
+      showMessage({
+        type: "success",
+        content: "Successfully purchased package!",
+      });
+      setIsModalOpen(false);
+      setSelectedRecord(null);
+      setIsSubmitting(false);
+      //temporary behavior
     } catch (error) {
       showMessage({ type: "error", content: "Failed to purchase package" });
     }
@@ -227,143 +221,224 @@ export default function PackagesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [formData, setFormData] = useState({
-    customerName: user?.full_name || "",
-    customerEmail: user?.email || "",
-    customerPhone: user?.contact_number || "",
-    cardNumber: "",
-    expiryMonth: "",
-    expiryYear: "",
-    cvc: "",
-  });
+  // const [formData, setFormData] = useState({
+  //   customerName: user?.full_name || "",
+  //   customerEmail: user?.email || "",
+  //   customerPhone: user?.contact_number || "",
+  //   cardNumber: "",
+  //   expiryMonth: "",
+  //   expiryYear: "",
+  //   cvc: "",
+  // });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
 
   useEffect(() => {
     if (user) {
       setFormData((prev) => ({
         ...prev,
-        customerName: user?.full_name || "",
+        firstName: user?.full_name || "",
+        lastName: user?.full_name || "",
         customerEmail: user?.email || "",
         customerPhone: user?.contact_number || "",
       }));
     }
   }, [user]);
 
-  const handleExecutePayment = async (e: React.FormEvent) => {
-    /**
-     * CURRENT ROUTE EXECUTES TEST PAYMENTS
-     * NEXT IS EXPLORE REAL PAYMENTS TO PAYMONGO ACCOUNT
-     */
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  // const handleExecutePayment = async (e: React.FormEvent) => {
+  //   /**
+  //    * CURRENT ROUTE EXECUTES TEST PAYMENTS
+  //    * NEXT IS EXPLORE REAL PAYMENTS TO PAYMONGO ACCOUNT
+  //    */
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError(null);
 
-    const TOTAL_AMOUNT = selectedRecord.price * 100;
-    /**
-     * CAREFUL HERE
-     * AMOUNT IS MULTIPLIED BY 100 IN ORDER TO ADD CENTAVOS
-     */
+  //   // const TOTAL_AMOUNT = selectedRecord.price * 100;
+  //   const TOTAL_AMOUNT = 100;
+  //   /**
+  //    * CAREFUL HERE
+  //    * AMOUNT IS MULTIPLIED BY 100 IN ORDER TO ADD CENTAVOS
+  //    */
 
-    try {
-      const orderData: Omit<Order, "id" | "created_at" | "updated_at"> = {
-        customer_name: user?.full_name as string,
-        customer_user_id: user?.id as string,
-        customer_email: user?.email as string,
-        customer_phone: user?.contact_number || undefined,
-        amount: TOTAL_AMOUNT,
-        currency: "PHP",
-        product_name: selectedRecord.title,
-        product_description: `Valid for ${selectedRecord.validityPeriod} days`,
-        status: "processing",
-      };
+  //   try {
+  //     const orderData: Omit<Order, "id" | "created_at" | "updated_at"> = {
+  //       customer_name: user?.full_name as string,
+  //       customer_user_id: user?.id as string,
+  //       customer_email: user?.email as string,
+  //       customer_phone: user?.contact_number || undefined,
+  //       amount: TOTAL_AMOUNT,
+  //       currency: "PHP",
+  //       product_name: selectedRecord.title,
+  //       product_description: `Valid for ${selectedRecord.validityPeriod} days`,
+  //       status: "processing",
+  //     };
 
-      const packageData = {
-        user_id: user?.id as string,
-        package_id: selectedRecord.id,
-        status: "active",
-        validity_period: selectedRecord.validityPeriod,
-        package_credits: selectedRecord.packageCredits,
-        purchase_date: dayjs(),
-        package_name: selectedRecord.title,
-        payment_method: paymentMethod,
-        expiration_date: getDateFromToday(selectedRecord.validityPeriod),
-      };
+  //     const packageData = {
+  //       user_id: user?.id as string,
+  //       package_id: selectedRecord.id,
+  //       status: "active",
+  //       validity_period: selectedRecord.validityPeriod,
+  //       package_credits: selectedRecord.packageCredits,
+  //       purchase_date: dayjs(),
+  //       package_name: selectedRecord.title,
+  //       payment_method: paymentMethod,
+  //       expiration_date: getDateFromToday(selectedRecord.validityPeriod),
+  //     };
 
-      const paymentData = {
-        method: paymentMethod,
-        card:
-          paymentMethod === "card"
-            ? {
-                number: formData.cardNumber.replace(/\s/g, ""),
-                exp_month: parseInt(formData.expiryMonth),
-                exp_year: parseInt(formData.expiryYear),
-                cvc: formData.cvc,
-              }
-            : undefined,
-        billing: {
-          name: formData.customerName,
-          email: formData.customerEmail,
-          phone: formData.customerPhone,
-        },
-      };
+  //     const paymentData = {
+  //       method: paymentMethod,
+  //       card:
+  //         paymentMethod === "card"
+  //           ? {
+  //               number: formData.cardNumber.replace(/\s/g, ""),
+  //               exp_month: parseInt(formData.expiryMonth),
+  //               exp_year: parseInt(formData.expiryYear),
+  //               cvc: formData.cvc,
+  //             }
+  //           : undefined,
+  //       billing: {
+  //         name: formData.customerName,
+  //         email: formData.customerEmail,
+  //         phone: formData.customerPhone,
+  //       },
+  //     };
 
-      const response = await axios.post(`/api/package/process-payment`, {
-        selectedPackage: packageData,
-        order: orderData,
-        payment: paymentData,
-      });
+  //     const response = await axios.post(`/api/package/process-payment`, {
+  //       selectedPackage: packageData,
+  //       order: orderData,
+  //       payment: paymentData,
+  //     });
 
-      const result = await response.data;
+  //     const result = await response.data;
 
-      console.log("result: ", result);
+  //     console.log("result: ", result);
 
-      if (!response.data) {
-        throw new Error(result.error || "Payment failed");
-      }
+  //     if (!response.data) {
+  //       throw new Error(result.error || "Payment failed");
+  //     }
 
-      if (result.status === "awaiting_next_action" && result.redirect_url) {
-        window.location.href = result.redirect_url;
-        return;
-      }
+  //     if (result.status === "awaiting_next_action" && result.redirect_url) {
+  //       window.location.href = result.redirect_url;
+  //       return;
+  //     }
 
-      if (result.status === "succeeded") {
-        await handlePurchasePackage();
+  //     if (result.status === "succeeded") {
+  //       await handlePurchasePackage();
 
-        await handleUpdateUserCredits({
-          credits: selectedRecord.packageCredits,
-        });
+  //       await handleUpdateUserCredits({
+  //         credits: selectedRecord.packageCredits,
+  //       });
 
-        await handleSendConfirmationEmail();
+  //       await handleSendConfirmationEmail();
 
-        setSuccess(true);
-        setFormData({
-          customerName: user?.full_name || "",
-          customerEmail: user?.email || "",
-          customerPhone: user?.contact_number || "",
-          cardNumber: "",
-          expiryMonth: "",
-          expiryYear: "",
-          cvc: "",
-        });
-        setIsModalOpen(false);
-        setSelectedRecord(null);
-        setIsSubmitting(false);
-        showMessage({
-          type: "success",
-          content: "Successfully purchased package!",
-        });
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //       setSuccess(true);
+  //       setFormData({
+  //         customerName: user?.full_name || "",
+  //         customerEmail: user?.email || "",
+  //         customerPhone: user?.contact_number || "",
+  //         cardNumber: "",
+  //         expiryMonth: "",
+  //         expiryYear: "",
+  //         cvc: "",
+  //       });
+  //       setIsModalOpen(false);
+  //       setSelectedRecord(null);
+  //       setIsSubmitting(false);
+  //       showMessage({
+  //         type: "success",
+  //         content: "Successfully purchased package!",
+  //       });
+  //     }
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "An error occurred");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  // Test Maya Checkout
+
+  const [formData, setFormData] = useState({
+    productName: "Premium Subscription",
+    productPrice: "1500.00",
+    firstName: user?.first_name,
+    lastName: user?.last_name,
+    customerEmail: user?.email,
+    customerPhone: user?.contact_number,
+    quantity: 1,
+  });
+
+  const calculateTotal = () => {
+    const price = parseFloat(selectedRecord.price);
+    const quantity = 1;
+    return (price * quantity).toFixed(2);
+  };
+
+  const handleCheckout = async () => {
+    try {
+      const totalAmount = calculateTotal();
+
+      const checkoutPayload = {
+        totalAmount: {
+          value: totalAmount,
+          currency: "PHP",
+        },
+        buyer: {
+          firstName: formData?.firstName,
+          lastName: formData?.lastName,
+          contact: {
+            phone: formData.customerPhone,
+            email: formData.customerEmail,
+          },
+        },
+        items: [
+          {
+            name: selectedRecord.title,
+            quantity: 1,
+            amount: {
+              value: selectedRecord.price,
+            },
+            totalAmount: {
+              value: totalAmount,
+            },
+          },
+        ],
+        redirectUrl: {
+          success: `${window.location.origin}/packages`,
+          failure: `${window.location.origin}/checkout/failure`,
+          cancel: `${window.location.origin}/packages`,
+        },
+        requestReferenceNumber: `REF-${Date.now()}`,
+      };
+
+      console.log("checkoutPayload: ", checkoutPayload);
+      const response = await fetch("/api/maya-checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(checkoutPayload),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.checkoutUrl) {
+        // Opens checkoutUrl in a new tab
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error(data.error || "Failed to create checkout session");
+      }
+    } catch (error: any) {
+      console.log("error.message: ", error?.message);
+    }
+  };
+
+  // Test Maya Checkout
 
   return (
     <AuthenticatedLayout>
@@ -455,7 +530,6 @@ export default function PackagesPage() {
               );
             })}
         </Row>
-
         {packages && packages.length === 0 && (
           <Card className="shadow-sm">
             <div className="text-center py-12 text-slate-500">
@@ -476,6 +550,7 @@ export default function PackagesPage() {
         onClose={handleCloseModal}
         open={isModalOpen}
         width={isMobile ? "100%" : "33%"}
+        destroyOnHidden={true}
         styles={{
           body: {
             paddingTop: 24,
@@ -540,7 +615,10 @@ export default function PackagesPage() {
                 </Row>
               </div>
               <Row justify={"start"} className="w-full mb-[10px]">
-                <Checkbox onChange={handleAcceptTermsChange}>
+                <Checkbox
+                  value={acceptsTerms}
+                  onChange={handleAcceptTermsChange}
+                >
                   I have read the
                 </Checkbox>
                 <span
@@ -634,21 +712,21 @@ export default function PackagesPage() {
                   </div>
 
                   <div className="bg-white ">
-                    <div className="flex items-center gap-3 mb-6">
+                    {/* <div className="flex items-center gap-3 mb-6">
                       <Wallet className="w-6 h-6 text-[#36013F]" />
                       <h2 className="text-2xl font-bold text-gray-900">
                         Payment Method
                       </h2>
-                    </div>
+                    </div> */}
 
-                    {error && (
+                    {/* {error && (
                       <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                         <p className="text-sm text-red-600">{error}</p>
                       </div>
-                    )}
+                    )} */}
 
-                    <form onSubmit={handleExecutePayment} className="space-y-6">
-                      <div className="grid grid-cols-3 gap-3 mb-8">
+                    <form className="space-y-6">
+                      {/* <div className="grid grid-cols-3 gap-3 mb-8">
                         <button
                           type="button"
                           onClick={() => setPaymentMethod("card")}
@@ -729,15 +807,31 @@ export default function PackagesPage() {
                             GCash
                           </span>
                         </button>
-                      </div>
+                      </div> */}
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Full Name
+                          First Name
                         </label>
                         <input
                           type="text"
-                          name="customerName"
-                          value={formData.customerName}
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder="Juan Dela Cruz"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={formData.lastName}
                           onChange={handleInputChange}
                           required
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -774,90 +868,16 @@ export default function PackagesPage() {
                         />
                       </div>
 
-                      {paymentMethod === "card" && (
-                        <div className="border-t border-gray-200 pt-6 space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Card Number
-                            </label>
-                            <input
-                              type="text"
-                              name="cardNumber"
-                              value={formData.cardNumber}
-                              onChange={handleInputChange}
-                              required
-                              maxLength={19}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                              placeholder="4123 4567 8901 2345"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Month
-                              </label>
-                              <input
-                                type="text"
-                                name="expiryMonth"
-                                value={formData.expiryMonth}
-                                onChange={handleInputChange}
-                                required
-                                maxLength={2}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder="12"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Year
-                              </label>
-                              <input
-                                type="text"
-                                name="expiryYear"
-                                value={formData.expiryYear}
-                                onChange={handleInputChange}
-                                required
-                                maxLength={4}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder="2025"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                CVC
-                              </label>
-                              <input
-                                type="text"
-                                name="cvc"
-                                value={formData.cvc}
-                                onChange={handleInputChange}
-                                required
-                                maxLength={4}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder="123"
-                              />
-                            </div>
-                          </div>
+                      <div className="border-t border-gray-200 pt-6">
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <p className="text-sm text-gray-700">
+                            You will be redirected to a Maya checkout page to
+                            complete your payment securely.
+                          </p>
                         </div>
-                      )}
+                      </div>
 
-                      {(paymentMethod === "paymaya" ||
-                        paymentMethod === "gcash") && (
-                        <div className="border-t border-gray-200 pt-6">
-                          <div className="bg-blue-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-700">
-                              You will be redirected to{" "}
-                              {paymentMethod === "paymaya"
-                                ? "PayMaya"
-                                : "GCash"}{" "}
-                              to complete your payment securely.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      <button
+                      {/* <button
                         type="submit"
                         disabled={loading}
                         className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -887,16 +907,18 @@ export default function PackagesPage() {
                           </>
                         ) : (
                           <>
-                            {/* <Lock className="w-5 h-5" /> */}
                             Pay ₱
                             {formatPrice(selectedRecord.price, { decimals: 2 })}
                           </>
                         )}
-                      </button>
+                      </button> */}
+
+                      {/* <Button onClick={handleCheckout}>
+                        TEST MAYA CHECKOUT
+                      </Button> */}
 
                       <p className="text-xs text-gray-500 text-center">
-                        By clicking "Pay", you agree to our terms and
-                        conditions. Your payment is secured by Paymongo.
+                        You will not be charged yet.
                       </p>
                     </form>
                   </div>

@@ -96,7 +96,7 @@ export default function InstructorManagementPage() {
   const handleSearchInstructors = async () => {
     const data = await searchInstructors({ name: debouncedValue });
     try {
-      console.log("data: ", data);
+      // console.log("data: ", data);
       if (data) {
         const usersWithSignedUrls = await Promise.all(
           data.map(async (record) => {

@@ -211,7 +211,8 @@ const AdminBookingTable = ({
           return (
             <Row className="gap-x-[5px]">
               <Text>{record.instructor_name}</Text>
-              {record.instructor_id === null && (
+              {(record.instructor_id === null ||
+                record.deactivated === true) && (
                 <Tag key={record.id} color={"red"}>
                   Need to replace
                 </Tag>

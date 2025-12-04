@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       packageCredits: "10",
     };
 
-    const { error: packageError } = await supabaseServer
+    const { data: clientPackage, error: packageError } = await supabaseServer
       .from("client_packages")
       .insert(selectedPackage)
       .select()
@@ -142,6 +142,12 @@ export async function POST(req: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", orderRecord.id);
+
+      await supabaseServer
+        .from("client_packages")
+        .delete()
+        .eq("id", clientPackage.id)
+        .single();
 
       throw new Error(`Paymongo API error: ${JSON.stringify(errorData)}`);
     }
@@ -208,6 +214,12 @@ export async function POST(req: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", orderRecord.id);
+
+      await supabaseServer
+        .from("client_packages")
+        .delete()
+        .eq("id", clientPackage.id)
+        .single();
       throw new Error(`Unsupported payment method: ${payment.method}`);
     }
 
@@ -233,6 +245,12 @@ export async function POST(req: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", orderRecord.id);
+
+      await supabaseServer
+        .from("client_packages")
+        .delete()
+        .eq("id", clientPackage.id)
+        .single();
 
       throw new Error(
         `Failed to create payment method: ${JSON.stringify(errorData)}`
@@ -274,6 +292,12 @@ export async function POST(req: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", orderRecord.id);
+
+      await supabaseServer
+        .from("client_packages")
+        .delete()
+        .eq("id", clientPackage.id)
+        .single();
 
       throw new Error(
         `Failed to attach payment method: ${JSON.stringify(errorData)}`

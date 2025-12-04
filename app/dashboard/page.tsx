@@ -82,8 +82,14 @@ export default function DashboardPage() {
 
       const now = dayjs();
 
-      if (bookings) {
-        const filtered = bookings.filter((booking: any) =>
+      console.log("bookings: ", bookings);
+      const validBookings = bookings.filter(
+        (booking: any) =>
+          booking.classes !== null && booking.attendance_status !== "cancelled"
+      );
+      console.log("validBookings: ", validBookings);
+      if (!!validBookings.length) {
+        const filtered = validBookings.filter((booking: any) =>
           dayjs(booking.classes.start_time).isSameOrAfter(now)
         );
         const mapped = await Promise.all(
