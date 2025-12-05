@@ -406,6 +406,7 @@ export default function BookingsPage() {
             <DatePickerCarousel
               isAdmin={false}
               onDateSelect={(e) => setSelectedDate(dayjs(e))}
+              maxDaysAhead={14}
             />
             <Row justify={"center"}>
               <span className="text-red-400">
