@@ -88,7 +88,8 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
 
   const isPrevDisabled = !isAdmin && currentDate.isSame(today, "day");
   const isNextDisabled =
-    maxDaysAhead && currentDate.diff(today, "day") + daysToShow >= maxDaysAhead;
+    maxDaysAhead !== undefined &&
+    currentDate.diff(today, "day") + daysToShow >= maxDaysAhead;
 
   return (
     <Row
