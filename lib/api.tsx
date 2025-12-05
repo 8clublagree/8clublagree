@@ -13,6 +13,33 @@ import { getDateFromToday } from "./utils";
 import { useAppSelector } from "./hooks";
 import axios from "axios";
 
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export const useAdminProfile = () => {
+  const [loading, setLoading] = useState(false);
+
+  const getAdmin = async ({ id }: { id: string }) => {
+    setLoading(true);
+
+    const { data: profile, error } = await supabase
+      .from("user_profiles")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) return null;
+
+    setLoading(false);
+    return profile;
+  };
+
+  return { getAdmin, loading };
+};
+
 export const useSearchUser = () => {
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +81,7 @@ export const useSearchUser = () => {
          id,
          start_time,
          end_time,
+         class_name,
          instructor_id,
          instructor_name,
          instructors (
@@ -668,6 +696,7 @@ export const useClassManagement = () => {
         class_id: classId,
         class_date: classDate,
         is_walk_in: isWalkIn,
+        attendance_status: "no-show",
         ...(bookerId && { booker_id: bookerId }),
         /**
          * walk-ins can only book classes that are on the same day
@@ -843,14 +872,43 @@ export const usePackageManagement = () => {
     return data;
   };
 
-  const fetchClientPackages = async ({ clientID }: { clientID: string }) => {
+  const fetchClientPackages = async ({
+    clientID,
+    findExpiry,
+  }: {
+    clientID?: string;
+    findExpiry?: boolean;
+  }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("client_packages")
-      .select(`*, packages(*)`)
-      .eq("user_id", clientID)
-      .order("created_at", { ascending: false });
+    let query = supabase.from("client_packages").select(`*, packages(*)`);
+    const startOfTodayUTC = dayjs().utc().startOf("day").toISOString();
+    const endOfTodayUTC = dayjs().utc().endOf("day").toISOString();
+
+    if (clientID) {
+      query = query.eq("user_id", clientID);
+    }
+
+    if (clientID === undefined && findExpiry) {
+      /**
+       * this gets records that are active and have an expiration_date of the current date
+       *
+       * query = query.eq("status", "active");
+       * query = query.gte("expiration_date", startOfTodayUTC);
+       * query = query.lt("expiration_date", endOfTodayUTC);
+       */
+
+      /**
+       * this gets potentially missed records that were active
+       * of today and in the past
+       */
+      query = query.eq("status", "active");
+      query = query.lte("expiration_date", endOfTodayUTC);
+    }
+
+    query = query.order("created_at", { ascending: false });
+
+    const { data, error } = await query;
 
     if (error) return null;
 
@@ -882,35 +940,40 @@ export const useClientBookings = () => {
       .from("class_bookings")
       .select(
         `
-      id,
-      booker_id,
-      class_id,
-      class_date,
-      attendance_status,
-      classes (
-        id,
-        end_time,
-        start_time,
-        class_date,
-        instructor_id,
-        instructor_name,
-        taken_slots,
-        available_slots,
-        instructors (
           id,
-          user_id,
-          full_name,
-          avatar_path,
-          user_profiles (
+          booker_id,
+          class_id,
+          class_date,
+          attendance_status,
+          classes (
             id,
-            avatar_path
+            end_time,
+            start_time,
+            class_date,
+            class_name,
+            instructor_id,
+            instructor_name,
+            taken_slots,
+            available_slots,
+            instructors (
+              id,
+              user_id,
+              full_name,
+              avatar_path,
+              user_profiles (
+                id,
+                avatar_path
+              )
+            )
           )
-        )
-      )
     `
       )
       .eq("booker_id", userID)
-      .gte("classes.start_time", nowISO);
+      .or(
+        "attendance_status.eq.active,attendance_status.eq.no-show,attendance_status.is.null"
+      );
+
+    // .gte("classes.start_time", nowISO);
 
     if (error) return null;
 

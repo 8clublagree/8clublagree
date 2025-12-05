@@ -3,8 +3,6 @@
 import {
   Form,
   Select,
-  TimePicker,
-  InputNumber,
   Button,
   Row,
   Col,
@@ -16,11 +14,6 @@ import {
   Typography,
   Tooltip,
 } from "antd";
-import {
-  UserOutlined,
-  ClockCircleOutlined,
-  TeamOutlined,
-} from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { CreateClassProps } from "@/lib/props";
@@ -28,7 +21,7 @@ import { MdOutlineSchedule } from "react-icons/md";
 import { useSearchUser } from "@/lib/api";
 import useDebounce from "@/hooks/use-debounce";
 
-interface CreateClassFormProps {
+interface CreateManualBookingFormProps {
   selectedDate?: Dayjs;
   classes: any[];
   onSubmit: (values: any) => void;
@@ -50,9 +43,9 @@ export default function ManualBookingForm({
   loading = false,
   initialValues = null,
   clearSignal,
-}: CreateClassFormProps) {
+}: CreateManualBookingFormProps) {
   const [form] = Form.useForm();
-  const [formTab, setFormTab] = useState<FormType>("existing");
+  const [formTab, setFormTab] = useState<FormType>("walk-in");
   const [schedules, setSchedules] = useState<any>([]);
   const [schedulesCopy, setSchedulesCopy] = useState<any>([]);
 

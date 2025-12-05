@@ -1,6 +1,16 @@
 "use client";
 
-import { Form, Select, TimePicker, InputNumber, Button, Row, Col } from "antd";
+import {
+  Form,
+  Select,
+  TimePicker,
+  InputNumber,
+  Button,
+  Row,
+  Col,
+  Input,
+  Typography,
+} from "antd";
 import {
   UserOutlined,
   ClockCircleOutlined,
@@ -21,6 +31,8 @@ interface CreateClassFormProps {
   selectedDate?: Dayjs;
 }
 
+const { Text } = Typography;
+
 export default function CreateClassForm({
   onSubmit,
   onCancel,
@@ -38,6 +50,10 @@ export default function CreateClassForm({
     if (initialValues) {
       const totalSlots = (initialValues.slots as string).split("/")[1].trim();
       form.setFieldsValue({
+        class_name:
+          initialValues.class_name === null
+            ? undefined
+            : initialValues.class_name,
         instructor_name:
           initialValues.instructor_id === null
             ? undefined
@@ -102,6 +118,7 @@ export default function CreateClassForm({
     const formattedValues = {
       ...values,
       ...(!isEdit && { taken_slots: 0 }),
+      class_name: values.class_name,
       available_slots: values.slots,
       instructor_name: values.instructor_name,
       instructor_id: instructor.id,
@@ -122,6 +139,26 @@ export default function CreateClassForm({
       className="w-full"
     >
       <Row gutter={[16, 0]}>
+        <Col xs={24} sm={24}>
+          <Form.Item
+            name="class_name"
+            label="Class Name"
+            rules={[
+              {
+                required: true,
+                message: "Please enter a class name",
+              },
+            ]}
+          >
+            <Input
+              size="large"
+              maxLength={20}
+              showCount
+              placeholder="Enter Class Name"
+            />
+          </Form.Item>
+        </Col>
+
         <Col xs={24} sm={24}>
           <Form.Item
             name="instructor_name"

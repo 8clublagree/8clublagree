@@ -202,6 +202,13 @@ const AdminBookingTable = ({
   const columns = useMemo<TableColumnsType<CreateClassProps>>(
     () => [
       {
+        title: "Class Name",
+        dataIndex: "class_name",
+        key: "class_name",
+        width: isMobile ? undefined : "20%",
+        ...getColumnSearchProps("class_name"),
+      },
+      {
         title: "Instructor",
         dataIndex: "instructor_name",
         key: "instructor_name",
@@ -225,7 +232,6 @@ const AdminBookingTable = ({
         title: "Start Time",
         dataIndex: "start_time",
         key: "start_time",
-        width: isMobile ? undefined : "20%",
         render: (_, record) => (
           <Text>{formatTime(record.start_time as Dayjs)}</Text>
         ),
@@ -234,16 +240,21 @@ const AdminBookingTable = ({
         title: "End Time",
         dataIndex: "end_time",
         key: "end_time",
-        width: isMobile ? undefined : "20%",
         render: (_, record) => (
           <Text>{formatTime(record.end_time as Dayjs)}</Text>
         ),
       },
       {
-        title: "Slots",
+        title: (
+          <Row className="flex flex-col" wrap={false}>
+            <Text>Slots </Text>
+            <span className="!text-[10px] text-gray-400">
+              (No. of Attendees / Max Capacity)
+            </span>
+          </Row>
+        ),
         dataIndex: "slots",
         key: "slots",
-        width: isMobile ? undefined : "20%",
       },
       {
         title: "Action",
@@ -251,27 +262,37 @@ const AdminBookingTable = ({
         width: isMobile ? undefined : "10%",
         fixed: isMobile ? undefined : "right",
         render: (_, record) => {
+          const takenSlots = record.taken_slots as number;
           const canDelete = (record?.start_time as Dayjs).isSameOrAfter(
             dayjs()
           );
+
+          const tooltipTitle = !canDelete
+            ? "Cannot delete past classes"
+            : takenSlots > 0
+            ? "Class still has attendees. All attendees must cancel or be re-booked to a same day class before class deletion."
+            : undefined;
+
           return (
-            <Row className="justify-center cursor-pointer gap-3">
-              <IoEye
-                size={20}
-                // color="#1890ff"
-                onClick={() => onView(record)}
-              />
+            <Row wrap={false} className="justify-center cursor-pointer gap-3">
+              <IoEye size={20} onClick={() => onView(record)} />
               <MdEdit
                 size={20}
                 color="#733AC6"
                 onClick={() => onEdit(record)}
               />
-              <Tooltip title={!canDelete && "Cannot delete past classes"}>
+              <Tooltip
+                title={tooltipTitle}
+                open={tooltipTitle ? undefined : false} // <--- this disables Tooltip fully
+              >
                 <MdDelete
                   size={20}
                   color="red"
                   onClick={() => {
-                    if (canDelete) showDeleteConfirm(record);
+                    if (!canDelete) return;
+                    if (tooltipTitle !== undefined) return;
+
+                    showDeleteConfirm(record);
                   }}
                 />
               </Tooltip>
@@ -289,7 +310,7 @@ const AdminBookingTable = ({
         loading={loading}
         columns={columns}
         dataSource={data}
-        scroll={{ x: isMobile ? 600 : undefined }}
+        scroll={{ x: 1000 }}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,
@@ -314,7 +335,13 @@ const AdminBookingTable = ({
         width={isMobile ? "90%" : 430}
       >
         <Row className="py-[20px]">
-          <Text>Are you sure you want to delete this class?</Text>
+          <Text>
+            Are you sure you want to delete the{" "}
+            <span className="text-red-400">
+              {selectedRecordToDelete?.class_name}
+            </span>{" "}
+            class?
+          </Text>
         </Row>
       </Modal>
     </>

@@ -38,7 +38,7 @@ import { useSearchUser } from "@/lib/api";
 import { keys } from "lodash";
 import { CERTIFICATIONS } from "@/lib/utils";
 
-interface CreateClassFormProps {
+interface CreateInstructorFormProps {
   onSubmit: (values: any) => void;
   onCancel: () => void | boolean;
   onDelete: (id: string) => void;
@@ -66,7 +66,7 @@ export default function CreateInstructorForm({
   isEdit = false,
   clearSignal,
   form,
-}: CreateClassFormProps) {
+}: CreateInstructorFormProps) {
   const watchedValues = Form.useWatch([], form);
   const BUCKET_NAME = "user-photos";
   const user = useAppSelector((state) => state.auth.user);

@@ -115,6 +115,7 @@ export default function ClassManagementPage() {
             key: index,
             id: item.id,
             instructor_id: item.instructor_id,
+            class_name: item.class_name,
             instructor_name: item.instructor_name,
             start_time: dayjs(item.start_time),
             end_time: dayjs(item.end_time),
@@ -213,6 +214,7 @@ export default function ClassManagementPage() {
   };
 
   const handleEdit = (record: CreateClassProps) => {
+    console.log("record: ", record);
     setSelectedRecord(record);
     setIsFormModalOpen(true);
   };

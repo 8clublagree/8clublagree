@@ -10,8 +10,6 @@ import {
   Typography,
   Button,
   Drawer,
-  message,
-  Row,
 } from "antd";
 import {
   HomeOutlined,
@@ -27,10 +25,9 @@ import { CurrentPackageProps, supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
 import { LuPackage } from "react-icons/lu";
-import { FaBook, FaInstagram, FaList, FaQuestion } from "react-icons/fa";
+import { FaBook, FaList, FaQuestion } from "react-icons/fa";
 import { useManageCredits, usePackageManagement } from "@/lib/api";
 import dayjs from "dayjs";
-import { CiBoxList } from "react-icons/ci";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -130,46 +127,22 @@ export default function AuthenticatedLayout({
       (p: any) => p.status === "active"
     );
 
-    if (
-      activePackage &&
-      dayjs(activePackage?.expiration_date).isBefore(dayjs())
-    ) {
-      let promises = [];
-      promises.push(
-        updateClientPackage({
-          clientPackageID: activePackage.id as string,
-          values: { status: "expired" },
-        })
-      );
-
-      promises.push(
-        updateUserCredits({
-          userID: session.user.id,
-          values: { credits: 0 },
-        })
-      );
-
-      await Promise.all(promises);
-
-      checkUser();
-    } else {
-      if (profile) {
-        if (profile.user_type === "admin") {
-          router.push("/admin/dashboard");
-          return;
-        } else if (profile.user_type === "instructor") {
-          router.push("/instructor/assigned-schedules");
-          return;
-        }
-        dispatch(
-          setUser({
-            ...profile,
-            avatar_url: signedUrl,
-            currentPackage: activePackage,
-            credits: activePackage ? latestCredit.credits : 0,
-          })
-        );
+    if (profile) {
+      if (profile.user_type === "admin") {
+        router.push("/admin/dashboard");
+        return;
+      } else if (profile.user_type === "instructor") {
+        router.push("/instructor/assigned-schedules");
+        return;
       }
+      dispatch(
+        setUser({
+          ...profile,
+          avatar_url: signedUrl,
+          currentPackage: activePackage,
+          credits: activePackage ? latestCredit.credits : 0,
+        })
+      );
     }
   };
 

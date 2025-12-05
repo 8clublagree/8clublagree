@@ -26,6 +26,12 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
 import { LuPackage, LuUserPen } from "react-icons/lu";
 import { MdOutlinePayment } from "react-icons/md";
+import {
+  useAdminProfile,
+  useManageCredits,
+  usePackageManagement,
+} from "@/lib/api";
+import dayjs from "dayjs";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -41,7 +47,10 @@ export default function AuthenticatedLayout({
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const { getAdmin } = useAdminProfile();
+  const { fetchClientPackages, updateClientPackage } = usePackageManagement();
   const user = useAppSelector((state) => state.auth.user);
+  const { updateUserCredits, loading: updatingCredits } = useManageCredits();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -54,11 +63,23 @@ export default function AuthenticatedLayout({
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .maybeSingle();
+      const profile = await getAdmin({ id: session.user.id });
+      const clientPackages = await fetchClientPackages({ findExpiry: true });
+
+      if (!!clientPackages?.length) {
+        const toExpire = clientPackages.flatMap((item: any) => [
+          updateClientPackage({
+            clientPackageID: item.id,
+            values: { status: "expired" },
+          }),
+          updateUserCredits({
+            userID: item.user_id,
+            values: { credits: 0 },
+          }),
+        ]);
+
+        await Promise.all(toExpire);
+      }
 
       if (profile) {
         if (profile.user_type === "general") {

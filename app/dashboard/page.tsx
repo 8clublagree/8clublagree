@@ -82,12 +82,10 @@ export default function DashboardPage() {
 
       const now = dayjs();
 
-      console.log("bookings: ", bookings);
       const validBookings = bookings.filter(
         (booking: any) =>
           booking.classes !== null && booking.attendance_status !== "cancelled"
       );
-      console.log("validBookings: ", validBookings);
       if (!!validBookings.length) {
         const filtered = validBookings.filter((booking: any) =>
           dayjs(booking.classes.start_time).isSameOrAfter(now)
@@ -116,6 +114,7 @@ export default function DashboardPage() {
               id: booking.id,
               bookerId: booking.booker_id,
               classId: booking.class_id,
+              className: booking.classes.class_name,
               classStartTime: booking.classes.start_time,
               classEndTime: booking.classes.end_time,
               classDate: booking.class_date,
@@ -229,6 +228,16 @@ export default function DashboardPage() {
                       <Card.Meta
                         title={
                           <Row wrap={false} className="flex flex-col">
+                            <Text className="text-[16px]">
+                              {data.className}
+                            </Text>
+                            <Text className="text-[14px] font-normal">
+                              with {data.instructorName}
+                            </Text>
+                          </Row>
+                        }
+                        description={
+                          <Row wrap={false} className="flex flex-col">
                             <Text>
                               {dayjs(data.class_date).format("MMM DD (ddd)")}
                             </Text>
@@ -240,11 +249,6 @@ export default function DashboardPage() {
                               )}`}
                             </Text>
                           </Row>
-                        }
-                        description={
-                          <Col className="m-0 !p-0">
-                            <Text>Class with {data.instructorName}</Text>
-                          </Col>
                         }
                       />
                     </Card>

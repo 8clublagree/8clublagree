@@ -177,10 +177,13 @@ export default function RebookAttendeeForm({
           Cancel
         </Button>
         <Button
-          disabled={loading}
+          disabled={loading || !selectedRecord?.availableClasses.length}
           loading={loading}
           onClick={handleFinish}
-          className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] h-[40px]`}
+          className={`${
+            (loading || !!selectedRecord?.availableClasses.length) &&
+            "bg-[#36013F] hover:!bg-[#36013F]"
+          } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] h-[40px]`}
         >
           Rebook
         </Button>

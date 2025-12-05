@@ -85,7 +85,7 @@ export default function ClientManagementPage() {
                 : null;
 
             //if user has an avatar
-            if (user.avatar_path) {
+            if (user.avatar_path !== null) {
               // generate signed URL valid for 1 hour (3600s)
               const { data, error: urlError } = await supabase.storage
                 .from("user-photos")
@@ -288,6 +288,7 @@ export default function ClientManagementPage() {
 
       {isMobile ? (
         <Drawer
+          destroyOnHidden={true}
           maskClosable={false}
           placement="right"
           onClose={handleCloseModal}
@@ -299,6 +300,7 @@ export default function ClientManagementPage() {
         >
           {isEditing && (
             <EditClientForm
+              refetch={handleSearchClients}
               loading={updating}
               onSubmit={handleSubmit}
               onCancel={handleCloseModal}
@@ -309,6 +311,7 @@ export default function ClientManagementPage() {
         </Drawer>
       ) : (
         <Drawer
+          destroyOnHidden={true}
           maskClosable={false}
           open={isEditing}
           width={"35%"}
@@ -321,6 +324,7 @@ export default function ClientManagementPage() {
           <div className="pt-4">
             {isEditing && (
               <EditClientForm
+                refetch={handleSearchClients}
                 loading={updating}
                 onSubmit={handleSubmit}
                 onCancel={handleCloseModal}
@@ -333,6 +337,7 @@ export default function ClientManagementPage() {
       )}
 
       <Drawer
+        destroyOnHidden={true}
         title={"History"}
         maskClosable={false}
         open={isViewingHistory}

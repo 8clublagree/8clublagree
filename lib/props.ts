@@ -9,6 +9,7 @@ export interface CreateClassProps {
   id?: string;
   instructor_id?: string;
   instructor_name?: string;
+  class_name?: string;
   start_time?: Dayjs;
   end_time?: Dayjs;
   slots?: string;

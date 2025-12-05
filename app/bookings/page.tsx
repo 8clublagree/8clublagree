@@ -13,11 +13,12 @@ import {
   Checkbox,
   Carousel,
 } from "antd";
+import { UserOutlined } from "@ant-design/icons";
 import { ImInfinite } from "react-icons/im";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import dayjs, { Dayjs } from "dayjs";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import { useClassManagement, useManageCredits } from "@/lib/api";
@@ -27,11 +28,11 @@ import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useAppMessage } from "@/components/ui/message-popup";
 import axios from "axios";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const CAROUSEL_SLIDES = {
   TERMS: 0,
@@ -109,24 +110,28 @@ export default function BookingsPage() {
           // if (!user.avatar_path) return user; // skip if no avatar
 
           // generate signed URL valid for 1 hour (3600s)
-          const { data, error: urlError } = await supabase.storage
-            .from("user-photos")
-            .createSignedUrl(
-              `${lagreeClass.instructors.user_profiles.avatar_path}`,
-              3600
-            );
+          if (lagreeClass.instructors.user_profiles.avatar_path) {
+            const { data, error: urlError } = await supabase.storage
+              .from("user-photos")
+              .createSignedUrl(
+                `${lagreeClass.instructors.user_profiles.avatar_path}`,
+                3600
+              );
 
-          if (urlError) {
-            console.error("Error generating signed URL:", urlError);
-            imageURL = null;
+            if (urlError) {
+              console.error("Error generating signed URL:", urlError);
+              imageURL = null;
+            }
+
+            imageURL = data?.signedUrl;
           }
-          imageURL = data?.signedUrl;
 
           return {
             ...lagreeClass,
             key: lagreeClass.id,
             avatar_url: imageURL,
             instructor_id: lagreeClass.instructor_id,
+            class_name: lagreeClass.class_name,
             instructor_name: lagreeClass.instructor_name,
             start_time: dayjs(lagreeClass.start_time),
             end_time: dayjs(lagreeClass.end_time),
@@ -144,7 +149,6 @@ export default function BookingsPage() {
     setAcceptsTerms(e.target.checked);
   };
   const handleOpenModal = (item: any) => {
-    console.log("item: ", item);
     setIsModalOpen(true);
     setSelectedRecord(item);
   };
@@ -239,6 +243,11 @@ export default function BookingsPage() {
     }
   };
 
+  const handleShowTermsAndConditions = () => {
+    setCarouselSlide(CAROUSEL_SLIDES.TERMS);
+    carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
+  };
+
   const renderActionButton = useMemo(
     () => (item: any) => {
       const isCancelled =
@@ -251,8 +260,8 @@ export default function BookingsPage() {
               className={`${
                 isCancelled
                   ? "bg-red-700 hover:!bg-red-700"
-                  : "bg-[green] hover:!bg-[green]"
-              } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+                  : "bg-green-600 hover:!bg-green-600"
+              } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
             >
               {isCancelled ? "You Cancelled" : "Joined"}
             </Button>
@@ -272,7 +281,7 @@ export default function BookingsPage() {
                   : item.taken_slots === item.available_slots
                   ? ""
                   : "hover:!bg-[#36013F]"
-              } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+              } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
             >
               {user?.credits === 0 ? "Get Credits" : "Join"}
             </Button>
@@ -282,11 +291,6 @@ export default function BookingsPage() {
     },
     [classes, user?.credits]
   );
-
-  const handleShowTermsAndConditions = () => {
-    setCarouselSlide(CAROUSEL_SLIDES.TERMS);
-    carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
-  };
 
   const RenderClassList = useMemo(() => {
     return (
@@ -300,59 +304,62 @@ export default function BookingsPage() {
         renderItem={(item, index) => {
           const slotsRemaining = item.available_slots - item.taken_slots;
           return (
-            <List.Item key={index} actions={[renderActionButton(item)]}>
-              <Row className="wrap-none items-center gap-4">
-                <Col className="flex flex-col items-center">
-                  <Avatar
-                    className="border-gray-500 border"
-                    size={60}
-                    src={item.avatar_url}
-                  />
-                  <p>
-                    <span className="font-light">{item.instructor_name}</span>
-                  </p>
-                </Col>
-                <Col>
-                  <p>
-                    <span className="font-semibold">
+            <List.Item
+              key={index}
+              className="!flex-col sm:!flex-row !items-stretch sm:!items-center"
+            >
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
+                <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                  <div className="flex flex-col items-center gap-y-1 sm:gap-y-[5px] min-w-[70px] sm:min-w-[80px]">
+                    <Avatar
+                      className="border-gray-500 border"
+                      size={isMobile ? 50 : 60}
+                      icon={<UserOutlined />}
+                      src={item.avatar_url}
+                    />
+                    <div className="font-light text-xs sm:text-sm text-center">
+                      {item.instructor_name}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <Text className="font-semibold text-sm truncate">
+                      {item.class_name}
+                    </Text>
+                    <Text className="font-normal text-xs sm:text-sm text-gray-600">
                       {`${dayjs(item.start_time).format("h:mm A")} to ${dayjs(
                         item.end_time
                       ).format("h:mm A")}`}
-                    </span>
-                  </p>
-                  <p>
-                    {/* calc start and end time */}
-                    <span className="font-light">
-                      {calculateDuration(item.start_time, item.end_time)}
-                    </span>
-                  </p>
-                  <p>
-                    <span>{item.slots}</span>
-                  </p>
-                  <p>
-                    <span
-                      className={`font-bold ${
-                        // calc available slots
-                        slotsRemaining === 1 || slotsRemaining === 0
-                          ? `text-red-500 font-semibold`
-                          : ``
-                      }`}
-                    >
-                      {slotsRemaining <= 0
-                        ? "Full"
-                        : slotsRemaining === 1
-                        ? "Last Slot"
-                        : `${slotsRemaining} slots left`}
-                    </span>
-                  </p>
-                </Col>
-              </Row>
+                    </Text>
+                    <div className={`flex flex-col ${isMobile && "mt-1"}`}>
+                      <Text className="text-xs sm:text-sm">{item.slots}</Text>
+                      <span
+                        className={`font-bold text-xs sm:text-sm ${
+                          slotsRemaining === 1 || slotsRemaining === 0
+                            ? `text-red-500 font-semibold`
+                            : ``
+                        }`}
+                      >
+                        {slotsRemaining <= 0
+                          ? "Full"
+                          : slotsRemaining === 1
+                          ? "Last Slot"
+                          : `${slotsRemaining} slots left`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0">
+                  {renderActionButton(item)}
+                </div>
+              </div>
             </List.Item>
           );
         }}
       />
     );
-  }, [classes, loading]);
+  }, [classes, loading, isMobile]);
 
   return (
     <AuthenticatedLayout>
@@ -395,7 +402,7 @@ export default function BookingsPage() {
                 </span>
               </Row>
             </Row>
-            <Divider className="md:m-0 pb-[10px]" />
+            <Divider className="my-[20px] pb-0 md:m-0" />
             <DatePickerCarousel
               isAdmin={false}
               onDateSelect={(e) => setSelectedDate(dayjs(e))}
@@ -454,68 +461,78 @@ export default function BookingsPage() {
             <div className="h-full overflow-y-auto">
               <UserTermsAndConditions />
             </div>
-            <Row className="flex flex-col items-center">
-              <Row className="w-full justify-center">
-                <Avatar
-                  className="border-gray-500 border w-full"
-                  size={200}
-                  src={selectedRecord?.avatar_url}
-                />
-              </Row>
-              <Divider />
-              <Col className="mb-[20px] items-start w-full">
-                <Title>
-                  {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
-                    selectedDate
-                  ).format("DD")} ${dayjs(selectedDate).format("YYYY")}`}
-                </Title>
-                <Title level={5}>
-                  Class with{" "}
-                  <span className="text-red-400">
-                    {selectedRecord?.instructor_name}
-                  </span>{" "}
-                  <span className="text-red-400">{selectedRecord?.time}</span>{" "}
-                  on{" "}
-                  <span className="text-red-400">
-                    {dayjs(selectedRecord?.date).format("dddd")}
+            {selectedRecord && (
+              <Row className="flex flex-col items-center">
+                <Row className="w-full justify-center">
+                  <Avatar
+                    className="border-gray-500 border w-full"
+                    size={200}
+                    icon={<UserOutlined />}
+                    src={selectedRecord?.avatar_url}
+                  />
+                </Row>
+                <Divider />
+                <Col className="mb-[20px] items-start w-full">
+                  <Title>
+                    {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
+                      selectedDate
+                    ).format("D")}, ${dayjs(selectedDate).format("YYYY")}`}
+                  </Title>
+                  <Title level={4} className="!m-0 p-0">
+                    {selectedRecord?.class_name}
+                  </Title>
+                  <Title level={5}>
+                    Class with{" "}
+                    <span className="text-red-400">
+                      {selectedRecord?.instructor_name}
+                    </span>{" "}
+                    <span className="text-red-400">{selectedRecord?.time}</span>{" "}
+                    on{" "}
+                    <span className="text-red-400">
+                      {dayjs(selectedRecord?.date).format("dddd")}
+                    </span>{" "}
+                    at{" "}
+                    <span className="text-red-400">
+                      {dayjs(selectedRecord?.start_time).format("h:mm A")}
+                    </span>
+                  </Title>
+                </Col>
+                <Row justify={"start"} className="w-full mb-[10px]">
+                  <Checkbox
+                    value={acceptsTerms}
+                    onChange={handleAcceptTermsChange}
+                  >
+                    I have read the
+                  </Checkbox>
+                  <span
+                    onClick={handleShowTermsAndConditions}
+                    className="text-blue-400 cursor-pointer"
+                  >
+                    Terms and Conditions
                   </span>
-                </Title>
-              </Col>
-              <Row justify={"start"} className="w-full mb-[10px]">
-                <Checkbox
-                  value={acceptsTerms}
-                  onChange={handleAcceptTermsChange}
-                >
-                  I have read the
-                </Checkbox>
-                <span
-                  onClick={handleShowTermsAndConditions}
-                  className="text-blue-400 cursor-pointer"
-                >
-                  Terms and Conditions
-                </span>
-              </Row>
+                </Row>
 
-              <Button
-                /**
-                 * temporary button disable since payment
-                 * is not integrated yet
-                 * to prevent multiple clicking
-                 */
-                loading={loading || isSubmitting}
-                onClick={handleBookClass}
-                disabled={!acceptsTerms || loading || isSubmitting}
-                className={`${
-                  acceptsTerms && "hover:!bg-[#36013F] hover:scale-[1.03]"
-                } ${
-                  !acceptsTerms || loading || isSubmitting
-                    ? "!bg-[gray]"
-                    : "!bg-[#36013F]"
-                } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}
-              >
-                Book
-              </Button>
-            </Row>
+                <Button
+                  /**
+                   * temporary button disable since payment
+                   * is not integrated yet
+                   * to prevent multiple clicking
+                   */
+                  loading={loading || isSubmitting}
+                  onClick={handleBookClass}
+                  disabled={!acceptsTerms || loading || isSubmitting}
+                  className={`${
+                    acceptsTerms && "hover:!bg-[#36013F] hover:scale-[1.03]"
+                  } ${
+                    !acceptsTerms || loading || isSubmitting
+                      ? "!bg-[gray]"
+                      : "!bg-[#36013F]"
+                  } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}
+                >
+                  Book
+                </Button>
+              </Row>
+            )}
           </Carousel>
         </div>
       </Drawer>
