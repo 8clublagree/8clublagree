@@ -59,6 +59,7 @@ export default function InstructorManagementPage() {
   } = useInstructorManagement();
   const { changePassword, loading: changingPassword } = useManagePassword();
   const { showMessage, contextHolder } = useAppMessage();
+  const { fetchImage } = useManageImage();
 
   useEffect(() => {
     handleSearchInstructors();
@@ -100,7 +101,7 @@ export default function InstructorManagementPage() {
       if (data) {
         const usersWithSignedUrls = await Promise.all(
           data.map(async (record) => {
-            let imageURL: string | null | undefined = undefined;
+            let signedUrl: string | null | undefined = undefined;
             const certification: any = CERTIFICATIONS.find(
               (x) => x.value === record.certification
             );
@@ -116,15 +117,16 @@ export default function InstructorManagementPage() {
             };
 
             // generate signed URL valid for 1 hour (3600s)
-            if (instructor.avatar_path) {
-              const { data: signedUrlData } = await supabase.storage
-                .from("user-photos")
-                .createSignedUrl(`${instructor.avatar_path}`, 3600);
 
-              imageURL = signedUrlData?.signedUrl;
+            if (instructor.avatar_path !== null) {
+              const signedURL = await fetchImage({
+                avatarPath: instructor.avatar_path,
+              });
+
+              signedUrl = signedURL;
             }
 
-            return { ...instructor, avatar_url: imageURL };
+            return { ...instructor, avatar_url: signedUrl };
           })
         );
 
@@ -537,6 +539,7 @@ export default function InstructorManagementPage() {
           footer={null}
           width={600}
           maskClosable={false}
+          destroyOnHidden={true}
         >
           <Tabs
             activeKey={profileTab}

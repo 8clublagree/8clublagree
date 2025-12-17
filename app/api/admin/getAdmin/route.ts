@@ -1,0 +1,22 @@
+import { NextRequest, NextResponse } from "next/server";
+import supabaseServer from "../../supabase"; // must use service_role key
+
+export async function GET(req: NextRequest) {
+  try {
+    const data = Object.fromEntries(new URL(req.url).searchParams.entries());
+
+    const { data: profile, error } = await supabaseServer
+      .from("user_profiles")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ data: profile });
+  } catch (err: any) {
+    return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
+  }
+}

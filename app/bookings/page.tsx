@@ -21,7 +21,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
-import { useClassManagement, useManageCredits } from "@/lib/api";
+import {
+  useClassManagement,
+  useManageCredits,
+  useManageImage,
+} from "@/lib/api";
 import { calculateDuration } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/lib/hooks";
@@ -59,6 +63,7 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [delayedOverflow, setDelayedOverflow] = useState("hidden");
+  const { fetchImage } = useManageImage();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -111,19 +116,11 @@ export default function BookingsPage() {
 
           // generate signed URL valid for 1 hour (3600s)
           if (lagreeClass.instructors.user_profiles.avatar_path) {
-            const { data, error: urlError } = await supabase.storage
-              .from("user-photos")
-              .createSignedUrl(
-                `${lagreeClass.instructors.user_profiles.avatar_path}`,
-                3600
-              );
+            const signedURL = await fetchImage({
+              avatarPath: lagreeClass.instructors.user_profiles.avatar_path,
+            });
 
-            if (urlError) {
-              console.error("Error generating signed URL:", urlError);
-              imageURL = null;
-            }
-
-            imageURL = data?.signedUrl;
+            imageURL = signedURL;
           }
 
           return {

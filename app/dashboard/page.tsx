@@ -14,7 +14,11 @@ import {
 import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useEffect, useState } from "react";
-import { useClassManagement, useClientBookings } from "@/lib/api";
+import {
+  useClassManagement,
+  useClientBookings,
+  useManageImage,
+} from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { supabase } from "@/lib/supabase";
 import { User } from "lucide-react";
@@ -38,6 +42,7 @@ export default function DashboardPage() {
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [openCancelModal, setOpenCancelModal] = useState<boolean>(false);
+  const { fetchImage } = useManageImage();
 
   useEffect(() => {
     handleFetchBookings();
@@ -96,18 +101,12 @@ export default function DashboardPage() {
             // if (!booking.avatar_path) return booking; // skip if no avatar
 
             // generate signed URL valid for 1 hour (3600s)
-            const { data, error: urlError } = await supabase.storage
-              .from("user-photos")
-              .createSignedUrl(
-                `${booking.classes.instructors.user_profiles.avatar_path}`,
-                3600
-              );
 
-            if (urlError) {
-              console.error("Error generating signed URL:", urlError);
-            }
+            const signedURL = await fetchImage({
+              avatarPath: booking.classes.instructors.user_profiles.avatar_path,
+            });
 
-            imageURL = data?.signedUrl;
+            imageURL = signedURL;
             return {
               ...booking,
               avatar_url: imageURL,

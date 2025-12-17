@@ -32,6 +32,7 @@ import {
   usePackageManagement,
 } from "@/lib/api";
 import dayjs from "dayjs";
+import axios from "axios";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -64,6 +65,7 @@ export default function AuthenticatedLayout({
       }
 
       const profile = await getAdmin({ id: session.user.id });
+
       const clientPackages = await fetchClientPackages({ findExpiry: true });
 
       if (!!clientPackages?.length) {

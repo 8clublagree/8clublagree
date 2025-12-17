@@ -9,7 +9,7 @@ import {
   CreateUserCredits,
 } from "./props";
 import dayjs, { Dayjs } from "dayjs";
-import { getDateFromToday } from "./utils";
+import { BUCKET_NAME, getDateFromToday } from "./utils";
 import { useAppSelector } from "./hooks";
 import axios from "axios";
 
@@ -25,13 +25,13 @@ export const useAdminProfile = () => {
   const getAdmin = async ({ id }: { id: string }) => {
     setLoading(true);
 
-    const { data: profile, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
+    const response = await axios.get(`/api/admin/getAdmin`, {
+      params: { id: id },
+    });
 
-    if (error) return null;
+    const profile = response?.data?.data;
+
+    if (!profile) return null;
 
     setLoading(false);
     return profile;
@@ -264,7 +264,49 @@ export const useManageImage = () => {
     return;
   };
 
-  return { removeImage, loading };
+  const fetchImage = async ({ avatarPath }: { avatarPath: string }) => {
+    let signedUrl: any;
+
+    const { data, error: urlError } = await supabase.storage
+      .from("user-photos")
+      .createSignedUrl(`${avatarPath}`, 3600);
+
+    if (urlError) {
+      console.error("Error generating signed URL:", urlError);
+      signedUrl = null;
+    }
+
+    signedUrl = data?.signedUrl;
+
+    return signedUrl;
+  };
+
+  const saveImage = async ({ file, id }: { file: any; id?: string }) => {
+    let filePath: string = "";
+
+    if (id) {
+      filePath = `${id}_${dayjs().toDate().getTime()}`;
+    } else {
+      filePath = `${dayjs().toDate().getTime()}`;
+    }
+    const fileExt = (file[0] as File).name.split(".").pop();
+    const fileName = `${filePath}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(fileName, file[0].originFileObj as File, {
+        upsert: true, // overwrite if exists
+        contentType: (file[0] as File).type,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const imageURL = fileName;
+
+    return imageURL;
+  };
+
+  return { saveImage, fetchImage, removeImage, loading };
 };
 
 export const useInstructorManagement = () => {

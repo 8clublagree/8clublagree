@@ -1,7 +1,7 @@
 "use client";
 
 import useDebounce from "@/hooks/use-debounce";
-import { useManagePassword } from "@/lib/api";
+import { useManageImage, useManagePassword } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { supabase } from "@/lib/supabase";
 import {
@@ -48,6 +48,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
   const [previewImage, setPreviewImage] = useState("");
   const [file, setFile] = useState<UploadFile[] | null>(null);
   const [initialFileState, setInitialFileState] = useState<any[]>([]);
+  const { saveImage } = useManageImage();
 
   useEffect(() => {
     if (user) {

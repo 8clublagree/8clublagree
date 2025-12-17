@@ -27,6 +27,7 @@ import { useAppSelector } from "@/lib/hooks";
 import PackageHistoryCard from "../ui/package-history-card";
 import {
   useManageCredits,
+  useManageImage,
   usePackageManagement,
   useSearchUser,
 } from "@/lib/api";
@@ -77,6 +78,7 @@ const EditClientForm = ({
   const [initialFileState, setInitialFileState] = useState<UploadFile[] | null>(
     null
   );
+  const { saveImage } = useManageImage();
   const [email, setEmail] = useState<string>("");
   const { validateEmail } = useSearchUser();
   const { debouncedValue: debouncedEmail, loading: debouncing } = useDebounce(
@@ -188,22 +190,9 @@ const EditClientForm = ({
       if (initialValues?.id && !!file.length) {
         setUploading(true);
 
-        const filePath = `${initialValues.id}_${dayjs().toDate().getTime()}`;
-        const fileExt = (file[0] as File).name.split(".").pop();
-        let fileName = `${filePath}.${fileExt}`;
+        const response = await saveImage({ file, id: initialValues.id });
 
-        const { error: uploadError } = await supabase.storage
-          .from(BUCKET_NAME)
-          .upload(fileName, file[0].originFileObj as File, {
-            upsert: true, // overwrite if exists
-            contentType: (file[0] as File).type,
-          });
-
-        if (uploadError) throw uploadError;
-
-        const imageURL = fileName;
-
-        return imageURL;
+        return response;
       }
     } catch (err: any) {
       console.error(err);
