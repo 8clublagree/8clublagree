@@ -56,7 +56,7 @@ export default function LoginPage() {
       >
         <div className="text-center mb-8">
           <Title level={2} className="!mb-2">
-            Supra8 Lagree
+            8 Club Lagree
           </Title>
           <Text type="secondary">Sign in to your account</Text>
         </div>

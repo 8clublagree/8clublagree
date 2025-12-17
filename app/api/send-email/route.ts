@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { NextRequest, NextResponse } from "next/server";
 import { EMAIL_TEMPLATE } from "@/lib/email-templates";
+import { MailtrapTransport } from "mailtrap";
 
 type EmailTypes = "package_purchase" | "class_booking_confirmation";
 
@@ -50,8 +51,11 @@ export async function POST(req: NextRequest) {
       body = templateBody;
     }
 
-    // Mailtrap SMTP transporter
-    const transporter = nodemailer.createTransport({
+    /**
+     * SANDBOX SNIPPET START
+     */
+
+    const transport = nodemailer.createTransport({
       host: process.env.MAILTRAP_HOST,
       port: Number(process.env.MAILTRAP_PORT) || 587,
       auth: {
@@ -60,12 +64,46 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const info = await transporter.sendMail({
+    const info = await transport.sendMail({
       from: '"My App" <no-reply@myapp.com>',
       to,
       subject,
       html: body,
     });
+
+    /**
+     * SANDBOX SNIPPET END
+     */
+    // ==========================================
+
+    /**
+     * REAL EMAILS SNIPPET START
+     * THIS UTILIZES THE API TOKEN FROM MAILTRAP
+     */
+
+    // const recipients = [to];
+
+    // Mailtrap SMTP transporter
+    // const transport = nodemailer.createTransport(
+    //   MailtrapTransport({
+    //     token: process.env.MAILTRAP_TOKEN!,
+    //   })
+    // );
+
+    // const sender = {
+    //   address: "test@8clublagree.com",
+    //   name: "8 Club Lagree",
+    // };
+    // const info = await transport.sendMail({
+    //   from: sender,
+    //   to: recipients,
+    //   subject,
+    //   html: body,
+    // });
+
+    /**
+     * REAL EMAILS SNIPPET END
+     */
 
     return NextResponse.json({ message: "Email sent", info });
   } catch (error) {

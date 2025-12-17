@@ -10,7 +10,7 @@ const StudioGuidelines = () => {
       className="max-w-3xl mx-auto mt-10 rounded-2xl shadow-sm py-6 px-0 text-justify"
       title={
         <Title level={4} className="!mb-0">
-          SUPRA8 LAGREE STUDIO GUIDELINES
+          8 CLUB LAGREE STUDIO GUIDELINES
         </Title>
       }
     >
