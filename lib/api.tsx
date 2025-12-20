@@ -227,7 +227,6 @@ export const useManageImage = () => {
 
     if (avatarPath === null) return null;
 
-    console.log("'user-photos': ", "user-photos");
     const { data, error: urlError } = await supabase.storage
       .from("user-photos")
       .createSignedUrl(`${avatarPath}`, 3600);
