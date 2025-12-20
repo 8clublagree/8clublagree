@@ -55,7 +55,7 @@ export default function InstructorManagementPage() {
     deactivateInstructor,
     deleteInstructor,
     updateInstructor,
-    createInstructor,
+    createInstructorProfile,
     loading: loadingInstructor,
   } = useInstructorManagement();
   const { changePassword, loading: changingPassword } = useManagePassword();
@@ -118,6 +118,7 @@ export default function InstructorManagementPage() {
 
             // generate signed URL valid for 1 hour (3600s)
 
+            console.log("instructor.avatar_path: ", instructor.avatar_path);
             if (instructor.avatar_path !== null) {
               const signedURL = await fetchImage({
                 avatarPath: instructor.avatar_path,
@@ -192,7 +193,7 @@ export default function InstructorManagementPage() {
           });
         }
 
-        const { data } = await axios.post("/api/update-user-email", {
+        const { data } = await axiosApi.post("/update-user-email", {
           id: selectedRecord.id,
           email: credentials.email,
         });
@@ -231,7 +232,7 @@ export default function InstructorManagementPage() {
       }
     } else {
       try {
-        const { data } = await axios.post("/api/create-instructor", {
+        const { data } = await axiosApi.post("/create-instructor", {
           email: credentials.email,
           password: credentials.password,
         });
@@ -252,7 +253,7 @@ export default function InstructorManagementPage() {
             });
           }
 
-          const createInstructorResponse = await createInstructor({
+          const createInstructorResponse = await createInstructorProfile({
             values: { ...professionalDetails, user_id: data.user.id },
           });
 

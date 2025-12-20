@@ -68,7 +68,6 @@ export default function CreateInstructorForm({
   form,
 }: CreateInstructorFormProps) {
   const watchedValues = Form.useWatch([], form);
-  const BUCKET_NAME = "user-photos";
   const user = useAppSelector((state) => state.auth.user);
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);

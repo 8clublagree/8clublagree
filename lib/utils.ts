@@ -11,7 +11,6 @@ export const attendanceStatus: any = {
   missed: { status: "Missed", color: "red" },
 };
 
-export const BUCKET_NAME = "user-photos";
 export const ganttColors = [
   "#F28B82",
   "#FDD663",

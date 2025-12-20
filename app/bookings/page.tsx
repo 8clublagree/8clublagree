@@ -35,6 +35,7 @@ import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
 import { ChevronRight } from "lucide-react";
 import { useAppMessage } from "@/components/ui/message-popup";
 import axios from "axios";
+import axiosApi from "@/lib/axiosConfig";
 
 const { Title, Text } = Typography;
 
@@ -110,7 +111,7 @@ export default function BookingsPage() {
 
     if (data) {
       const mapped = await Promise.all(
-        data.map(async (lagreeClass) => {
+        data.map(async (lagreeClass: any) => {
           let imageURL: any = null;
           // if (!user.avatar_path) return user; // skip if no avatar
 
@@ -163,22 +164,24 @@ export default function BookingsPage() {
   };
 
   const handleSendConfirmationEmail = async () => {
-    const classDate = `${dayjs(selectedDate).format("MMMM")} ${dayjs(
-      selectedDate
-    ).format("DD")} ${dayjs(selectedDate).format("YYYY")}`;
+    try {
+      const classDate = `${dayjs(selectedDate).format("MMMM")} ${dayjs(
+        selectedDate
+      ).format("DD")} ${dayjs(selectedDate).format("YYYY")}`;
 
-    const classTime = dayjs(selectedRecord?.start_time).format("hh:mm A");
+      const classTime = dayjs(selectedRecord?.start_time).format("hh:mm A");
 
-    const res = await axios.post("/api/send-email", {
-      to: user?.email,
-      instructor: selectedRecord.instructor_name,
-      date: classDate,
-      time: classTime,
-      className: "Regular Class",
-      emailType: "class_booking_confirmation",
-    });
-
-    const data = await res.data;
+      await axiosApi.post("/send-email", {
+        to: user?.email,
+        instructor: selectedRecord.instructor_name,
+        date: classDate,
+        time: classTime,
+        className: "Regular Class",
+        emailType: "class_booking_confirmation",
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleBookClass = async () => {

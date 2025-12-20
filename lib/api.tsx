@@ -9,7 +9,7 @@ import {
   CreateUserCredits,
 } from "./props";
 import dayjs, { Dayjs } from "dayjs";
-import { BUCKET_NAME, getDateFromToday } from "./utils";
+import { getDateFromToday } from "./utils";
 import { useAppSelector } from "./hooks";
 
 import utc from "dayjs/plugin/utc";
@@ -115,6 +115,7 @@ export const useManagePassword = () => {
 
       if (!data) return null;
 
+      setLoading(false);
       return data;
     } catch (error) {
       console.log("error validating password: ", error);
@@ -141,6 +142,7 @@ export const useManagePassword = () => {
 
       if (!data) return null;
 
+      setLoading(false);
       return data;
     } catch (error) {
       console.log("error changing password: ", error);
@@ -185,20 +187,16 @@ export const useDeleteUser = () => {
   const deleteUser = async ({ id }: { id: string }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .delete()
-      .eq("id", id)
-      .select();
-
-    await axiosApi.post("/user/delete", {
+    const response = await axiosApi.post("/user/delete", {
       id: id,
     });
 
-    if (error) return null;
+    const responseData = response?.data?.data;
+
+    if (!responseData) return null;
 
     setLoading(false);
-    return data;
+    return responseData;
   };
 
   return { loading, deleteUser };
@@ -229,6 +227,7 @@ export const useManageImage = () => {
 
     if (avatarPath === null) return null;
 
+    console.log("'user-photos': ", "user-photos");
     const { data, error: urlError } = await supabase.storage
       .from("user-photos")
       .createSignedUrl(`${avatarPath}`, 3600);
@@ -255,7 +254,7 @@ export const useManageImage = () => {
     const fileName = `${filePath}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
+      .from("user-photos")
       .upload(fileName, file[0].originFileObj as File, {
         upsert: true, // overwrite if exists
         contentType: (file[0] as File).type,
@@ -274,19 +273,23 @@ export const useManageImage = () => {
 export const useInstructorManagement = () => {
   const [loading, setLoading] = useState(false);
 
-  const createInstructor = async ({
+  const createInstructorProfile = async ({
     values,
   }: {
     values: CreateInstructorProps;
   }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("instructors")
-      .insert(values)
-      .select();
+    const response = await axiosApi.post(
+      "/instructor/create-instructor-profile",
+      {
+        values,
+      }
+    );
 
-    if (error) return null;
+    const data = response?.data?.data;
+
+    if (!data) return null;
 
     setLoading(false);
     return data;
@@ -301,84 +304,78 @@ export const useInstructorManagement = () => {
   }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("instructors")
-      .update(values)
-      .eq("id", id)
-      .select();
+    const response = await axiosApi.put("/instructor/update-instructor", {
+      id,
+      values,
+    });
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
-    }
+    const data = response?.data?.data;
+
+    if (!data) return null;
 
     setLoading(false);
     return data;
   };
 
   const deleteInstructor = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .delete()
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.post("/user/delete", { id });
+      const data = response?.data?.data;
 
-    await axiosApi.post("/user/delete", {
-      id: id,
-    });
+      if (!data) return null;
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const deactivateInstructor = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update({ deactivated: true })
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/instructor/deactivate", { id });
+      const data = response?.data?.data;
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const reactivateInstructor = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update({ deactivated: false })
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/instructor/reactivate", { id });
+      const data = response?.data?.data;
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   return {
     loading,
     reactivateInstructor,
     deactivateInstructor,
-    createInstructor,
+    createInstructorProfile,
     updateInstructor,
     deleteInstructor,
   };
@@ -396,20 +393,24 @@ export const useClassManagement = () => {
     bookingID: string;
     status: string;
   }) => {
-    let query = supabase
-      .from("class_bookings")
-      .update({ attendance_status: status })
-      .eq("id", bookingID);
+    try {
+      setLoading(true);
 
-    const { data, error } = await query;
+      const response = await axiosApi.put("/classes/mark-attendance", {
+        bookingID,
+        status,
+      });
+      const data = response?.data?.data;
 
-    if (error) {
-      console.error("Error fetching attendees:", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const rebookAttendee = async ({
@@ -425,70 +426,48 @@ export const useClassManagement = () => {
     bookingID: string;
     newClassID: string;
   }) => {
-    let query = supabase
-      .from("class_bookings")
-      .update({ class_id: newClassID })
-      .eq("id", bookingID)
-      .select();
+    try {
+      setLoading(true);
 
-    console.log({
-      oldClassID,
-      newClassID,
-      bookingID,
-      oldTakenSlots,
-      newTakenSlots,
-    });
+      const response = await axiosApi.put("/classes/rebook-attendee", {
+        oldClassID,
+        newClassID,
+        bookingID,
+        oldTakenSlots,
+        newTakenSlots,
+      });
+      const data = response?.data?.data;
 
-    const updateOldClassResponse = await updateClass({
-      id: oldClassID,
-      ...(oldTakenSlots !== 0 && {
-        values: { taken_slots: oldTakenSlots - 1 },
-      }),
-    });
-    const updateNewClassResponse = await updateClass({
-      id: newClassID,
-      values: { taken_slots: newTakenSlots + 1 },
-    });
+      if (!data) return null;
 
-    const { data, error } = await query;
-
-    if (
-      error ||
-      updateOldClassResponse === null ||
-      updateNewClassResponse === null
-    ) {
-      console.error("Error rebooking attendee:", error);
-      return null;
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const fetchClassAttendees = async ({ classID }: { classID: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    let query = supabase
-      .from("class_bookings")
-      .select(
-        `
-        *, 
-        user_profiles(
-          full_name
-        )
-        `
-      )
-      .eq("class_id", classID);
+      const response = await axiosApi.get(`/classes/fetch-attendees`, {
+        params: { classID },
+      });
 
-    const { data, error } = await query;
+      const data = response?.data?.data;
 
-    if (error) {
-      console.error("Error fetching attendees:", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const fetchClasses = async ({
@@ -508,98 +487,50 @@ export const useClassManagement = () => {
     endDate?: Dayjs;
     selectedDate?: Dayjs;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const nowISO = dayjs().toISOString();
-    const today = dayjs().startOf("day");
-    let query = supabase.from("classes").select(`
-    *,
-    instructors (
-      id,
-      user_id,
-      full_name,
-      avatar_path,
-      user_profiles (
-        id,
-        avatar_path,
-        deactivated
-      )
-    ),
-    class_bookings (
-      id,
-      attendance_status,
-      booker_id,
-      class_id,
-      walk_in_first_name,
-      walk_in_last_name,
-      user_profiles (
-        id,
-        full_name
-      )
-    )
-  `);
+      const response = await axiosApi.get("/classes/fetch-classes", {
+        params: {
+          isAdmin,
+          isInstructor,
+          userId,
+          startDate,
+          endDate,
+          selectedDate,
+          instructorId,
+        },
+      });
+      const data = response?.data?.data;
 
-    if (userId) {
-      query = query.eq("class_bookings.booker_id", userId);
+      if (!data) return null;
+
+      setLoading(false);
+
+      return data;
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
     }
-
-    if (isInstructor && instructorId) {
-      query = query.eq("instructor_id", instructorId);
-    }
-
-    if (startDate && endDate) {
-      query = query
-        .gte("class_date", startDate.format("YYYY-MM-DD"))
-        .lte("class_date", endDate.format("YYYY-MM-DD"));
-    }
-
-    if (selectedDate) {
-      const startOfSelectedUTC = selectedDate
-        .startOf("day")
-        .subtract(8, "hour")
-        .toISOString();
-      const endOfSelectedUTC = selectedDate
-        .endOf("day")
-        .subtract(8, "hour")
-        .toISOString();
-
-      query = query
-        .gte("class_date", startOfSelectedUTC)
-        .lte("class_date", endOfSelectedUTC);
-
-      // If selected day is today, and the caller is NOT admin and NOT instructor,
-      // only show classes that haven't started yet.
-      if (!isAdmin && !isInstructor && selectedDate.isSame(today, "day")) {
-        query = query.gte("start_time", nowISO);
-      }
-    }
-
-    query = query.order("start_time", { ascending: true });
-
-    const { data, error } = await query;
-
     setLoading(false);
-
-    if (error) {
-      console.error("Error fetching classes:", error);
-      return null;
-    }
-
-    return data;
   };
 
   const createClass = async ({ values }: { values: CreateClassProps }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("classes")
-      .insert(values)
-      .single();
+      const response = await axiosApi.post("/classes/create-class", { values });
+      const data = response?.data?.data;
 
-    if (error) return null;
+      if (!data) return null;
 
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const updateClass = async ({
@@ -609,18 +540,24 @@ export const useClassManagement = () => {
     id: string;
     values?: CreateClassProps;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("classes")
-      .update(values)
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/classes/update-class", {
+        id,
+        values,
+      });
+      const data = response?.data?.data;
 
-    if (error) return null;
+      if (!data) return null;
 
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const cancelClass = async ({
@@ -632,45 +569,48 @@ export const useClassManagement = () => {
     classID: string;
     takenSlots: number;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("class_bookings")
-      .update({ attendance_status: "cancelled" })
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/classes/cancel-class", {
+        id,
+        classID,
+        takenSlots,
+        userID: user?.id as string,
+        userCredits: user?.credits,
+      });
 
-    const updateClassResponse = await updateClass({
-      id: classID,
-      values: { taken_slots: takenSlots - 1 },
-    });
-    const updateCreditsResponse = await updateUserCredits({
-      userID: user?.id as string,
-      ...(user?.credits && {
-        values: { credits: (user.credits as number) + 1 },
-      }),
-    });
+      const data = response.data.data;
+      if (data === null) return null;
 
-    if (error || updateClassResponse === null || updateCreditsResponse === null)
-      return null;
-
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const deleteClass = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("classes")
-      .delete()
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.post("/classes/delete-class", {
+        id,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (data === null) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const bookClass = async ({
@@ -692,38 +632,31 @@ export const useClassManagement = () => {
     walkInClientEmail?: string;
     walkInClientContactNumber?: string;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("class_bookings")
-      .insert({
-        class_id: classId,
-        class_date: classDate,
-        is_walk_in: isWalkIn,
-        attendance_status: "no-show",
-        ...(bookerId && { booker_id: bookerId }),
-        /**
-         * walk-ins can only book classes that are on the same day
-         * so we set the sent_email_reminder value to TRUE
-         * meaning that an automated email does not need to be
-         * sent to that client
-         *
-         * DEV NOTE: default value is FALSE and is configured in the DB
-         */
-        ...(isWalkIn === true && { sent_email_reminder: true }),
-        ...(walkInFirstName && { walk_in_first_name: walkInFirstName }),
-        ...(walkInLastName && { walk_in_last_name: walkInLastName }),
-        ...(walkInClientEmail && { walk_in_client_email: walkInClientEmail }),
-        ...(walkInClientContactNumber && {
-          walk_in_client_contact_number: walkInClientContactNumber,
-        }),
-      })
-      .select();
+      const response = await axiosApi.post("/classes/book-class", {
+        classDate,
+        bookerId,
+        classId,
+        isWalkIn,
+        walkInFirstName,
+        walkInLastName,
+        walkInClientEmail,
+        walkInClientContactNumber,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (data === null) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   return {
