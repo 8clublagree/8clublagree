@@ -110,3 +110,32 @@ export interface Order {
   created_at?: string;
   updated_at?: string;
 }
+
+export type Address = {
+  line1: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  countryCode: string;
+};
+
+type ShippingAddress = Address & {
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+};
+
+export type PurchaseFormData = {
+  productName: string;
+  productPrice: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  quantity: number;
+  billingAddress: Address;
+  shippingAddress: ShippingAddress;
+};

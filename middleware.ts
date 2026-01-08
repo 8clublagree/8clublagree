@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
   const token = authHeader.replace("Bearer ", "");
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL!!}/auth/v1/user`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -12,32 +12,46 @@ import {
   Divider,
   Carousel,
   Tooltip,
+  Spin,
+  Input,
+  Form,
 } from "antd";
+import { v4 as uuidv4 } from "uuid";
 import { CalendarOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import { formatPrice } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { formatPHPhoneToE164, formatPrice } from "@/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Package,
+  User,
+} from "lucide-react";
 import { useManageCredits, usePackageManagement } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
-import { PackageProps } from "@/lib/props";
+import { Address, PackageProps, PurchaseFormData } from "@/lib/props";
 import dayjs from "dayjs";
 import { useAppMessage } from "@/components/ui/message-popup";
+import axiosApi from "@/lib/axiosConfig";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const CAROUSEL_SLIDES = {
   TERMS: 0,
   PACKAGE_DETAILS: 1,
   CHECKOUT: 2,
 };
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phPhoneRegex = /^(\+63|0)9\d{9}$/;
 
 type PaymentMethod = "card" | "paymaya" | "gcash";
 
 export default function PackagesPage() {
   const dispatch = useDispatch();
+  const [processingMaya, setProcessingMaya] = useState(false);
   const carouselRef = useRef<any>(null);
   const { updateUserCredits } = useManageCredits();
   const user = useAppSelector((state) => state.auth.user);
@@ -83,7 +97,7 @@ export default function PackagesPage() {
   const handleFetchPackages = async () => {
     const response = await fetchPackages({ isAdmin: false });
 
-    const mapped = response?.map((data) => {
+    const mapped = response?.map((data: any) => {
       return {
         ...data,
         validityPeriod: data.validity_period,
@@ -120,7 +134,7 @@ export default function PackagesPage() {
 
   const handleCloseModal = () => {
     setAcceptsTerms(false);
-    setSelectedRecord(null);
+    // setSelectedRecord(null);
     if (carouselSlide === CAROUSEL_SLIDES.TERMS) {
       setCarouselSlide(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       carouselRef.current.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
@@ -146,27 +160,27 @@ export default function PackagesPage() {
   const handleNext = async () => {
     try {
       //temporary behavior
-      setIsSubmitting(true);
-      await handlePurchasePackage();
-      await handleUpdateUserCredits({
-        credits: selectedRecord.packageCredits,
-      });
+      // setIsSubmitting(true);
+      // await handlePurchasePackage();
+      // await handleUpdateUserCredits({
+      //   credits: selectedRecord.packageCredits,
+      // });
       // await handleSendConfirmationEmail();
       //temporary behavior
 
       // temporarily commented out until payments is integrated
-      // setCarouselSlide(2);
-      // carouselRef.current.next();
+      setCarouselSlide(2);
+      carouselRef.current.next();
       // temporarily commented out until payments is integrated
 
       //temporary behavior
-      showMessage({
-        type: "success",
-        content: "Successfully purchased package!",
-      });
-      setIsModalOpen(false);
-      setSelectedRecord(null);
-      setIsSubmitting(false);
+      // showMessage({
+      //   type: "success",
+      //   content: "Successfully purchased package!",
+      // });
+      // setIsModalOpen(false);
+      // setSelectedRecord(null);
+      // setIsSubmitting(false);
       //temporary behavior
     } catch (error) {
       showMessage({ type: "error", content: "Failed to purchase package" });
@@ -174,7 +188,6 @@ export default function PackagesPage() {
   };
 
   const handlePurchasePackage = async () => {
-    console.log("selectedRecord: ", selectedRecord);
     try {
       if (user?.credits === 0) {
         await updateClientPackage({
@@ -226,8 +239,8 @@ export default function PackagesPage() {
     if (user) {
       setFormData((prev) => ({
         ...prev,
-        firstName: user?.full_name || "",
-        lastName: user?.full_name || "",
+        firstName: user?.first_name || "",
+        lastName: user?.last_name || "",
         customerEmail: user?.email || "",
         customerPhone: user?.contact_number || "",
       }));
@@ -352,8 +365,8 @@ export default function PackagesPage() {
   };
 
   // Test Maya Checkout
-
-  const [formData, setFormData] = useState({
+  const [sameAsBilling, setSameAsBilling] = useState(true);
+  const [formData, setFormData] = useState<PurchaseFormData>({
     productName: "Premium Subscription",
     productPrice: "1500.00",
     firstName: user?.first_name,
@@ -361,7 +374,62 @@ export default function PackagesPage() {
     customerEmail: user?.email,
     customerPhone: user?.contact_number,
     quantity: 1,
+    billingAddress: {
+      line1: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      countryCode: "PH",
+    },
+    shippingAddress: {
+      line1: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      countryCode: "PH",
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      customerPhone: "",
+      customerEmail: "",
+    },
   });
+
+  const handleSameAsBillingToggle = (checked: boolean) => {
+    setSameAsBilling(checked);
+
+    if (checked) {
+      setFormData((prev) => ({
+        ...prev,
+        shippingAddress: {
+          ...prev.billingAddress,
+          firstName: prev.firstName,
+          middleName: prev.middleName,
+          lastName: prev.lastName,
+          customerPhone: prev.customerPhone,
+          customerEmail: prev.customerEmail,
+        },
+      }));
+    }
+  };
+
+  const handleBillingAddressChange = (field: keyof Address, value: string) => {
+    const newBillingAddress = { ...formData.billingAddress, [field]: value };
+    setFormData((prev) => ({
+      ...prev,
+      billingAddress: newBillingAddress,
+      shippingAddress: sameAsBilling
+        ? {
+            ...newBillingAddress,
+            firstName: prev.firstName,
+            middleName: prev.middleName,
+            lastName: prev.lastName,
+            phone: prev.customerPhone,
+            email: prev.customerEmail,
+          }
+        : prev.shippingAddress,
+    }));
+  };
 
   const calculateTotal = () => {
     const price = parseFloat(selectedRecord.price);
@@ -371,30 +439,33 @@ export default function PackagesPage() {
 
   const handleCheckout = async () => {
     try {
+      setProcessingMaya(true);
       const totalAmount = calculateTotal();
+      const uuid = uuidv4();
 
       const checkoutPayload = {
-        totalAmount: {
-          value: totalAmount,
-          currency: "PHP",
-        },
         buyer: {
           firstName: formData?.firstName,
           lastName: formData?.lastName,
           contact: {
-            phone: formData.customerPhone,
+            phone: formatPHPhoneToE164(formData?.customerPhone as string) || "",
             email: formData.customerEmail,
           },
+          billingAddress: formData.billingAddress,
+        },
+        totalAmount: {
+          value: parseFloat(totalAmount),
+          currency: "PHP",
         },
         items: [
           {
             name: selectedRecord.title,
             quantity: 1,
             amount: {
-              value: selectedRecord.price,
+              value: parseFloat(selectedRecord.price),
             },
             totalAmount: {
-              value: totalAmount,
+              value: parseFloat(totalAmount),
             },
           },
         ],
@@ -403,19 +474,20 @@ export default function PackagesPage() {
           failure: `${window.location.origin}/checkout/failure`,
           cancel: `${window.location.origin}/packages`,
         },
-        requestReferenceNumber: `REF-${Date.now()}`,
+        allowedPaymentMethods: ["CARD", "EWALLET", "QR_PH"],
+        requestReferenceNumber: `${uuid}`,
       };
 
       console.log("checkoutPayload: ", checkoutPayload);
-      const response = await fetch("/api/maya-checkout", {
-        method: "POST",
+      const response = await axiosApi.post("/maya-checkout", checkoutPayload, {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(checkoutPayload),
       });
+      console.log("response: ", response);
 
-      const data = await response.json();
+      const data = response.data;
+      console.log("data: ", data);
 
       if (data.success && data.checkoutUrl) {
         // Opens checkoutUrl in a new tab
@@ -424,9 +496,50 @@ export default function PackagesPage() {
         throw new Error(data.error || "Failed to create checkout session");
       }
     } catch (error: any) {
+      console.log("error.message: ", error);
       console.log("error.message: ", error?.message);
     }
   };
+
+  const updateField = (
+    section: string,
+    field: string,
+    value: string | number | undefined
+  ) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      [section]:
+        typeof prev[section] === "object"
+          ? { ...prev[section], [field]: value }
+          : value,
+    }));
+  };
+
+  const renderCheckoutLoader = useCallback(() => {
+    return (
+      <Row
+        justify="center"
+        align="middle"
+        className="fixed inset-0 z-[9999] bg-black/60 p-4"
+      >
+        <Row
+          justify="center"
+          align="middle"
+          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
+        >
+          <Row justify="center" align="middle">
+            <Text className="text-[red] font-semibold text-base text-center m-0 p-0">
+              Please do not exit or refresh the website
+            </Text>
+            <Text className="text-[#36013F] font-light text-base text-center">
+              You will be redirected to a checkout with Maya shortly
+            </Text>
+          </Row>
+          <Spin />
+        </Row>
+      </Row>
+    );
+  }, []);
 
   // Test Maya Checkout
 
@@ -504,7 +617,7 @@ export default function PackagesPage() {
                       title={showToolTip && "You still have an active package"}
                     >
                       <Button
-                        disabled={disablePurchase}
+                        // disabled={disablePurchase}
                         onClick={() => handleOpenModal(item)}
                         className={`${
                           !disablePurchase
@@ -540,7 +653,7 @@ export default function PackagesPage() {
         onClose={handleCloseModal}
         open={isModalOpen}
         width={isMobile ? "100%" : "33%"}
-        destroyOnHidden={true}
+        // destroyOnHidden={true}
         styles={{
           body: {
             paddingTop: 24,
@@ -652,7 +765,7 @@ export default function PackagesPage() {
               {selectedRecord && (
                 <Row wrap={false} className="flex flex-col gap-y-[20px]">
                   <div className="bg-white">
-                    <div className="border-2 border-[#36013F] rounded-xl p-3 mb-6">
+                    <div className="border-2 border-[#36013F] rounded-xl p-3">
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">
                         {selectedRecord.title}
                       </h3>
@@ -668,10 +781,7 @@ export default function PackagesPage() {
                             {formatPrice(selectedRecord.price, { decimals: 2 })}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Processing Fee</span>
-                          <span>₱0.00</span>
-                        </div>
+
                         <div className="border-t border-gray-200 pt-2 mt-2">
                           <div className="flex justify-between text-lg font-bold text-gray-900">
                             <span>Total</span>
@@ -702,215 +812,226 @@ export default function PackagesPage() {
                   </div>
 
                   <div className="bg-white ">
-                    {/* <div className="flex items-center gap-3 mb-6">
-                      <Wallet className="w-6 h-6 text-[#36013F]" />
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        Payment Method
-                      </h2>
-                    </div> */}
+                    <Divider className="p-0 my-[5px]" />
 
-                    {/* {error && (
-                      <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm text-red-600">{error}</p>
+                    <Form
+                      layout="vertical"
+                      onFinish={handleCheckout}
+                      className="flex flex-col gap-y-[10px] mt-[20px]"
+                    >
+                      {/* Personal Information */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <User className="w-5 h-5 text-slate-700" />
+                        <h2 className="text-lg font-medium text-slate-900">
+                          Personal Information
+                        </h2>
                       </div>
-                    )} */}
 
-                    <form className="space-y-6">
-                      {/* <div className="grid grid-cols-3 gap-3 mb-8">
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod("card")}
-                          className={`p-4 rounded-lg border-2 transition-all ${
-                            paymentMethod === "card"
-                              ? "border-blue-600 bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <CreditCard
-                            className={`w-6 h-6 mx-auto mb-2 ${
-                              paymentMethod === "card"
-                                ? "text-[#36013F]"
-                                : "text-gray-600"
-                            }`}
-                          />
-                          <span
-                            className={`text-sm font-medium block ${
-                              paymentMethod === "card"
-                                ? "text-[#36013F]"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            Card
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod("paymaya")}
-                          className={`p-4 rounded-lg border-2 transition-all ${
-                            paymentMethod === "paymaya"
-                              ? "border-blue-600 bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <Smartphone
-                            className={`w-6 h-6 mx-auto mb-2 ${
-                              paymentMethod === "paymaya"
-                                ? "text-blue-600"
-                                : "text-gray-600"
-                            }`}
-                          />
-                          <span
-                            className={`text-sm font-medium block ${
-                              paymentMethod === "paymaya"
-                                ? "text-blue-600"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            PayMaya
-                          </span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod("gcash")}
-                          className={`p-4 rounded-lg border-2 transition-all ${
-                            paymentMethod === "gcash"
-                              ? "border-blue-600 bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <Wallet
-                            className={`w-6 h-6 mx-auto mb-2 ${
-                              paymentMethod === "gcash"
-                                ? "text-blue-600"
-                                : "text-gray-600"
-                            }`}
-                          />
-                          <span
-                            className={`text-sm font-medium block ${
-                              paymentMethod === "gcash"
-                                ? "text-blue-600"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            GCash
-                          </span>
-                        </button>
-                      </div> */}
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          First Name
-                        </label>
-                        <input
-                          type="text"
+                      <Row wrap={false} className="gap-3">
+                        <Form.Item
+                          className="mb-0"
+                          label="First Name"
                           name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="Juan Dela Cruz"
-                        />
-                      </div>
+                          rules={[
+                            {
+                              required: true,
+                              message: "First Name is required",
+                            },
+                          ]}
+                        >
+                          <Input
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            placeholder="Juan"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                        </Form.Item>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Last Name
-                        </label>
-                        <input
-                          type="text"
+                        <Form.Item
+                          className="mb-0"
+                          label="Last Name"
                           name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="Juan Dela Cruz"
-                        />
-                      </div>
+                          rules={[
+                            {
+                              required: true,
+                              message: "Last Name is required",
+                            },
+                          ]}
+                        >
+                          <Input
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            placeholder="Dela Cruz"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                        </Form.Item>
+                      </Row>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
+                      <Row wrap={false} className="gap-3">
+                        <Form.Item
+                          className="mb-0"
+                          label="Email Address"
                           name="customerEmail"
-                          value={formData.customerEmail}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="juan@example.com"
-                        />
-                      </div>
+                          rules={[
+                            { required: true, message: "Email is required" },
+                            {
+                              pattern: emailRegex,
+                              message: "Enter a valid email address",
+                            },
+                          ]}
+                        >
+                          <Input
+                            name="customerEmail"
+                            value={formData.customerEmail}
+                            onChange={handleInputChange}
+                            placeholder="juan@example.com"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                        </Form.Item>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Phone Number (Optional)
-                        </label>
-                        <input
-                          type="tel"
+                        <Form.Item
+                          className="mb-0"
+                          label="Phone Number"
                           name="customerPhone"
-                          value={formData.customerPhone}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="+63 912 345 6789"
-                        />
+                          rules={[
+                            {
+                              required: true,
+                              message: "Phone number is required",
+                            },
+                            {
+                              pattern: phPhoneRegex,
+                              message: "Enter a valid Philippine phone number",
+                            },
+                          ]}
+                        >
+                          <Input
+                            name="customerPhone"
+                            value={formData.customerPhone}
+                            onChange={handleInputChange}
+                            placeholder="09123456789"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                        </Form.Item>
+                      </Row>
+
+                      <Divider className="my-4" />
+
+                      {/* Billing Address */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <CreditCard className="w-5 h-5 text-slate-700" />
+                        <h2 className="text-lg font-medium text-slate-900">
+                          Billing Address
+                        </h2>
                       </div>
 
-                      <div className="border-t border-gray-200 pt-6">
-                        <div className="bg-blue-50 rounded-lg p-4">
-                          <p className="text-sm text-gray-700">
-                            You will be redirected to a Maya checkout page to
-                            complete your payment securely.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      <Form.Item
+                        className="mb-0"
+                        label="Street Address"
+                        name={["billingAddress", "line1"]}
+                        rules={[
+                          {
+                            required: true,
+                            message: "Street Address is required",
+                          },
+                        ]}
                       >
-                        {loading ? (
-                          <>
-                            <svg
-                              className="animate-spin h-5 w-5"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                                fill="none"
-                              />
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              />
-                            </svg>
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            Pay ₱
-                            {formatPrice(selectedRecord.price, { decimals: 2 })}
-                          </>
-                        )}
-                      </button> */}
+                        <Input
+                          onChange={(e) =>
+                            handleBillingAddressChange("line1", e.target.value)
+                          }
+                          placeholder="Street Address"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </Form.Item>
 
-                      {/* <Button onClick={handleCheckout}>
-                        TEST MAYA CHECKOUT
-                      </Button> */}
+                      <Row wrap={false} className="gap-3">
+                        <Form.Item
+                          className="mb-0"
+                          label="City"
+                          name={["billingAddress", "city"]}
+                          rules={[
+                            { required: true, message: "City is required" },
+                          ]}
+                        >
+                          <Input
+                            onChange={(e) =>
+                              handleBillingAddressChange("city", e.target.value)
+                            }
+                            placeholder="City"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                        </Form.Item>
 
-                      <p className="text-xs text-gray-500 text-center">
-                        You will not be charged yet.
-                      </p>
-                    </form>
+                        <Form.Item
+                          className="mb-0"
+                          label="State/Province"
+                          name={["billingAddress", "state"]}
+                          rules={[
+                            {
+                              required: true,
+                              message: "State/Province is required",
+                            },
+                          ]}
+                        >
+                          <Input
+                            onChange={(e) =>
+                              handleBillingAddressChange(
+                                "state",
+                                e.target.value
+                              )
+                            }
+                            placeholder="State/Province"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          className="mb-0"
+                          label="Zip Code"
+                          name={["billingAddress", "zipCode"]}
+                          rules={[
+                            { required: true, message: "Zip Code is required" },
+                          ]}
+                        >
+                          <Input
+                            onChange={(e) =>
+                              handleBillingAddressChange(
+                                "zipCode",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Zip Code"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                        </Form.Item>
+                      </Row>
+
+                      <Divider className="my-4" />
+
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <p className="text-sm text-gray-700">
+                          You will be redirected to a Maya checkout page to
+                          complete your payment securely.
+                        </p>
+                      </div>
+
+                      {/* implement logic to handle failed and cancelled scenarios */}
+                      <Row justify={"center"} className="flex-col">
+                        <Button
+                          loading={processingMaya}
+                          disabled={processingMaya}
+                          htmlType="submit"
+                          className="font-medium rounded-[10px] bg-[#36013F] hover:!bg-[#36013F] text-white hover:!text-white p-[20px]"
+                        >
+                          Proceed to Checkout
+                        </Button>
+                        <Text className="text-xs text-gray-500 text-center">
+                          You will not be charged yet.
+                        </Text>
+                      </Row>
+                    </Form>
                   </div>
                 </Row>
               )}
@@ -918,6 +1039,8 @@ export default function PackagesPage() {
           </Carousel>
         </div>
       </Drawer>
+
+      {processingMaya && renderCheckoutLoader()}
     </AuthenticatedLayout>
   );
 }
