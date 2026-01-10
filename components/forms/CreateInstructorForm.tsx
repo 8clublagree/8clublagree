@@ -34,7 +34,7 @@ import { useAppSelector } from "@/lib/hooks";
 import dayjs from "dayjs";
 import { MdContactEmergency } from "react-icons/md";
 import useDebounce from "@/hooks/use-debounce";
-import { useSearchUser } from "@/lib/api";
+import { useManageImage, useSearchUser } from "@/lib/api";
 import { keys } from "lodash";
 import { CERTIFICATIONS } from "@/lib/utils";
 
@@ -68,10 +68,10 @@ export default function CreateInstructorForm({
   form,
 }: CreateInstructorFormProps) {
   const watchedValues = Form.useWatch([], form);
-  const BUCKET_NAME = "user-photos";
   const user = useAppSelector((state) => state.auth.user);
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [file, setFile] = useState<UploadFile[] | null>(null);
   const [initialFileState, setInitialFileState] = useState<UploadFile[] | null>(
@@ -90,7 +90,7 @@ export default function CreateInstructorForm({
   const [emailTaken, setEmailTaken] = useState<boolean>(false);
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const initialValuesRef = useRef<any>(null);
-
+  const { saveImage } = useManageImage();
   const [isModified, setIsModified] = useState<boolean>(false);
 
   useEffect(() => {
@@ -213,22 +213,9 @@ export default function CreateInstructorForm({
       if (!!file.length) {
         setUploading(true);
 
-        const filePath = `${dayjs().toDate().getTime()}`;
-        const fileExt = (file[0] as File).name.split(".").pop();
-        const fileName = `${filePath}.${fileExt}`;
+        const response = await saveImage({ file });
 
-        const { error: uploadError } = await supabase.storage
-          .from(BUCKET_NAME)
-          .upload(fileName, file[0].originFileObj as File, {
-            upsert: true, // overwrite if exists
-            contentType: (file[0] as File).type,
-          });
-
-        if (uploadError) throw uploadError;
-
-        const imageURL = fileName;
-
-        return imageURL;
+        return response;
       }
     } catch (err: any) {
       console.error(err);

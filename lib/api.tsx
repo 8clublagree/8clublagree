@@ -11,10 +11,10 @@ import {
 import dayjs, { Dayjs } from "dayjs";
 import { getDateFromToday } from "./utils";
 import { useAppSelector } from "./hooks";
-import axios from "axios";
 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import axiosApi from "./axiosConfig";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -64,18 +64,22 @@ export const useAdminProfile = () => {
   const [loading, setLoading] = useState(false);
 
   const getAdmin = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data: profile, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
+      const response = await axiosApi.get(`/admin/getAdmin`, {
+        params: { id: id },
+      });
 
-    if (error) return null;
+      const profile = response?.data?.data;
 
-    setLoading(false);
-    return profile;
+      if (!profile) return null;
+
+      setLoading(false);
+      return profile;
+    } catch (error) {
+      setLoading(false);
+    }
   };
 
   return { getAdmin, loading };
@@ -87,15 +91,13 @@ export const useSearchUser = () => {
   const validateEmail = async ({ email }: { email: string }) => {
     setLoading(true);
 
-    let query = supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("email", email)
-      .single();
+    const response = await axiosApi.get(`/user/validate-email`, {
+      params: { email },
+    });
 
-    const { data, error } = await query;
+    const data = response?.data?.data;
 
-    if (error) return null;
+    if (!data) return null;
 
     setLoading(false);
     return data;
@@ -104,59 +106,13 @@ export const useSearchUser = () => {
   const searchClients = async ({ name }: { name?: string }) => {
     setLoading(true);
 
-    let query = supabase
-      .from("user_profiles")
-      .select(
-        `*,
-     user_credits (
-       id,
-       credits
-     ),
-     class_bookings (      
-        attendance_status,
-        booker_id,
-        class_date,
-        class_id,
-        id,
-       classes (
-         id,
-         start_time,
-         end_time,
-         class_name,
-         instructor_id,
-         instructor_name,
-         instructors (
-           id,
-           full_name,
-           avatar_path
-         )
-       )
-     ),
-     client_packages (
-       *,
-       package_id,
-       status,
-       package_name,
-       purchase_date, 
-       package_credits,
-       validity_period,
-       expiration_date
-     )
-    `
-      )
-      .eq("user_type", "general")
-      .order("created_at", {
-        ascending: false,
-        foreignTable: "class_bookings",
-      });
+    const response = await axiosApi.get(`/user/search-clients`, {
+      params: { name },
+    });
 
-    if (!!name?.length) {
-      query = query.ilike("full_name", `%${name}%`);
-    }
+    const data = response?.data?.data;
 
-    const { data, error } = await query;
-
-    if (error) return null;
+    if (!data) return null;
 
     setLoading(false);
     return data;
@@ -165,20 +121,13 @@ export const useSearchUser = () => {
   const searchInstructors = async ({ name }: { name?: string }) => {
     setLoading(true);
 
-    let query = supabase.from("instructors").select(`
-      *,
-      user_profiles (
-        *
-      )
-      `);
+    const response = await axiosApi.get(`/user/search-instructors`, {
+      params: { name },
+    });
 
-    if (!!name?.length) {
-      query = query.ilike("full_name", `%${name}%`);
-    }
+    const data = response?.data?.data;
 
-    const { data, error } = await query;
-
-    if (error) return null;
+    if (!data) return null;
 
     setLoading(false);
     return data;
@@ -199,14 +148,15 @@ export const useManagePassword = () => {
   }) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: currentPassword,
+      const response = await axiosApi.get(`/user/validate-password`, {
+        params: { email, password: currentPassword },
       });
 
-      setLoading(false);
-      if (error) return null;
+      const data = response?.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
       return data;
     } catch (error) {
       console.log("error validating password: ", error);
@@ -214,15 +164,26 @@ export const useManagePassword = () => {
     setLoading(false);
   };
 
-  const changePassword = async ({ newPassword }: { newPassword: string }) => {
+  const changePassword = async ({
+    userID,
+    newPassword,
+  }: {
+    userID: string;
+    newPassword: string;
+  }) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.updateUser({
+
+      const response = await axiosApi.post(`/user/change-password`, {
+        id: userID,
         password: newPassword,
       });
 
-      if (error) return null;
+      const data = response?.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
       return data;
     } catch (error) {
       console.log("error changing password: ", error);
@@ -245,13 +206,14 @@ export const useUpdateUser = () => {
   }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update(values)
-      .eq("id", id)
-      .select();
+    const response = await axiosApi.post(`/user/update-profile`, {
+      id,
+      values,
+    });
 
-    if (error) return null;
+    const data = response?.data?.data;
+
+    if (!data) return null;
 
     setLoading(false);
     return data;
@@ -266,20 +228,16 @@ export const useDeleteUser = () => {
   const deleteUser = async ({ id }: { id: string }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .delete()
-      .eq("id", id)
-      .select();
-
-    await axios.post("/api/user/delete", {
+    const response = await axiosApi.post("/user/delete", {
       id: id,
     });
 
-    if (error) return null;
+    const responseData = response?.data?.data;
+
+    if (!responseData) return null;
 
     setLoading(false);
-    return data;
+    return responseData;
   };
 
   return { loading, deleteUser };
@@ -305,25 +263,73 @@ export const useManageImage = () => {
     return;
   };
 
-  return { removeImage, loading };
+  const fetchImage = async ({ avatarPath }: { avatarPath: string }) => {
+    let signedUrl: any;
+
+    if (avatarPath === null) return null;
+
+    const { data, error: urlError } = await supabase.storage
+      .from("user-photos")
+      .createSignedUrl(`${avatarPath}`, 3600);
+
+    if (urlError) {
+      console.error("Error generating signed URL:", urlError);
+      signedUrl = null;
+    }
+
+    signedUrl = data?.signedUrl;
+
+    return signedUrl;
+  };
+
+  const saveImage = async ({ file, id }: { file: any; id?: string }) => {
+    let filePath: string = "";
+
+    if (id) {
+      filePath = `${id}_${dayjs().toDate().getTime()}`;
+    } else {
+      filePath = `${dayjs().toDate().getTime()}`;
+    }
+    const fileExt = (file[0] as File).name.split(".").pop();
+    const fileName = `${filePath}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("user-photos")
+      .upload(fileName, file[0].originFileObj as File, {
+        upsert: true, // overwrite if exists
+        contentType: (file[0] as File).type,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const imageURL = fileName;
+
+    return imageURL;
+  };
+
+  return { saveImage, fetchImage, removeImage, loading };
 };
 
 export const useInstructorManagement = () => {
   const [loading, setLoading] = useState(false);
 
-  const createInstructor = async ({
+  const createInstructorProfile = async ({
     values,
   }: {
     values: CreateInstructorProps;
   }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("instructors")
-      .insert(values)
-      .select();
+    const response = await axiosApi.post(
+      "/instructor/create-instructor-profile",
+      {
+        values,
+      }
+    );
 
-    if (error) return null;
+    const data = response?.data?.data;
+
+    if (!data) return null;
 
     setLoading(false);
     return data;
@@ -338,84 +344,78 @@ export const useInstructorManagement = () => {
   }) => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("instructors")
-      .update(values)
-      .eq("id", id)
-      .select();
+    const response = await axiosApi.put("/instructor/update-instructor", {
+      id,
+      values,
+    });
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
-    }
+    const data = response?.data?.data;
+
+    if (!data) return null;
 
     setLoading(false);
     return data;
   };
 
   const deleteInstructor = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .delete()
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.post("/user/delete", { id });
+      const data = response?.data?.data;
 
-    await axios.post("/api/user/delete", {
-      id: id,
-    });
+      if (!data) return null;
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const deactivateInstructor = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update({ deactivated: true })
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/instructor/deactivate", { id });
+      const data = response?.data?.data;
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const reactivateInstructor = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update({ deactivated: false })
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/instructor/reactivate", { id });
+      const data = response?.data?.data;
 
-    if (error) {
-      console.log("error: ", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   return {
     loading,
     reactivateInstructor,
     deactivateInstructor,
-    createInstructor,
+    createInstructorProfile,
     updateInstructor,
     deleteInstructor,
   };
@@ -433,20 +433,24 @@ export const useClassManagement = () => {
     bookingID: string;
     status: string;
   }) => {
-    let query = supabase
-      .from("class_bookings")
-      .update({ attendance_status: status })
-      .eq("id", bookingID);
+    try {
+      setLoading(true);
 
-    const { data, error } = await query;
+      const response = await axiosApi.put("/classes/mark-attendance", {
+        bookingID,
+        status,
+      });
+      const data = response?.data?.data;
 
-    if (error) {
-      console.error("Error fetching attendees:", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const rebookAttendee = async ({
@@ -462,70 +466,48 @@ export const useClassManagement = () => {
     bookingID: string;
     newClassID: string;
   }) => {
-    let query = supabase
-      .from("class_bookings")
-      .update({ class_id: newClassID })
-      .eq("id", bookingID)
-      .select();
+    try {
+      setLoading(true);
 
-    console.log({
-      oldClassID,
-      newClassID,
-      bookingID,
-      oldTakenSlots,
-      newTakenSlots,
-    });
+      const response = await axiosApi.put("/classes/rebook-attendee", {
+        oldClassID,
+        newClassID,
+        bookingID,
+        oldTakenSlots,
+        newTakenSlots,
+      });
+      const data = response?.data?.data;
 
-    const updateOldClassResponse = await updateClass({
-      id: oldClassID,
-      ...(oldTakenSlots !== 0 && {
-        values: { taken_slots: oldTakenSlots - 1 },
-      }),
-    });
-    const updateNewClassResponse = await updateClass({
-      id: newClassID,
-      values: { taken_slots: newTakenSlots + 1 },
-    });
+      if (!data) return null;
 
-    const { data, error } = await query;
-
-    if (
-      error ||
-      updateOldClassResponse === null ||
-      updateNewClassResponse === null
-    ) {
-      console.error("Error rebooking attendee:", error);
-      return null;
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const fetchClassAttendees = async ({ classID }: { classID: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    let query = supabase
-      .from("class_bookings")
-      .select(
-        `
-        *, 
-        user_profiles(
-          full_name
-        )
-        `
-      )
-      .eq("class_id", classID);
+      const response = await axiosApi.get(`/classes/fetch-attendees`, {
+        params: { classID },
+      });
 
-    const { data, error } = await query;
+      const data = response?.data?.data;
 
-    if (error) {
-      console.error("Error fetching attendees:", error);
-      return null;
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
     }
-
     setLoading(false);
-    return data;
   };
 
   const fetchClasses = async ({
@@ -545,98 +527,50 @@ export const useClassManagement = () => {
     endDate?: Dayjs;
     selectedDate?: Dayjs;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const nowISO = dayjs().toISOString();
-    const today = dayjs().startOf("day");
-    let query = supabase.from("classes").select(`
-    *,
-    instructors (
-      id,
-      user_id,
-      full_name,
-      avatar_path,
-      user_profiles (
-        id,
-        avatar_path,
-        deactivated
-      )
-    ),
-    class_bookings (
-      id,
-      attendance_status,
-      booker_id,
-      class_id,
-      walk_in_first_name,
-      walk_in_last_name,
-      user_profiles (
-        id,
-        full_name
-      )
-    )
-  `);
+      const response = await axiosApi.get("/classes/fetch-classes", {
+        params: {
+          isAdmin,
+          isInstructor,
+          userId,
+          startDate,
+          endDate,
+          selectedDate,
+          instructorId,
+        },
+      });
+      const data = response?.data?.data;
 
-    if (userId) {
-      query = query.eq("class_bookings.booker_id", userId);
+      if (!data) return null;
+
+      setLoading(false);
+
+      return data;
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
     }
-
-    if (isInstructor && instructorId) {
-      query = query.eq("instructor_id", instructorId);
-    }
-
-    if (startDate && endDate) {
-      query = query
-        .gte("class_date", startDate.format("YYYY-MM-DD"))
-        .lte("class_date", endDate.format("YYYY-MM-DD"));
-    }
-
-    if (selectedDate) {
-      const startOfSelectedUTC = selectedDate
-        .startOf("day")
-        .subtract(8, "hour")
-        .toISOString();
-      const endOfSelectedUTC = selectedDate
-        .endOf("day")
-        .subtract(8, "hour")
-        .toISOString();
-
-      query = query
-        .gte("class_date", startOfSelectedUTC)
-        .lte("class_date", endOfSelectedUTC);
-
-      // If selected day is today, and the caller is NOT admin and NOT instructor,
-      // only show classes that haven't started yet.
-      if (!isAdmin && !isInstructor && selectedDate.isSame(today, "day")) {
-        query = query.gte("start_time", nowISO);
-      }
-    }
-
-    query = query.order("start_time", { ascending: true });
-
-    const { data, error } = await query;
-
     setLoading(false);
-
-    if (error) {
-      console.error("Error fetching classes:", error);
-      return null;
-    }
-
-    return data;
   };
 
   const createClass = async ({ values }: { values: CreateClassProps }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("classes")
-      .insert(values)
-      .single();
+      const response = await axiosApi.post("/classes/create-class", { values });
+      const data = response?.data?.data;
 
-    if (error) return null;
+      if (!data) return null;
 
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const updateClass = async ({
@@ -646,18 +580,24 @@ export const useClassManagement = () => {
     id: string;
     values?: CreateClassProps;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("classes")
-      .update(values)
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/classes/update-class", {
+        id,
+        values,
+      });
+      const data = response?.data?.data;
 
-    if (error) return null;
+      if (!data) return null;
 
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const cancelClass = async ({
@@ -669,45 +609,48 @@ export const useClassManagement = () => {
     classID: string;
     takenSlots: number;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("class_bookings")
-      .update({ attendance_status: "cancelled" })
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.put("/classes/cancel-class", {
+        id,
+        classID,
+        takenSlots,
+        userID: user?.id as string,
+        userCredits: user?.credits,
+      });
 
-    const updateClassResponse = await updateClass({
-      id: classID,
-      values: { taken_slots: takenSlots - 1 },
-    });
-    const updateCreditsResponse = await updateUserCredits({
-      userID: user?.id as string,
-      ...(user?.credits && {
-        values: { credits: (user.credits as number) + 1 },
-      }),
-    });
+      const data = response.data.data;
+      if (data === null) return null;
 
-    if (error || updateClassResponse === null || updateCreditsResponse === null)
-      return null;
-
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const deleteClass = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("classes")
-      .delete()
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.post("/classes/delete-class", {
+        id,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (data === null) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const bookClass = async ({
@@ -729,38 +672,31 @@ export const useClassManagement = () => {
     walkInClientEmail?: string;
     walkInClientContactNumber?: string;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("class_bookings")
-      .insert({
-        class_id: classId,
-        class_date: classDate,
-        is_walk_in: isWalkIn,
-        attendance_status: "no-show",
-        ...(bookerId && { booker_id: bookerId }),
-        /**
-         * walk-ins can only book classes that are on the same day
-         * so we set the sent_email_reminder value to TRUE
-         * meaning that an automated email does not need to be
-         * sent to that client
-         *
-         * DEV NOTE: default value is FALSE and is configured in the DB
-         */
-        ...(isWalkIn === true && { sent_email_reminder: true }),
-        ...(walkInFirstName && { walk_in_first_name: walkInFirstName }),
-        ...(walkInLastName && { walk_in_last_name: walkInLastName }),
-        ...(walkInClientEmail && { walk_in_client_email: walkInClientEmail }),
-        ...(walkInClientContactNumber && {
-          walk_in_client_contact_number: walkInClientContactNumber,
-        }),
-      })
-      .select();
+      const response = await axiosApi.post("/classes/book-class", {
+        classDate,
+        bookerId,
+        classId,
+        isWalkIn,
+        walkInFirstName,
+        walkInLastName,
+        walkInClientEmail,
+        walkInClientContactNumber,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (data === null) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   return {
@@ -781,25 +717,49 @@ export const usePackageManagement = () => {
   const [loading, setLoading] = useState(false);
 
   const createPackage = async ({ values }: { values: any }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase.from("packages").insert(values);
+      const response = await axiosApi.post("/package/create-package", {
+        values,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
-  const fetchPackages = async () => {
-    setLoading(true);
+  const fetchPackages = async ({
+    isAdmin,
+  }: {
+    isAdmin: boolean | undefined;
+  }) => {
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase.from("packages").select("*");
+      const response = await axiosApi.get("/package/fetch-packages", {
+        params: { isAdmin },
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const updatePackage = async ({
@@ -809,32 +769,44 @@ export const usePackageManagement = () => {
     id: string;
     values: CreatePackageProps;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("packages")
-      .update(values)
-      .eq("id", id);
+      const response = await axiosApi.put("/package/update-package", {
+        id,
+        values,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const deletePackage = async ({ id }: { id: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("packages")
-      .delete()
-      .eq("id", id)
-      .select();
+      const response = await axiosApi.post("/package/delete-package", { id });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const purchasePackage = async ({
@@ -852,28 +824,29 @@ export const usePackageManagement = () => {
     packageCredits: number;
     validityPeriod: number;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const today = dayjs();
-    const { data, error } = await supabase
-      .from("client_packages")
-      .insert({
-        user_id: userID,
-        package_id: packageID,
-        status: "active",
-        validity_period: validityPeriod,
-        package_credits: packageCredits,
-        purchase_date: today,
-        package_name: packageName,
-        payment_method: paymentMethod,
-        expiration_date: getDateFromToday(validityPeriod),
-      })
-      .select();
+      const response = await axiosApi.post("/package/purchase-package", {
+        userID,
+        packageID,
+        paymentMethod,
+        validityPeriod,
+        packageCredits,
+        packageName,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const updateClientPackage = async ({
@@ -888,29 +861,25 @@ export const usePackageManagement = () => {
       expirationDate?: Dayjs;
     };
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("client_packages")
-      .update({
-        ...(values?.status && { status: values.status }),
-        ...(values?.expirationDate && {
-          expiration_date: values.expirationDate,
-        }),
-        ...(values?.packageCredits && {
-          package_credits: values.packageCredits,
-        }),
-        ...(values?.validityPeriod && {
-          validity_period: values.validityPeriod,
-        }),
-      })
-      .eq("id", clientPackageID)
-      .select();
+      const response = await axiosApi.put("/package/update-client-package", {
+        clientPackageID,
+        values,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const fetchClientPackages = async ({
@@ -918,40 +887,17 @@ export const usePackageManagement = () => {
     findExpiry,
   }: {
     clientID?: string;
-    findExpiry?: boolean;
+    findExpiry?: boolean | undefined;
   }) => {
     setLoading(true);
 
-    let query = supabase.from("client_packages").select(`*, packages(*)`);
-    const startOfTodayUTC = dayjs().utc().startOf("day").toISOString();
-    const endOfTodayUTC = dayjs().utc().endOf("day").toISOString();
+    const response = await axiosApi.get("/package/fetch-client-packages", {
+      params: { clientID, findExpiry },
+    });
 
-    if (clientID) {
-      query = query.eq("user_id", clientID);
-    }
+    const data = response.data?.data;
 
-    if (clientID === undefined && findExpiry) {
-      /**
-       * this gets records that are active and have an expiration_date of the current date
-       *
-       * query = query.eq("status", "active");
-       * query = query.gte("expiration_date", startOfTodayUTC);
-       * query = query.lt("expiration_date", endOfTodayUTC);
-       */
-
-      /**
-       * this gets potentially missed records that were active
-       * of today and in the past
-       */
-      query = query.eq("status", "active");
-      query = query.lte("expiration_date", endOfTodayUTC);
-    }
-
-    query = query.order("created_at", { ascending: false });
-
-    const { data, error } = await query;
-
-    if (error) return null;
+    if (!data) return null;
 
     setLoading(false);
     return data;
@@ -973,53 +919,24 @@ export const useClientBookings = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchClientBookings = async ({ userID }: { userID: string }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const nowISO = dayjs().toISOString();
+      const response = await axiosApi.get("/user/fetch-client-bookings", {
+        params: { userID },
+      });
 
-    const { data, error } = await supabase
-      .from("class_bookings")
-      .select(
-        `
-          id,
-          booker_id,
-          class_id,
-          class_date,
-          attendance_status,
-          classes (
-            id,
-            end_time,
-            start_time,
-            class_date,
-            class_name,
-            instructor_id,
-            instructor_name,
-            taken_slots,
-            available_slots,
-            instructors (
-              id,
-              user_id,
-              full_name,
-              avatar_path,
-              user_profiles (
-                id,
-                avatar_path
-              )
-            )
-          )
-    `
-      )
-      .eq("booker_id", userID)
-      .or(
-        "attendance_status.eq.active,attendance_status.eq.no-show,attendance_status.is.null"
-      );
+      const data = response.data?.data;
 
-    // .gte("classes.start_time", nowISO);
+      if (!data) return null;
 
-    if (error) return null;
-
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   return { loading, fetchClientBookings };
@@ -1033,19 +950,24 @@ export const useManageCredits = () => {
   }: {
     values: CreateUserCredits;
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_credits")
-      .insert(values)
-      .single();
+      const response = await axiosApi.post("/credits/create-user-credits", {
+        values,
+      });
 
-    console.log("error: ", error);
+      const data = response.data?.data;
 
-    if (error) return null;
+      if (!data) return null;
 
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   const updateUserCredits = async ({
@@ -1055,18 +977,25 @@ export const useManageCredits = () => {
     userID: string;
     values?: { credits: number };
   }) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { data, error } = await supabase
-      .from("user_credits")
-      .update(values)
-      .eq("user_id", userID)
-      .single();
+      const response = await axiosApi.put("/credits/update-user-credits", {
+        userID,
+        values,
+      });
 
-    if (error) return null;
+      const data = response.data?.data;
 
+      if (!data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return data;
   };
 
   return { loading, updateUserCredits, createUserCredits };
@@ -1076,14 +1005,20 @@ export const useManageOrders = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchOrders = async () => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const response = await axios.get("/api/admin/orders/fetch");
+      const response = await axiosApi.get("/admin/orders/fetch");
+      const data = response.data.data;
+      if (!data) return null;
 
-    if (!response.data.data) return null;
-
+      setLoading(false);
+      return data;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
     setLoading(false);
-    return response.data.data;
   };
 
   return { loading, fetchOrders };

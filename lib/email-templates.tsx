@@ -6,7 +6,7 @@ export const packagePurchase = ({
   packageTitle?: string;
 }) => {
   return {
-    subject: "Your Supra8 Lagree Payment and Package is Confirmed",
+    subject: "Your 8 Club Lagree Payment and Package is Confirmed",
     body: `
     <div style="width:100%; background:#f4f4f4; padding:40px 0;">
   <div style="
@@ -72,7 +72,7 @@ export const classBookingConfirmation = ({
   instructor?: string;
 } = {}) => {
   return {
-    subject: "Supra8 Class Booking Confirmed",
+    subject: "8 Club Lagree Class Booking Confirmed",
 
     body: `
     <div style="width:100%; background:#f4f4f4; padding:40px 0;">
@@ -106,7 +106,7 @@ export const classBookingConfirmation = ({
       color:#36013F;
       text-align:center;
     ">
-      You booked a class</br></br><span style="color: red">${date}</span> at <span style="color: red">${time}</span> with <span style="color: red">${instructor}</span>
+      You booked a class </br></br><span style="color: red">${date}</span> at <span style="color: red">${time}</span> with <span style="color: red">${instructor}</span>
     </h2>
 
     <!-- Body Paragraph (your exact content) -->

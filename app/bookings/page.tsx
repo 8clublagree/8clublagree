@@ -21,7 +21,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
-import { useClassManagement, useManageCredits } from "@/lib/api";
+import {
+  useClassManagement,
+  useManageCredits,
+  useManageImage,
+} from "@/lib/api";
 import { calculateDuration } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/lib/hooks";
@@ -31,6 +35,7 @@ import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
 import { ChevronRight } from "lucide-react";
 import { useAppMessage } from "@/components/ui/message-popup";
 import axios from "axios";
+import axiosApi from "@/lib/axiosConfig";
 
 const { Title, Text } = Typography;
 
@@ -59,6 +64,7 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [delayedOverflow, setDelayedOverflow] = useState("hidden");
+  const { fetchImage } = useManageImage();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -105,25 +111,17 @@ export default function BookingsPage() {
 
     if (data) {
       const mapped = await Promise.all(
-        data.map(async (lagreeClass) => {
+        data.map(async (lagreeClass: any) => {
           let imageURL: any = null;
           // if (!user.avatar_path) return user; // skip if no avatar
 
           // generate signed URL valid for 1 hour (3600s)
           if (lagreeClass.instructors.user_profiles.avatar_path) {
-            const { data, error: urlError } = await supabase.storage
-              .from("user-photos")
-              .createSignedUrl(
-                `${lagreeClass.instructors.user_profiles.avatar_path}`,
-                3600
-              );
+            const signedURL = await fetchImage({
+              avatarPath: lagreeClass.instructors.user_profiles.avatar_path,
+            });
 
-            if (urlError) {
-              console.error("Error generating signed URL:", urlError);
-              imageURL = null;
-            }
-
-            imageURL = data?.signedUrl;
+            imageURL = signedURL;
           }
 
           return {
@@ -166,29 +164,31 @@ export default function BookingsPage() {
   };
 
   const handleSendConfirmationEmail = async () => {
-    const classDate = `${dayjs(selectedDate).format("MMMM")} ${dayjs(
-      selectedDate
-    ).format("DD")} ${dayjs(selectedDate).format("YYYY")}`;
+    try {
+      const classDate = `${dayjs(selectedDate).format("MMMM")} ${dayjs(
+        selectedDate
+      ).format("DD")} ${dayjs(selectedDate).format("YYYY")}`;
 
-    const classTime = dayjs(selectedRecord?.start_time).format("hh:mm A");
+      const classTime = dayjs(selectedRecord?.start_time).format("hh:mm A");
 
-    const res = await axios.post("/api/send-email", {
-      to: user?.email,
-      instructor: selectedRecord.instructor_name,
-      date: classDate,
-      time: classTime,
-      className: "Regular Class",
-      emailType: "class_booking_confirmation",
-    });
-
-    const data = await res.data;
+      await axiosApi.post("/send-email", {
+        to: user?.email,
+        instructor: selectedRecord.instructor_name,
+        date: classDate,
+        time: classTime,
+        className: "Regular Class",
+        emailType: "class_booking_confirmation",
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleBookClass = async () => {
     try {
       setIsSubmitting(true);
       if (user) {
-        let promises;
+        let promises: any[] = [];
 
         promises = [
           bookClass({
@@ -217,8 +217,7 @@ export default function BookingsPage() {
           dispatch(setUser({ ...user, credits: updatedCredits }));
         }
 
-        await Promise.all([...promises]);
-        // await Promise.all([...promises, handleSendConfirmationEmail()]);
+        await Promise.all([...promises, handleSendConfirmationEmail()]);
 
         setIsSubmitting(false);
         handleCloseModal();

@@ -26,7 +26,11 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
 import { LuPackage } from "react-icons/lu";
 import { FaBook, FaList, FaQuestion } from "react-icons/fa";
-import { useManageCredits, usePackageManagement } from "@/lib/api";
+import {
+  useManageCredits,
+  useManageImage,
+  usePackageManagement,
+} from "@/lib/api";
 import dayjs from "dayjs";
 
 const { Header, Sider, Content } = Layout;
@@ -45,6 +49,7 @@ export default function AuthenticatedLayout({
   const { updateClientPackage, loading } = usePackageManagement();
   const { updateUserCredits, loading: updatingCredits } = useManageCredits();
   const user = useAppSelector((state) => state.auth.user);
+  const { fetchImage } = useManageImage();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -105,18 +110,11 @@ export default function AuthenticatedLayout({
     let signedUrl: string | undefined = "";
 
     //if user has an avatar
-    if (profile.avatar_path) {
-      const { data, error: urlError } = await supabase.storage
-        .from("user-photos")
-        .createSignedUrl(`${profile?.avatar_path}`, 3600);
+    const signedURL = await fetchImage({
+      avatarPath: profile?.avatar_path,
+    });
 
-      if (urlError) {
-        console.error("Error generating signed URL:", urlError);
-        signedUrl = undefined;
-      }
-
-      signedUrl = data?.signedUrl;
-    }
+    signedUrl = signedURL;
 
     const latestCredit = profile?.user_credits?.sort(
       (a: any, b: any) =>
@@ -229,7 +227,7 @@ export default function AuthenticatedLayout({
         <div>
           <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#36013F]">
             <Text className="text-xl font-semibold text-slate-200">
-              Supra8 Lagree
+              8 Club Lagree
             </Text>
           </div>
           <Menu

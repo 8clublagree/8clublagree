@@ -67,6 +67,7 @@ export default function ClassManagementPage() {
 
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [selectedClass, setSelectedClass] = useState<any>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -116,7 +117,7 @@ export default function ClassManagementPage() {
             id: item.id,
             instructor_id: item.instructor_id,
             class_name: item.class_name,
-            instructor_name: item.instructor_name,
+            instructor_name: item.instructors.user_profiles.full_name,
             start_time: dayjs(item.start_time),
             end_time: dayjs(item.end_time),
             slots: `${item.taken_slots} / ${item.available_slots}`,
@@ -126,7 +127,7 @@ export default function ClassManagementPage() {
           };
         });
 
-        const allBookings = data.flatMap((cls) =>
+        const allBookings = data.flatMap((cls: any) =>
           cls.class_bookings.map((booking: any) => ({
             classID: cls.id,
             value: booking.booker_id,
@@ -145,7 +146,7 @@ export default function ClassManagementPage() {
 
         setAllBookings(allBookings);
 
-        const grouped = allBookings.reduce((acc, booking) => {
+        const grouped = allBookings.reduce((acc: any, booking: any) => {
           if (!acc[booking.value]) {
             acc[booking.value] = {
               bookingID: booking.bookingID,
@@ -214,7 +215,6 @@ export default function ClassManagementPage() {
   };
 
   const handleEdit = (record: CreateClassProps) => {
-    console.log("record: ", record);
     setSelectedRecord(record);
     setIsFormModalOpen(true);
   };
@@ -238,7 +238,7 @@ export default function ClassManagementPage() {
       classID: record.id as string,
     });
 
-    const mapped = response?.map((classBookings) => {
+    const mapped = response?.map((classBookings: any) => {
       return {
         ...selectedRecord,
         ...classBookings,
@@ -250,6 +250,7 @@ export default function ClassManagementPage() {
     });
 
     setSelectedRecord(record);
+    setSelectedClass(record);
     setViewModalOpen(true);
     setAttendees(mapped as []);
   };
@@ -393,7 +394,15 @@ export default function ClassManagementPage() {
     });
 
     // handleFetchClasses();
-    window.location.reload();
+
+    showMessage({
+      type: "success",
+      content: "Successfully rebooked attendee",
+    });
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
 
     handleCloseRebookModal();
   };
@@ -409,6 +418,8 @@ export default function ClassManagementPage() {
       await markAttendance({ bookingID, status });
 
       showMessage({ type: "success", content: "Marked Attendance" });
+
+      handleView(selectedClass);
     } catch (error) {
       showMessage({ type: "error", content: "Error marking attendance" });
     }
@@ -486,7 +497,10 @@ export default function ClassManagementPage() {
                         className="!outline-none"
                         style={{ width: 120 }}
                         onChange={(e) =>
-                          handleChange({ bookingID: item.id, status: e })
+                          handleChange({
+                            bookingID: item.id,
+                            status: e,
+                          })
                         }
                         options={[
                           { value: "no-show", label: "No Show" },

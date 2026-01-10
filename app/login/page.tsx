@@ -51,10 +51,23 @@ export default function LoginPage() {
   return (
     <UnauthenticatedLayout>
       {contextHolder}
-      <div className="h-[100vh] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4">
-        <Card
-          className="w-full max-w-md shadow-xl border-0"
-          style={{ borderRadius: 12 }}
+      <Card
+        className="w-full max-w-md shadow-xl border-0"
+        style={{ borderRadius: 12 }}
+      >
+        <div className="text-center mb-8">
+          <Title level={2} className="!mb-2">
+            8 Club Lagree
+          </Title>
+          <Text type="secondary">Sign in to your account</Text>
+        </div>
+
+        <Form
+          name="login"
+          onFinish={onFinish}
+          layout="vertical"
+          size="large"
+          requiredMark={false}
         >
           <div className="text-center mb-8">
             <Title level={2} className="!mb-2">

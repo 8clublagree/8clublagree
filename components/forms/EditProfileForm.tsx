@@ -1,7 +1,6 @@
 "use client";
 
-import useDebounce from "@/hooks/use-debounce";
-import { useManagePassword } from "@/lib/api";
+import { useManageImage } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { supabase } from "@/lib/supabase";
 import {
@@ -13,8 +12,6 @@ import {
   GetProp,
   Input,
   Row,
-  Spin,
-  Typography,
   Upload,
   UploadFile,
   UploadProps,
@@ -22,7 +19,7 @@ import {
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppMessage } from "../ui/message-popup";
 import { keys, omit } from "lodash";
 
@@ -34,10 +31,7 @@ interface Props {
 }
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
-const { Text } = Typography;
-
 const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
-  const BUCKET_NAME = "user-photos";
   const user = useAppSelector((state) => state.auth.user);
   const initialValuesRef = useRef<any>(null);
   const [isModified, setIsModified] = useState<boolean>(false);
@@ -143,9 +137,14 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
   };
 
   const handleSubmit = async (formData: any) => {
-    let imageURL: string = "";
+    let imageURL: string | File = "";
+    const modifiedFile = file?.[0];
 
-    if (file) {
+    if (
+      modifiedFile !== undefined &&
+      modifiedFile !== null &&
+      modifiedFile?.name !== "existing_image.png"
+    ) {
       const response = await handleUpload(file);
       if (response) {
         imageURL = response;
@@ -154,7 +153,9 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
 
     const values = {
       ...formData,
-      avatar_path: imageURL.length ? imageURL : null,
+      ...(modifiedFile?.name !== "existing_image.png" && {
+        avatar_path: imageURL.length ? imageURL : null,
+      }),
       location: formData.location,
       birthday: dayjs(formData.birthday).toISOString(),
       full_name: `${formData.first_name} ${formData.last_name}`,
@@ -171,7 +172,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
         const fileName = `${filePath}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
-          .from(BUCKET_NAME)
+          .from(process.env.STORAGE_BUCKET!)
           .upload(fileName, file[0].originFileObj as File, {
             upsert: true, // overwrite if exists
             contentType: (file[0] as File).type,
@@ -214,7 +215,6 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
     });
 
   const handleChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
-    console.log(newFileList);
     setFile(newFileList);
   };
 

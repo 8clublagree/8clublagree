@@ -27,6 +27,7 @@ import { useAppSelector } from "@/lib/hooks";
 import PackageHistoryCard from "../ui/package-history-card";
 import {
   useManageCredits,
+  useManageImage,
   usePackageManagement,
   useSearchUser,
 } from "@/lib/api";
@@ -66,10 +67,8 @@ const EditClientForm = ({
   initialValues = null,
   isEdit = false,
 }: EditClientProps) => {
-  const BUCKET_NAME = "user-photos";
   const [form] = Form.useForm();
   const watchedValues = Form.useWatch([], form);
-  const user = useAppSelector((state) => state.auth.user);
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
@@ -77,6 +76,7 @@ const EditClientForm = ({
   const [initialFileState, setInitialFileState] = useState<UploadFile[] | null>(
     null
   );
+  const { saveImage } = useManageImage();
   const [email, setEmail] = useState<string>("");
   const { validateEmail } = useSearchUser();
   const { debouncedValue: debouncedEmail, loading: debouncing } = useDebounce(
@@ -101,7 +101,6 @@ const EditClientForm = ({
   }, [debouncedEmail]);
 
   useEffect(() => {
-    console.log("initialValues: ", initialValues);
     if (initialValues) {
       // exclude avatar data since it's not part of the form
       const initial = {
@@ -188,22 +187,9 @@ const EditClientForm = ({
       if (initialValues?.id && !!file.length) {
         setUploading(true);
 
-        const filePath = `${initialValues.id}_${dayjs().toDate().getTime()}`;
-        const fileExt = (file[0] as File).name.split(".").pop();
-        let fileName = `${filePath}.${fileExt}`;
+        const response = await saveImage({ file, id: initialValues.id });
 
-        const { error: uploadError } = await supabase.storage
-          .from(BUCKET_NAME)
-          .upload(fileName, file[0].originFileObj as File, {
-            upsert: true, // overwrite if exists
-            contentType: (file[0] as File).type,
-          });
-
-        if (uploadError) throw uploadError;
-
-        const imageURL = fileName;
-
-        return imageURL;
+        return response;
       }
     } catch (err: any) {
       console.error(err);
@@ -258,7 +244,9 @@ const EditClientForm = ({
 
     const formData = {
       ...values,
-      ...(!!imageURL.length && { avatar_path: imageURL }),
+      ...(clientFile?.name !== "existing_image.png" && {
+        avatar_path: imageURL,
+      }),
       full_name: `${values.first_name} ${values.last_name}`,
     };
 
@@ -278,6 +266,7 @@ const EditClientForm = ({
   const {
     fetchPackages,
     purchasePackage,
+    updateClientPackage,
     loading: addingPackage,
   } = usePackageManagement();
   const { updateUserCredits } = useManageCredits();
@@ -298,7 +287,7 @@ const EditClientForm = ({
   }, [isPackagesModalOpen]);
 
   const handleFetchPackages = async () => {
-    const response = await fetchPackages();
+    const response = await fetchPackages({ isAdmin: true });
 
     const mapped = response?.map((data) => {
       return {
@@ -312,12 +301,10 @@ const EditClientForm = ({
         label: data.title,
       };
     });
-    console.log("mapped: ", mapped);
     setPackages(mapped);
   };
 
   const handleAddPackage = async () => {
-    console.log(selectedPackage);
     await handlePurchasePackage();
     await handleUpdateUserCredits({ credits: selectedPackage.packageCredits });
 
@@ -339,6 +326,13 @@ const EditClientForm = ({
 
   const handlePurchasePackage = async () => {
     try {
+      if (initialValues?.clientPackage && initialValues?.credits === 0) {
+        await updateClientPackage({
+          clientPackageID: initialValues?.clientPackage.clientPackageID,
+          values: { status: "expired", expirationDate: dayjs() },
+        });
+      }
+
       const response = await purchasePackage({
         userID: initialValues?.id as string,
         packageID: selectedPackage.id,
@@ -479,13 +473,18 @@ const EditClientForm = ({
                 />
               </Row>
             )}
-            {!initialValues?.clientPackage && (
+            {(!initialValues?.clientPackage ||
+              initialValues?.credits === 0) && (
               <Row
                 justify={"center"}
-                className="bg-slate-200 w-full rounded-[10px] p-[30px] flex-col flex items-center"
+                className={`bg-slate-200 w-full rounded-[10px] p-[30px] flex-col flex items-center ${
+                  initialValues?.credits === 0 && "mt-[10px]"
+                }`}
               >
                 <Title className="!font-light" level={5}>
-                  Client has no active package
+                  {initialValues?.credits === 0
+                    ? "Client has no more credits"
+                    : "Client has no active package"}
                 </Title>
                 <Button
                   className={`bg-white`}

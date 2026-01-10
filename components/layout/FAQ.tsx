@@ -33,7 +33,8 @@ const FAQ = () => {
       <Paragraph>
         {" "}
         If you choose to pay in-studio, our team will assist you with setting up
-        your Supra8 account online to activate your class credits.{" "}
+        your <span className="font-bold">8 Club Lagree</span> account online to
+        activate your class credits.{" "}
       </Paragraph>
       <Text underline>Binding Effect</Text>
       <Paragraph>
@@ -52,11 +53,13 @@ const FAQ = () => {
       <Text underline>Indemnification</Text>
       <Paragraph>
         {" "}
-        I agree to indemnify, defend, and hold harmless Supra8 Lagree, its
-        owners, instructors, employees, and agents from and against any and all
-        claims, damages, costs, and expenses (including attorney&apos;s fees)
-        arising from my participation in Supra8 Lagree activities or from my
-        negligent or intentional acts or omissions.{" "}
+        I agree to indemnify, defend, and hold harmless{" "}
+        <span className="font-bold">8 Club Lagree</span> Lagree, its owners,
+        instructors, employees, and agents from and against any and all claims,
+        damages, costs, and expenses (including attorney&apos;s fees) arising
+        from my participation in{" "}
+        <span className="font-bold">8 Club Lagree</span> Lagree activities or
+        from my negligent or intentional acts or omissions.{" "}
       </Paragraph>
       <Text underline>How early should I come to class?</Text>
       <Paragraph>
@@ -69,8 +72,9 @@ const FAQ = () => {
       </Paragraph>
       <Text underline>How long does each class last?</Text>
       <Paragraph>
-        Each Supra8 Lagree session lasts 45 minutes — designed to challenge your
-        body efficiently within a short time frame.{" "}
+        Each <span className="font-bold">8 Club Lagree</span> Lagree session
+        lasts 45 minutes — designed to challenge your body efficiently within a
+        short time frame.{" "}
       </Paragraph>{" "}
       <Text underline>What should I wear and bring to class?</Text>
       <Paragraph>
@@ -106,8 +110,9 @@ const FAQ = () => {
         starting.
       </Paragraph>{" "}
       <Paragraph>
-        If cleared, please inform your Supra8 instructor before class so we can
-        adjust movements and intensity to fit your needs safely.
+        If cleared, please inform your{" "}
+        <span className="font-bold">8 Club Lagree</span> instructor before class
+        so we can adjust movements and intensity to fit your needs safely.
       </Paragraph>{" "}
       <Text underline>Is Lagree good for everyone?</Text>
       <Paragraph>

@@ -15,17 +15,17 @@ const UserTermsAndConditions = () => {
       }
     >
       <Title level={4}>
-        SUPRA8 LAGREE — MEMBER&apos;S ASSUMPTION OF RISK AND RELEASE OF
-        LIABILITY
+        <span className="font-bold">8 CLUB LAGREE</span> — MEMBER&apos;S
+        ASSUMPTION OF RISK AND RELEASE OF LIABILITY
       </Title>
       <Text underline>Assumption of Risk</Text>
       <Paragraph>
         I, the undersigned, understands that participation in any fitness class,
-        physical training, or related activity at Supra8 Lagree involves
-        inherent risks. These risks include, but are not limited to, slips or
-        falls; improper use or failure of equipment; overexertion; strains,
-        sprains, or other physical injuries; and, in rare cases, serious injury
-        or death.{" "}
+        physical training, or related activity at{" "}
+        <span className="font-bold">8 Club Lagree</span> involves inherent
+        risks. These risks include, but are not limited to, slips or falls;
+        improper use or failure of equipment; overexertion; strains, sprains, or
+        other physical injuries; and, in rare cases, serious injury or death.{" "}
       </Paragraph>
       <Paragraph>
         I acknowledge that these risks may result from my own actions, the
@@ -38,18 +38,21 @@ const UserTermsAndConditions = () => {
       <Text underline>Release of Liability</Text>
       <Paragraph>
         In consideration of being allowed to participate in any class, training,
-        or activity offered by Supra8 Lagree, I hereby release, waive, and
-        discharge Supra8 Lagree, its owners, partners, instructors, staff,
-        agents, and representatives from any and all claims, liabilities,
-        demands, or causes of action arising out of or related to any loss,
-        injury, disability, death, or damage to person or property—whether
-        caused by negligence or otherwise—occurring while participating in, or
-        as a result of participation in, any Supra8 Lagree activity or use of
-        its facilities or equipment.{" "}
+        or activity offered by <span className="font-bold">8 Club Lagree</span>,
+        I hereby release, waive, and discharge{" "}
+        <span className="font-bold">8 Club Lagree</span>, its owners, partners,
+        instructors, staff, agents, and representatives from any and all claims,
+        liabilities, demands, or causes of action arising out of or related to
+        any loss, injury, disability, death, or damage to person or
+        property—whether caused by negligence or otherwise—occurring while
+        participating in, or as a result of participation in, any{" "}
+        <span className="font-bold">8 Club Lagree</span> activity or use of its
+        facilities or equipment.{" "}
       </Paragraph>{" "}
       <Paragraph>
         {" "}
-        This release applies to all activities conducted at the Supra8 Lagree
+        This release applies to all activities conducted at the{" "}
+        <span className="font-bold">8 Club Lagree</span>
         studio or any off-site location designated by the studio for fitness
         training or events.{" "}
       </Paragraph>
@@ -64,17 +67,20 @@ const UserTermsAndConditions = () => {
       <Text underline>Medical Emergencies</Text>
       <Paragraph>
         If I am signing on behalf of a minor participant, I grant full
-        permission to any Supra8 Lagree staff member to administer first aid as
-        deemed necessary, and to seek medical or surgical care, including
-        transportation to a medical facility, in case of emergency.
+        permission to any <span className="font-bold">8 Club Lagree</span> staff
+        member to administer first aid as deemed necessary, and to seek medical
+        or surgical care, including transportation to a medical facility, in
+        case of emergency.
       </Paragraph>
       <Text underline>Indemnification</Text>
       <Paragraph>
         {" "}
-        I agree to indemnify, defend, and hold harmless Supra8 Lagree, its
-        owners, instructors, employees, and agents from and against any and all
-        claims, damages, costs, and expenses (including attorney&apos;s fees)
-        arising from my participation in Supra8 Lagree activities or from my
+        I agree to indemnify, defend, and hold harmless{" "}
+        <span className="font-bold">8 Club Lagree</span>, its owners,
+        instructors, employees, and agents from and against any and all claims,
+        damages, costs, and expenses (including attorney&apos;s fees) arising
+        from my participation in{" "}
+        <span className="font-bold">8 Club Lagree</span> activities or from my
         negligent or intentional acts or omissions.{" "}
       </Paragraph>
       <Text underline>Acknowledgment</Text>
@@ -87,31 +93,34 @@ const UserTermsAndConditions = () => {
       </Paragraph>
       <Title level={4}>DATA PRIVACY POLICY</Title>
       <Paragraph>
-        Supra8 Lagree values and respects your privacy. We are committed to
-        protecting all personal information collected from our clients in
-        accordance with the Data Privacy Act of 2012 (Republic Act No. 10173)
-        and other applicable laws and regulations in the Philippines.{" "}
+        <span className="font-bold">8 Club Lagree</span> values and respects
+        your privacy. We are committed to protecting all personal information
+        collected from our clients in accordance with the Data Privacy Act of
+        2012 (Republic Act No. 10173) and other applicable laws and regulations
+        in the Philippines.{" "}
       </Paragraph>{" "}
       <Paragraph>
         All personal data collected during registration and throughout your
         membership will be used solely for purposes related to class scheduling,
-        account management, and communication regarding Supra8 Lagree updates,
-        promotions, or policy changes. Your information will not be shared with
-        any third party without your consent, unless required by law.{" "}
+        account management, and communication regarding{" "}
+        <span className="font-bold">8 Club Lagree</span> updates, promotions, or
+        policy changes. Your information will not be shared with any third party
+        without your consent, unless required by law.{" "}
       </Paragraph>
       <Paragraph>
         {" "}
-        By signing this agreement or registering for any Supra8 Lagree service,
-        you consent to the collection and processing of your personal data as
-        described above.{" "}
+        By signing this agreement or registering for any{" "}
+        <span className="font-bold">8 Club Lagree</span> service, you consent to
+        the collection and processing of your personal data as described above.{" "}
       </Paragraph>{" "}
       <Paragraph>
         {" "}
-        You also grant Supra8 Lagree permission to take photos or videos during
-        classes or events for documentation and promotional purposes on the
-        studio&apos;s official website or social media platforms. However, the
-        studio will always seek explicit consent before featuring any
-        identifiable client in marketing or promotional materials.
+        You also grant <span className="font-bold">8 Club Lagree</span>{" "}
+        permission to take photos or videos during classes or events for
+        documentation and promotional purposes on the studio&apos;s official
+        website or social media platforms. However, the studio will always seek
+        explicit consent before featuring any identifiable client in marketing
+        or promotional materials.
       </Paragraph>
     </Card>
   );

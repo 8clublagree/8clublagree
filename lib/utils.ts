@@ -10,6 +10,38 @@ export const attendanceStatus: any = {
   cancelled: { status: "Cancelled", color: "red" },
   missed: { status: "Missed", color: "red" },
 };
+
+export function formatPHPhoneToE164(input: string): string {
+  if (!input) {
+    throw new Error("Phone number is required");
+  }
+
+  // Remove spaces, dashes, parentheses
+  let phone = input.replace(/[^\d+]/g, "");
+
+  // Already valid E.164
+  if (/^\+639\d{9}$/.test(phone)) {
+    return phone;
+  }
+
+  // Starts with 09xxxxxxxxx
+  if (/^09\d{9}$/.test(phone)) {
+    return `+63${phone.slice(1)}`;
+  }
+
+  // Starts with 9xxxxxxxxx
+  if (/^9\d{9}$/.test(phone)) {
+    return `+63${phone}`;
+  }
+
+  // Starts with 639xxxxxxxxx
+  if (/^639\d{9}$/.test(phone)) {
+    return `+${phone}`;
+  }
+
+  throw new Error("Invalid Philippine mobile number format");
+}
+
 export const ganttColors = [
   "#F28B82",
   "#FDD663",

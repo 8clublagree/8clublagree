@@ -32,6 +32,7 @@ import { useAppMessage } from "@/components/ui/message-popup";
 import axios from "axios";
 import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
 import { CERTIFICATIONS } from "@/lib/utils";
+import axiosApi from "@/lib/axiosConfig";
 
 const { Title, Text } = Typography;
 
@@ -54,11 +55,12 @@ export default function InstructorManagementPage() {
     deactivateInstructor,
     deleteInstructor,
     updateInstructor,
-    createInstructor,
+    createInstructorProfile,
     loading: loadingInstructor,
   } = useInstructorManagement();
   const { changePassword, loading: changingPassword } = useManagePassword();
   const { showMessage, contextHolder } = useAppMessage();
+  const { fetchImage } = useManageImage();
 
   useEffect(() => {
     handleSearchInstructors();
@@ -96,11 +98,10 @@ export default function InstructorManagementPage() {
   const handleSearchInstructors = async () => {
     const data = await searchInstructors({ name: debouncedValue });
     try {
-      // console.log("data: ", data);
       if (data) {
         const usersWithSignedUrls = await Promise.all(
-          data.map(async (record) => {
-            let imageURL: string | null | undefined = undefined;
+          data.map(async (record: any) => {
+            let signedUrl: string | null | undefined = undefined;
             const certification: any = CERTIFICATIONS.find(
               (x) => x.value === record.certification
             );
@@ -116,15 +117,17 @@ export default function InstructorManagementPage() {
             };
 
             // generate signed URL valid for 1 hour (3600s)
-            if (instructor.avatar_path) {
-              const { data: signedUrlData } = await supabase.storage
-                .from("user-photos")
-                .createSignedUrl(`${instructor.avatar_path}`, 3600);
 
-              imageURL = signedUrlData?.signedUrl;
+            console.log("instructor.avatar_path: ", instructor.avatar_path);
+            if (instructor.avatar_path !== null) {
+              const signedURL = await fetchImage({
+                avatarPath: instructor.avatar_path,
+              });
+
+              signedUrl = signedURL;
             }
 
-            return { ...instructor, avatar_url: imageURL };
+            return { ...instructor, avatar_url: signedUrl };
           })
         );
 
@@ -190,7 +193,7 @@ export default function InstructorManagementPage() {
           });
         }
 
-        const { data } = await axios.post("/api/update-user-email", {
+        const { data } = await axiosApi.post("/update-user-email", {
           id: selectedRecord.id,
           email: credentials.email,
         });
@@ -229,7 +232,7 @@ export default function InstructorManagementPage() {
       }
     } else {
       try {
-        const { data } = await axios.post("/api/create-instructor", {
+        const { data } = await axiosApi.post("/create-instructor", {
           email: credentials.email,
           password: credentials.password,
         });
@@ -250,7 +253,7 @@ export default function InstructorManagementPage() {
             });
           }
 
-          const createInstructorResponse = await createInstructor({
+          const createInstructorResponse = await createInstructorProfile({
             values: { ...professionalDetails, user_id: data.user.id },
           });
 
@@ -259,13 +262,14 @@ export default function InstructorManagementPage() {
               type: "error",
               content: "Error creating instructor",
             });
+            return;
           }
-        }
 
-        showMessage({
-          type: "success",
-          content: "Instructor has been created!",
-        });
+          showMessage({
+            type: "success",
+            content: "Instructor has been created!",
+          });
+        }
       } catch (error) {
         showMessage({
           type: "error",
@@ -291,12 +295,12 @@ export default function InstructorManagementPage() {
     };
   }) => {
     try {
-      const response = await axios.post("/api/update-password", {
-        id: selectedRecord.id,
-        password: values.new_password,
+      const response = await changePassword({
+        userID: selectedRecord.id as string,
+        newPassword: values.new_password,
       });
 
-      if (response.data.user) {
+      if (response) {
         showMessage({
           type: "success",
           content: "Updated password!",
@@ -537,6 +541,7 @@ export default function InstructorManagementPage() {
           footer={null}
           width={600}
           maskClosable={false}
+          destroyOnHidden={true}
         >
           <Tabs
             activeKey={profileTab}

@@ -32,6 +32,7 @@ import {
   usePackageManagement,
 } from "@/lib/api";
 import dayjs from "dayjs";
+import axios from "axios";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -64,6 +65,7 @@ export default function AuthenticatedLayout({
       }
 
       const profile = await getAdmin({ id: session.user.id });
+
       const clientPackages = await fetchClientPackages({ findExpiry: true });
 
       if (!!clientPackages?.length) {
@@ -193,7 +195,7 @@ export default function AuthenticatedLayout({
       >
         <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#36013F]">
           <Text className="text-xl font-semibold text-slate-200">
-            Supra8 Lagree Admin
+            8 Club Lagree Admin
           </Text>
         </div>
         <Menu

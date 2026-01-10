@@ -7,6 +7,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import {
   useDeleteUser,
   useManageCredits,
+  useManageImage,
   useSearchUser,
   useUpdateUser,
 } from "@/lib/api";
@@ -37,6 +38,7 @@ export default function ClientManagementPage() {
     "Bookings" | "Purchases" | "Payments"
   >("Bookings");
   const { deleteUser } = useDeleteUser();
+  const { fetchImage } = useManageImage();
 
   useEffect(() => {
     handleSearchClients();
@@ -86,17 +88,11 @@ export default function ClientManagementPage() {
 
             //if user has an avatar
             if (user.avatar_path !== null) {
-              // generate signed URL valid for 1 hour (3600s)
-              const { data, error: urlError } = await supabase.storage
-                .from("user-photos")
-                .createSignedUrl(`${user?.avatar_path}`, 7000);
+              const signedURL = await fetchImage({
+                avatarPath: user?.avatar_path,
+              });
 
-              if (urlError) {
-                console.error("Error generating signed URL:", urlError);
-                signedUrl = undefined;
-              }
-
-              signedUrl = data?.signedUrl;
+              signedUrl = signedURL;
             }
 
             //if user has bookings
@@ -119,6 +115,7 @@ export default function ClientManagementPage() {
 
             if (clientPackage) {
               clientPackage = {
+                clientPackageID: clientPackage.id,
                 status: clientPackage.status,
                 packages: {
                   title: clientPackage.package_name,
@@ -216,7 +213,7 @@ export default function ClientManagementPage() {
           });
         }
 
-        if (values.credits) {
+        if (!isNaN(values.credits)) {
           promises.push(
             updateUserCredits({
               userID: selectedRecord?.id as string,

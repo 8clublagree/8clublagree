@@ -24,6 +24,7 @@ import { CurrentPackageProps, supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
 import dayjs from "dayjs";
+import { useManageImage } from "@/lib/api";
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -40,6 +41,7 @@ export default function InstructorAuthenticatedLayout({
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { fetchImage } = useManageImage();
 
   useEffect(() => {
     checkUser();
@@ -99,18 +101,10 @@ export default function InstructorAuthenticatedLayout({
     let signedUrl: string | undefined = undefined;
 
     //if user has an avatar
-    if (profile.avatar_path) {
-      const { data, error: urlError } = await supabase.storage
-        .from("user-photos")
-        .createSignedUrl(`${profile?.avatar_path}`, 3600);
-
-      if (urlError) {
-        console.error("Error generating signed URL:", urlError);
-        signedUrl = undefined;
-      }
-
-      signedUrl = data?.signedUrl;
-    }
+    const signedURL = await fetchImage({
+      avatarPath: profile?.avatar_path,
+    });
+    signedUrl = signedURL;
 
     const latestCredit = profile?.user_credits?.sort(
       (a: any, b: any) =>
@@ -182,7 +176,7 @@ export default function InstructorAuthenticatedLayout({
           <Title>Your instructor account has been disabled</Title>
           <Text>
             If you think this is a mistake, please contact{" "}
-            <span className="font-bold">Supra8 Lagree Admin.</span>
+            <span className="font-bold">8 Club Lagree Admin.</span>
           </Text>
           <Button
             onClick={handleLogout}
@@ -202,7 +196,7 @@ export default function InstructorAuthenticatedLayout({
           >
             <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#36013F]">
               <Text className="text-xl font-semibold text-slate-200">
-                Supra8 Lagree
+                8 Club Lagree
               </Text>
             </div>
             <Menu
