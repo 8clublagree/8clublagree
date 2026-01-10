@@ -109,3 +109,43 @@ export interface Order {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface Class {
+  id: string;
+  name: string;
+  description: string;
+  intensity_level: string;
+  order: number;
+  created_at: string;
+}
+
+export interface Trainer {
+  id: string;
+  name: string;
+  role: string;
+  certifications: string[];
+  approach: string;
+  image_url?: string;
+  order: number;
+  created_at: string;
+}
+
+export interface Schedule {
+  id: string;
+  class_id: string;
+  trainer_id: string;
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+  classes?: Class;
+  trainers?: Trainer;
+}
+
+export interface Testimonial {
+  id: string;
+  client_name: string;
+  quote: string;
+  is_active: boolean;
+  created_at: string;
+}

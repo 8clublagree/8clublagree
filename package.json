@@ -89,6 +89,7 @@
     "@types/node": "^24.10.1",
     "@types/nodemailer": "^7.0.4",
     "@types/react-highlight-words": "^0.20.0",
+    "baseline-browser-mapping": "^2.9.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

@@ -19,6 +19,47 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+export const useAboutPageData = () => {
+  const [loading, setLoading] = useState(false);
+
+  const fetchPageData = async () => {
+    try {
+      setLoading(true);
+
+      const [classesRes, trainersRes, schedulesRes] = await Promise.all([
+        supabase.from("classes").select("*").order("created_at"),
+        supabase.from("instructors").select("*").order("created_at"),
+        supabase
+          .from("classes")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        //  supabase.from("testimonials").select("*").eq("is_active", true),
+      ]);
+
+      if (classesRes.error || trainersRes.error || schedulesRes.error)
+        return null;
+
+      console.log({
+        classesRes,
+        trainersRes,
+        schedulesRes,
+      });
+
+      return {
+        classesRes,
+        trainersRes,
+        schedulesRes,
+      };
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
+    setLoading(false);
+  };
+
+  return { fetchPageData, loading };
+};
+
 export const useAdminProfile = () => {
   const [loading, setLoading] = useState(false);
 
