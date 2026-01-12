@@ -158,6 +158,7 @@ export default function AuthenticatedLayout({
     if (pathname === "/bookings") return "5";
     if (pathname === "/user-terms-and-conditions") return "6";
     if (pathname === "/faq") return "7";
+    if (pathname === "/studio-guidelines") return "8";
     return "1";
   };
 
