@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import supabaseServer from "../../supabase";
 
+const WEBHOOK_STATUS = {
+  PAYMENT_SUCCESS: "PAYMENT_SUCCESS",
+  PAYMENT_FAILED: "PAYMENT_FAILED",
+  PAYMENT_EXPIRED: "PAYMENT_EXPIRED",
+  PAYMENT_CANCELLED: "PAYMENT_CANCELLED",
+};
+
 export async function POST(req: NextRequest) {
   try {
+    let nextResponse: any;
     const payload = await req.json();
     const { requestReferenceNumber, status, checkoutId, totalAmount } = payload;
 
-    console.log("Maya webhook received:", payload);
-
-    // 🚨 IMPORTANT:
-    // Do NOT rely on redirect status
-    // Webhook is the source of truth
-
-    if (status === "PAYMENT_SUCCESS") {
-      // TODO: mark order as PAID in your DB
-      console.log("payment success");
-    } else {
-      console.log("payment failed");
-      // TODO: mark order as FAILED / CANCELLED / EXPIRED
-    }
-
-    const response = await supabaseServer
+    let savePurchase = await supabaseServer
       .from("package_purchase_history")
       .insert({
         status,
@@ -28,15 +22,33 @@ export async function POST(req: NextRequest) {
         checkoutID: checkoutId,
       });
 
-    console.log("payload: ", payload);
-    console.log("response: ", response);
+    switch (status) {
+      case WEBHOOK_STATUS.PAYMENT_SUCCESS:
+        nextResponse = {
+          received: true,
+          message: "Payment successful",
+          data: payload,
+          savePurchase,
+        };
+        break;
+      case WEBHOOK_STATUS.PAYMENT_FAILED:
+        nextResponse = { received: false, message: "Payment has failed" };
+        break;
+      case WEBHOOK_STATUS.PAYMENT_EXPIRED:
+        nextResponse = { received: false, message: "Payment has expired" };
+        break;
+      case WEBHOOK_STATUS.PAYMENT_CANCELLED:
+        nextResponse = {
+          received: false,
+          message: "Payment has been cancelled",
+        };
+        break;
+    }
 
-    // ✅ Maya REQUIRES HTTP 200
-    return NextResponse.json({ received: true, data: payload });
+    return NextResponse.json(nextResponse);
   } catch (error) {
     console.error("Webhook error:", error);
 
-    // ❌ Non-200 = Maya retry = AT failure risk
     return NextResponse.json({ error: "Invalid webhook" }, { status: 400 });
   }
 }
