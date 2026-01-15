@@ -15,9 +15,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // PUSH CHANGES TO REPOSITORY
+  // TEST WEBHOOK IN TEMPORARY URL
+
   // for dev environment
   // if (origin !== process.env.SYSTEM_ORIGIN_TEST!) {
-
   // for production
   // if (origin !== process.env.SYSTEM_ORIGIN!) {
 

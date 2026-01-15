@@ -161,27 +161,27 @@ export default function PackagesPage() {
     //trigger
     try {
       //temporary behavior
-      setIsSubmitting(true);
-      await handlePurchasePackage();
-      await handleUpdateUserCredits({
-        credits: selectedRecord.packageCredits,
-      });
+      // setIsSubmitting(true);
+      // await handlePurchasePackage();
+      // await handleUpdateUserCredits({
+      //   credits: selectedRecord.packageCredits,
+      // });
       // await handleSendConfirmationEmail();
       //temporary behavior
 
       // temporarily commented out until payments is integrated
-      // setCarouselSlide(2);
-      // carouselRef.current.next();
+      setCarouselSlide(2);
+      carouselRef.current.next();
       // temporarily commented out until payments is integrated
 
       //temporary behavior
-      showMessage({
-        type: "success",
-        content: "Successfully purchased package!",
-      });
-      setIsModalOpen(false);
-      setSelectedRecord(null);
-      setIsSubmitting(false);
+      // showMessage({
+      //   type: "success",
+      //   content: "Successfully purchased package!",
+      // });
+      // setIsModalOpen(false);
+      // setSelectedRecord(null);
+      // setIsSubmitting(false);
       //temporary behavior
     } catch (error) {
       showMessage({ type: "error", content: "Failed to purchase package" });
@@ -235,26 +235,7 @@ export default function PackagesPage() {
   //   cvc: "",
   // });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-
-  useEffect(() => {
-    if (user) {
-      setFormData((prev) => ({
-        ...prev,
-        firstName: user?.first_name || "",
-        lastName: user?.last_name || "",
-        customerEmail: user?.email || "",
-        customerPhone: user?.contact_number || "",
-      }));
-    }
-  }, [user]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Test Maya Checkout
-  const [sameAsBilling, setSameAsBilling] = useState(true);
+  const [checkoutForm] = Form.useForm();
   const [formData, setFormData] = useState<PurchaseFormData>({
     productName: "Premium Subscription",
     productPrice: "1500.00",
@@ -275,7 +256,7 @@ export default function PackagesPage() {
       city: "",
       state: "",
       zipCode: "",
-      countryCode: "PH",
+      countryCode: "",
       firstName: "",
       middleName: "",
       lastName: "",
@@ -283,6 +264,34 @@ export default function PackagesPage() {
       customerEmail: "",
     },
   });
+
+  useEffect(() => {
+    console.log("user: ", user);
+    if (user) {
+      const values = {
+        ...formData,
+        firstName: user?.first_name || "",
+        lastName: user?.last_name || "",
+        customerEmail: user?.email || "",
+        customerPhone: user?.contact_number || "",
+        billingAddress: {
+          ...formData.billingAddress,
+          line1: user?.location || "",
+        },
+      };
+
+      checkoutForm.setFieldsValue(values);
+      setFormData(values);
+    }
+  }, [user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Test Maya Checkout
+  const [sameAsBilling, setSameAsBilling] = useState(true);
 
   const handleSameAsBillingToggle = (checked: boolean) => {
     setSameAsBilling(checked);
@@ -360,7 +369,7 @@ export default function PackagesPage() {
         ],
         redirectUrl: {
           success: `${window.location.origin}/packages`,
-          failure: `${window.location.origin}/checkout/failure`,
+          failure: `${window.location.origin}/packages`,
           cancel: `${window.location.origin}/packages`,
         },
         allowedPaymentMethods: ["CARD", "EWALLET", "QR_PH"],
@@ -368,7 +377,7 @@ export default function PackagesPage() {
       };
 
       console.log("checkoutPayload: ", checkoutPayload);
-      const response = await axiosApi.post("/maya-checkout", checkoutPayload, {
+      const response = await axiosApi.post("/maya/checkout", checkoutPayload, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -704,8 +713,9 @@ export default function PackagesPage() {
                     <Divider className="p-0 my-[5px]" />
 
                     <Form
+                      form={checkoutForm}
                       layout="vertical"
-                      // onFinish={handleCheckout}
+                      onFinish={handleCheckout}
                       className="flex flex-col gap-y-[10px] mt-[20px]"
                     >
                       {/* Personal Information */}
