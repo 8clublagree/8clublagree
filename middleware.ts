@@ -5,13 +5,19 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
-  const { headers } = req;
+  const { headers, nextUrl } = req;
+  const { pathname } = nextUrl;
   const origin = req.nextUrl.origin;
 
   const authHeader = headers.get("authorization");
 
   const data = Object.fromEntries(new URL(req.url).searchParams.entries());
   if (data.type === "about") {
+    return NextResponse.next();
+  }
+
+  // ✅ Allow Maya webhooks
+  if (pathname.startsWith("/api/maya/webhook")) {
     return NextResponse.next();
   }
 
