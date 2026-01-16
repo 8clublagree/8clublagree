@@ -64,11 +64,11 @@ export async function GET(req: NextRequest) {
     if (formattedSelectedDate) {
       const startOfSelectedUTC = formattedSelectedDate
         .startOf("day")
-        .subtract(8, "hour")
+        // .subtract(8, "hour")
         .toISOString();
       const endOfSelectedUTC = formattedSelectedDate
         .endOf("day")
-        .subtract(8, "hour")
+        // .subtract(8, "hour")
         .toISOString();
 
       query = query
