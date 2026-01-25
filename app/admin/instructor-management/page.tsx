@@ -103,7 +103,7 @@ export default function InstructorManagementPage() {
           data.map(async (record: any) => {
             let signedUrl: string | null | undefined = undefined;
             const certification: any = CERTIFICATIONS.find(
-              (x) => x.value === record.certification
+              (x) => x.value === record.certification,
             );
             const instructor = {
               ...record,
@@ -126,7 +126,7 @@ export default function InstructorManagementPage() {
             }
 
             return { ...instructor, avatar_url: signedUrl };
-          })
+          }),
         );
 
         setInstructors(usersWithSignedUrls);
@@ -252,7 +252,11 @@ export default function InstructorManagementPage() {
           }
 
           const createInstructorResponse = await createInstructorProfile({
-            values: { ...professionalDetails, user_id: data.user.id },
+            values: {
+              ...professionalDetails,
+              user_id: data.user.id,
+              password: credentials.password,
+            },
           });
 
           if (!createInstructorResponse) {

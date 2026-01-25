@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { EMAIL_TEMPLATE } from "@/lib/email-templates";
 import { MailtrapTransport } from "mailtrap";
 
-type EmailTypes = "package_purchase" | "class_booking_confirmation";
+type EmailTypes =
+  | "package_purchase"
+  | "package_pending_purchase"
+  | "class_booking_confirmation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,6 +32,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (emailType === "package_purchase") {
+      template = EMAIL_TEMPLATE[emailType];
+      const { subject: templateSubject, body: templateBody } = template({
+        packageTitle,
+      });
+
+      subject = templateSubject;
+      body = templateBody;
+    }
+
+    if (emailType === "package_pending_purchase") {
       template = EMAIL_TEMPLATE[emailType];
       const { subject: templateSubject, body: templateBody } = template({
         packageTitle,
@@ -107,7 +120,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Email sent", info });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return NextResponse.json(
       { message: "Error sending email", error },
       { status: 500 }

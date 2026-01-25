@@ -86,28 +86,16 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    const { data: profile, error } = await supabase
-      .from("user_profiles")
-      .select(
-        `
-    *,
-    user_credits (
-      id,
-      credits,
-      created_at
-    ),
-    client_packages (
-      *,
-      packages (*)
-    )
-  `
-      )
-      .eq("id", session.user.id)
-      .single();
+    const response = await axiosApi.get(`/user/initialize-user`, {
+      params: { userID: session.user.id },
+    });
 
-    if (error) {
-      console.error(error);
-    }
+    if (!response) return;
+
+    const profile = response.data.data.profile;
+    const payments = response.data.data.payment;
+    console.log("profile: ", profile);
+    console.log("payments: ", payments);
 
     let signedUrl: string | undefined = "";
 
@@ -135,9 +123,13 @@ export default function AuthenticatedLayout({
         router.push("/instructor/assigned-schedules");
         return;
       }
+
+      // CONTINUE INTEGRATING MANUAL PAYMENTS UI SCENARIOS
+
       dispatch(
         setUser({
           ...profile,
+          pendingPurchases: payments,
           avatar_url: signedUrl,
           currentPackage: activePackage,
           credits: activePackage ? latestCredit.credits : 0,

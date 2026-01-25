@@ -28,6 +28,7 @@ import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { FileType, formatPHPhoneToE164, formatPrice } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
   CreditCard,
@@ -47,6 +48,7 @@ import axiosApi from "@/lib/axiosConfig";
 import { supabase } from "@/lib/supabase";
 
 import { useQuery } from "@tanstack/react-query";
+import PackageHistoryCard from "@/components/ui/package-history-card";
 
 const { Title, Text } = Typography;
 const CAROUSEL_SLIDES = {
@@ -216,17 +218,12 @@ export default function PackagesPage() {
   };
 
   const handleSendConfirmationEmail = async () => {
-    const res = await fetch("/api/send-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        to: user?.email,
-        title: selectedRecord.title,
-        emailType: "package_purchase",
-      }),
+    const res = await axiosApi.post("/send-email", {
+      to: user?.email,
+      title: selectedRecord.title,
+      emailType: "package_pending_purchase",
     });
-    const data = await res.json();
-    console.log(data);
+    const data = res.data;
   };
 
   const handleNext = async () => {
@@ -484,6 +481,15 @@ export default function PackagesPage() {
     }));
   };
 
+  const [isSendingPending, setIsSendingPending] = useState<boolean>(false);
+  const [file, setFile] = useState<UploadFile[] | null>(null);
+  const [previewImage, setPreviewImage] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [uploadingPayment, setUploadingPayment] = useState(false);
+  const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<
+    boolean | null
+  >(null);
+
   const renderCheckoutLoader = useCallback(() => {
     return (
       <Row
@@ -511,19 +517,15 @@ export default function PackagesPage() {
   }, []);
 
   const uploadButton = (
-    <button style={{ border: 0, background: "none" }} type="button">
+    <button
+      style={{ border: 0, background: "none" }}
+      type="button"
+      disabled={paymentUploadSuccess === true}
+    >
       <PlusOutlined />
       <div style={{ marginTop: 8 }}>User Photo</div>
     </button>
   );
-
-  const [file, setFile] = useState<UploadFile[] | null>(null);
-  const [previewImage, setPreviewImage] = useState("");
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [uploadingPayment, setUploadingPayment] = useState(false);
-  const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<
-    boolean | null
-  >(null);
 
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
@@ -548,6 +550,7 @@ export default function PackagesPage() {
     });
 
   const handleUpload = async (file: any) => {
+    setIsSendingPending(true);
     try {
       if (user && !!file.length) {
         const filePath = `${user?.id}_${dayjs().toDate().getTime()}`;
@@ -555,16 +558,39 @@ export default function PackagesPage() {
         const fileName = `payment_proof_${filePath}.${fileExt}`;
 
         const response = await axiosApi.post("/package/upload-proof", {
-          fileName,
-          file: file[0],
-          originFileObj: file[0].originFileObj,
+          values: {
+            fileName,
+            file: file[0],
+            originFileObj: file[0].originFileObj,
+
+            userID: user?.id,
+            status: "PENDING",
+            manualPaymentMethod: selectedPaymentMethod,
+            paymentProofPath: fileName,
+            packageID: selectedRecord.id,
+            packageCredits: selectedRecord.packageCredits,
+            packageTitle: selectedRecord.title,
+            packagePrice: selectedRecord.price,
+            packageValidityPeriod: selectedRecord.validityPeriod,
+            uploadedAt: dayjs().toISOString(),
+          },
         });
 
-        console.log("response: ", response);
+        // const { error: uploadError } = await supabase.storage
+        //   .from("user-photos")
+        //   .upload(fileName, file[0].originFileObj as File, {
+        //     upsert: true, // overwrite if exists
+        //     contentType: (file[0] as File).type,
+        //   });
+
+        // if (uploadError) throw uploadError;
+
+        await handleSendConfirmationEmail();
 
         return response.status;
       }
     } catch (err: any) {
+      setIsSendingPending(false);
       console.error(err);
       showMessage({ type: "error", content: "Failed to upload image." });
     }
@@ -576,7 +602,21 @@ export default function PackagesPage() {
 
     setPaymentUploadSuccess(status === 200);
     setUploadingPayment(false);
+    setIsSendingPending(false);
   };
+
+  const renderCurrentPurchase = useMemo(() => {
+    const pendingPackage = user?.pendingPurchases;
+    const item = {
+      status: pendingPackage?.status,
+      packages: { title: pendingPackage?.package_title },
+    };
+    return (
+      <Row>
+        <PackageHistoryCard item={item} />
+      </Row>
+    );
+  }, []);
 
   // Test Maya Checkout
 
@@ -587,12 +627,13 @@ export default function PackagesPage() {
         <Row gutter={[20, 20]} className="gap-x-[20px] xl:justify-start">
           {packages &&
             packages.map((item, index) => {
+              const showToolTip = user?.currentPackage && user?.credits !== 0;
+              const hasPendingPurchase = user?.pendingPurchases;
+
               const disablePurchase =
                 (user?.currentPackage !== null ||
                   user?.currentPackage !== undefined) &&
                 user?.credits !== 0;
-
-              const showToolTip = user?.currentPackage && user?.credits !== 0;
               return (
                 <Card
                   key={index}
@@ -683,10 +724,10 @@ export default function PackagesPage() {
       <Drawer
         keyboard={false}
         title={carouselSlide === CAROUSEL_SLIDES.TERMS && "Back to Agreement"}
-        closeIcon={
-          (carouselSlide === CAROUSEL_SLIDES.TERMS && <ChevronRight />) ||
-          (carouselSlide === CAROUSEL_SLIDES.CHECKOUT && <ChevronLeft />)
-        }
+        // closeIcon={
+        //   (carouselSlide === CAROUSEL_SLIDES.TERMS && <ChevronRight />) ||
+        //   (carouselSlide === CAROUSEL_SLIDES.CHECKOUT && <ChevronLeft />)
+        // }
         // closable={carouselSlide === CAROUSEL_SLIDES.CHECKOUT ? false : true}
         maskClosable={false}
         placement="right"
@@ -724,6 +765,7 @@ export default function PackagesPage() {
                 </Avatar>
               </Row>
               <Divider />
+
               <div className="items-start w-full">
                 <Row wrap={false} className="mb-[10px] items-start w-full">
                   <Title level={5}>
@@ -758,47 +800,60 @@ export default function PackagesPage() {
                 </Row>
               </div>
 
-              <div className="py-[10px]">
-                <Collapse
-                  defaultActiveKey={selectedPaymentMethod}
-                  onChange={(e) => setSelectedPaymentMethod(e[0] as any)}
-                  accordion
-                  items={items}
-                />
-              </div>
+              {user?.pendingPurchases && (
+                <Row className="bg-slate-200 p-[15px] rounded-[10px]">
+                  <Title level={4}>
+                    Please wait for us to review your current purchase
+                  </Title>
+                </Row>
+              )}
 
-              <Row justify={"start"} className="w-full mb-[10px]">
-                <Checkbox
-                  value={acceptsTerms}
-                  onChange={handleAcceptTermsChange}
-                >
-                  I have read the
-                </Checkbox>
-                <span
-                  onClick={handleShowTermsAndConditions}
-                  className="text-blue-400 cursor-pointer"
-                >
-                  Terms and Conditions
-                </span>
-              </Row>
-              <Button
-                onClick={handleNext}
-                /**
-                 * temporary button disable since payment
-                 * is not integrated yet
-                 * to prevent multiple clicking
-                 */
-                loading={isSubmitting}
-                disabled={!acceptsTerms || isSubmitting}
-                className={`bg-[#36013F] ${
-                  acceptsTerms ? "hover:!bg-[#36013F]" : ""
-                } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
-              >
-                Continue
-              </Button>
-              <span className="font-normal text-slate-500">
-                You won&apos;t be charged yet.
-              </span>
+              {!user?.pendingPurchases && (
+                <>
+                  <div className="py-[10px]">
+                    <Collapse
+                      defaultActiveKey={selectedPaymentMethod}
+                      onChange={(e) => setSelectedPaymentMethod(e[0] as any)}
+                      accordion
+                      items={items}
+                    />
+                  </div>
+
+                  <Row justify={"start"} className="w-full mb-[10px]">
+                    <Checkbox
+                      value={acceptsTerms}
+                      onChange={handleAcceptTermsChange}
+                    >
+                      I have read the
+                    </Checkbox>
+                    <span
+                      onClick={handleShowTermsAndConditions}
+                      className="text-blue-400 cursor-pointer"
+                    >
+                      Terms and Conditions
+                    </span>
+                  </Row>
+
+                  <Button
+                    onClick={handleNext}
+                    /**
+                     * temporary button disable since payment
+                     * is not integrated yet
+                     * to prevent multiple clicking
+                     */
+                    loading={isSubmitting}
+                    disabled={!acceptsTerms || isSubmitting}
+                    className={`bg-[#36013F] ${
+                      acceptsTerms ? "hover:!bg-[#36013F]" : ""
+                    } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
+                  >
+                    Continue
+                  </Button>
+                  <span className="font-normal text-slate-500">
+                    You won&apos;t be charged yet.
+                  </span>
+                </>
+              )}
             </div>
 
             <div className="flex flex-col items-center h-full overflow-y-auto">
@@ -855,7 +910,9 @@ export default function PackagesPage() {
                           fileList={file as UploadFile[]}
                           onPreview={handlePreview}
                           onChange={handleChange}
+                          beforeUpload={() => false}
                           accept="image/*"
+                          disabled={paymentUploadSuccess === true}
                           onDrop={(e) => console.log(e)}
                         >
                           {file && file.length > 0 ? null : uploadButton}
@@ -878,14 +935,24 @@ export default function PackagesPage() {
 
                       <Row className="justify-center">
                         <Button
-                          loading={uploadingPayment}
+                          loading={uploadingPayment || isSendingPending}
                           disabled={
-                            uploadingPayment || !file || file.length === 0
+                            isSendingPending ||
+                            paymentUploadSuccess === true ||
+                            uploadingPayment ||
+                            !file ||
+                            file.length === 0
                           }
                           onClick={handleSubmit}
-                          className={`!bg-[#36013F] !text-white hover:!bg-[#36013F] hover:!text-white rounded-[13px]`}
+                          className={`${
+                            paymentUploadSuccess === true
+                              ? "!bg-green-400 hover:!bg-green-400"
+                              : "!bg-[#36013F] hover:!bg-[#36013F]"
+                          } !text-white hover:!text-white rounded-[13px]`}
                         >
-                          Submit Proof
+                          {paymentUploadSuccess === true
+                            ? "Proof Submitted"
+                            : "Submit Proof"}
                         </Button>
                       </Row>
                     </Row>
@@ -897,6 +964,12 @@ export default function PackagesPage() {
                       confirmed. Once confirmed, you will see the credits
                       reflected to your account.
                     </Title>
+
+                    <Text className="bg-slate-200 p-[10px] rounded-[10px]">
+                      Should you have any concerns, please reach out to us
+                      through our Instagram, or email us at
+                      8clublagree@gmail.com
+                    </Text>
                   </Row>
                 </Row>
               )}

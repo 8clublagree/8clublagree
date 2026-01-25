@@ -180,7 +180,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
         const fileName = `${filePath}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
-          .from(process.env.STORAGE_BUCKET!)
+          .from("user-photos")
           .upload(fileName, file[0].originFileObj as File, {
             upsert: true, // overwrite if exists
             contentType: (file[0] as File).type,
@@ -224,6 +224,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
       <Row justify={"center"} className="w-full mb-4">
         <Upload
           listType="picture-circle"
+          beforeUpload={() => false}
           fileList={file as UploadFile[]}
           onPreview={handlePreview}
           onChange={handleChange}

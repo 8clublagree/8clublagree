@@ -256,13 +256,19 @@ export const useManageImage = () => {
     return;
   };
 
-  const fetchImage = async ({ avatarPath }: { avatarPath: string }) => {
+  const fetchImage = async ({
+    avatarPath,
+    bucket = "user-photos",
+  }: {
+    avatarPath: string;
+    bucket?: string;
+  }) => {
     let signedUrl: any;
 
     if (avatarPath === null) return null;
 
     const { data, error: urlError } = await supabase.storage
-      .from("user-photos")
+      .from(bucket)
       .createSignedUrl(`${avatarPath}`, 3600);
 
     if (urlError) {
@@ -315,9 +321,7 @@ export const useInstructorManagement = () => {
 
     const response = await axiosApi.post(
       "/instructor/create-instructor-profile",
-      {
-        values,
-      }
+      { values },
     );
 
     const data = response?.data?.data;
@@ -997,6 +1001,34 @@ export const useManageCredits = () => {
 export const useManageOrders = () => {
   const [loading, setLoading] = useState(false);
 
+  const updatePaymentStatus = async ({
+    id,
+    approved_at,
+    status,
+  }: {
+    id: string;
+    status: string;
+    approved_at: string;
+  }) => {
+    try {
+      setLoading(true);
+
+      const response = await axiosApi.put("/admin/payments/update", {
+        id,
+        values: { status, approved_at },
+      });
+
+      if (!response.data) return null;
+
+      setLoading(false);
+      return response;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
+    setLoading(false);
+  };
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -1014,5 +1046,22 @@ export const useManageOrders = () => {
     setLoading(false);
   };
 
-  return { loading, fetchOrders };
+  const fetchCustomerPayments = async () => {
+    try {
+      setLoading(true);
+
+      const response = await axiosApi.get("/admin/payments/fetch");
+
+      if (response && !response.data) return null;
+
+      setLoading(false);
+      return response;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
+    setLoading(false);
+  };
+
+  return { loading, fetchOrders, fetchCustomerPayments, updatePaymentStatus };
 };

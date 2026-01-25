@@ -330,6 +330,7 @@ export default function CreateInstructorForm({
             <Upload
               listType="picture-circle"
               fileList={file as UploadFile[]}
+              beforeUpload={() => false}
               onPreview={handlePreview}
               onChange={handleChange}
               accept="image/*"

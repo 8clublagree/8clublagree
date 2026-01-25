@@ -73,7 +73,7 @@ export default function CreditsPage() {
         }));
 
         active = mapped.find(
-          (data: ClientPackageProps) => data.status === "active"
+          (data: ClientPackageProps) => data.status === "active",
         );
       }
 
