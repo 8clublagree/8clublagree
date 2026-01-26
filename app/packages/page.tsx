@@ -47,7 +47,6 @@ import { useAppMessage } from "@/components/ui/message-popup";
 import axiosApi from "@/lib/axiosConfig";
 import { supabase } from "@/lib/supabase";
 
-import { useQuery } from "@tanstack/react-query";
 import PackageHistoryCard from "@/components/ui/package-history-card";
 
 const { Title, Text } = Typography;
