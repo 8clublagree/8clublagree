@@ -31,6 +31,8 @@ import {
   useManageImage,
   usePackageManagement,
 } from "@/lib/api";
+import Image from "next/image";
+
 import dayjs from "dayjs";
 import axios from "axios";
 import axiosApi from "@/lib/axiosConfig";
@@ -94,8 +96,6 @@ export default function AuthenticatedLayout({
 
     const profile = response.data.data.profile;
     const payments = response.data.data.payment;
-    console.log("profile: ", profile);
-    console.log("payments: ", payments);
 
     let signedUrl: string | undefined = "";
 
@@ -108,11 +108,11 @@ export default function AuthenticatedLayout({
 
     const latestCredit = profile?.user_credits?.sort(
       (a: any, b: any) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )[0];
 
     const activePackage: CurrentPackageProps = profile?.client_packages?.find(
-      (p: any) => p.status === "active"
+      (p: any) => p.status === "active",
     );
 
     if (profile) {
@@ -133,7 +133,7 @@ export default function AuthenticatedLayout({
           avatar_url: signedUrl,
           currentPackage: activePackage,
           credits: activePackage ? latestCredit.credits : 0,
-        })
+        }),
       );
     }
   };
@@ -220,10 +220,16 @@ export default function AuthenticatedLayout({
       >
         {/* Top Section */}
         <div>
-          <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#36013F]">
-            <Text className="text-xl font-semibold text-slate-200">
+          <div className="h-16 flex px-[25px] items-center justify-start border-b border-slate-200 bg-[#36013F]">
+            <Image
+              src="/images/main-logo-white.png"
+              alt="Logo"
+              width={130}
+              height={130}
+            />
+            {/* <Text className="text-xl font-semibold text-slate-200">
               8 Club Lagree
-            </Text>
+            </Text> */}
           </div>
           <Menu
             mode="inline"
@@ -251,9 +257,6 @@ export default function AuthenticatedLayout({
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden mr-2 text-slate-200"
             />
-            <Text className="text-xl font-semibold text-slate-200">
-              {/* LagreeStudio */}
-            </Text>
           </div>
 
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
@@ -284,7 +287,16 @@ export default function AuthenticatedLayout({
       </Layout>
 
       <Drawer
-        title="Menu"
+        title={
+          <div className="flex px-[15px] items-center justify-start">
+            <Image
+              src="/images/main-logo-black.png"
+              alt="Logo"
+              width={100}
+              height={100}
+            />
+          </div>
+        }
         placement="left"
         width={"70%"}
         onClose={() => setMobileMenuOpen(false)}

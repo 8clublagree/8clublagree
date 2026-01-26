@@ -125,13 +125,26 @@ export default function PackagesPage() {
           </Row>
         ),
       },
-      // {
-      //   key: "3",
-      //   label: "PayMaya (Coming Soon)",
-      //   collapsible: false,
-      // },
+      {
+        key: "maya",
+        label: "PayMaya (Coming Soon)",
+        className: `${selectedPaymentMethod === "maya" ? "bg-green-400" : ""}`,
+        children: (
+          <Row wrap={false} className="flex-col gap-y-[10px]">
+            <Text className="text-justify">
+              By clicking "Continue", you will be shown a form where you will
+              need to provide some personal information.
+            </Text>
+            <Text className="text-justify">
+              After providing the required information, by clicking "Proceed to
+              Checkout", you will be redirected to our partner payment gateway
+              to complete the transaction.
+            </Text>
+          </Row>
+        ),
+      },
     ],
-    [selectedPaymentMethod]
+    [selectedPaymentMethod],
   );
 
   useEffect(() => {
@@ -219,8 +232,10 @@ export default function PackagesPage() {
 
   const handleSendConfirmationEmail = async () => {
     const res = await axiosApi.post("/send-email", {
-      to: user?.email,
-      title: selectedRecord.title,
+      to: "test@mail.com",
+      title: "test email",
+      // to: user?.email,
+      // title: selectedRecord.title,
       emailType: "package_pending_purchase",
     });
     const data = res.data;
@@ -470,7 +485,7 @@ export default function PackagesPage() {
   const updateField = (
     section: string,
     field: string,
-    value: string | number | undefined
+    value: string | number | undefined,
   ) => {
     setFormData((prev: any) => ({
       ...prev,
@@ -624,6 +639,9 @@ export default function PackagesPage() {
     <AuthenticatedLayout>
       {contextHolder}
       <div className="space-y-6">
+        <Button onClick={async () => await handleSendConfirmationEmail()}>
+          Test email
+        </Button>
         <Row gutter={[20, 20]} className="gap-x-[20px] xl:justify-start">
           {packages &&
             packages.map((item, index) => {
@@ -1172,7 +1190,7 @@ export default function PackagesPage() {
                               onChange={(e) =>
                                 handleBillingAddressChange(
                                   "line1",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Street Address"
@@ -1193,7 +1211,7 @@ export default function PackagesPage() {
                                 onChange={(e) =>
                                   handleBillingAddressChange(
                                     "city",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="City"
@@ -1216,7 +1234,7 @@ export default function PackagesPage() {
                                 onChange={(e) =>
                                   handleBillingAddressChange(
                                     "state",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="State/Province"
@@ -1239,7 +1257,7 @@ export default function PackagesPage() {
                                 onChange={(e) =>
                                   handleBillingAddressChange(
                                     "zipCode",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="Zip Code"

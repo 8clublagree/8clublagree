@@ -20,6 +20,15 @@ export const packagePendingPurchase = ({
     color:#333333;
   ">
 
+  <div>
+  <img 
+                  src="/images/main-logo.png"
+                  margin-bottom:20px;"
+                  alt="main-logo" 
+                  width="120" 
+                  style="display:block; margin-bottom:20px;" />
+  </div>
+
     <!-- Header -->
     <h2 style="
       margin:0 0 20px 0;

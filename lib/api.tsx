@@ -184,7 +184,31 @@ export const useManagePassword = () => {
     setLoading(false);
   };
 
-  return { validatePassword, changePassword, loading };
+  const sendResetLink = async ({ email }: { email: string }) => {
+    try {
+      setLoading(true);
+
+      const response = await axiosApi.get(`/send-reset-link`, {
+        params: {
+          email,
+          type: "reset-link",
+        },
+      });
+
+      console.log("response: ", response);
+      const data = response?.data;
+
+      if (!response.data) return null;
+
+      setLoading(false);
+      return data;
+    } catch (error) {
+      console.log("error sending reset link: ", error);
+    }
+    setLoading(false);
+  };
+
+  return { validatePassword, changePassword, loading, sendResetLink };
 };
 
 export const useUpdateUser = () => {
