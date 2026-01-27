@@ -66,8 +66,12 @@ export default function PackagesPage() {
   const carouselRef = useRef<any>(null);
   const { updateUserCredits } = useManageCredits();
   const user = useAppSelector((state) => state.auth.user);
-  const { fetchPackages, purchasePackage, updateClientPackage } =
-    usePackageManagement();
+  const {
+    loading: packageLoading,
+    fetchPackages,
+    purchasePackage,
+    updateClientPackage,
+  } = usePackageManagement();
   const { showMessage, contextHolder } = useAppMessage();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -77,6 +81,41 @@ export default function PackagesPage() {
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [packages, setPackages] = useState<PackageProps[]>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [checkoutForm] = Form.useForm();
+  const [formData, setFormData] = useState<PurchaseFormData>({
+    productName: "Premium Subscription",
+    productPrice: "1500.00",
+    firstName: user?.first_name,
+    lastName: user?.last_name,
+    customerEmail: user?.email,
+    customerPhone: user?.contact_number,
+    quantity: 1,
+    billingAddress: {
+      line1: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      countryCode: "PH",
+    },
+    shippingAddress: {
+      line1: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      countryCode: "",
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      customerPhone: "",
+      customerEmail: "",
+    },
+  });
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "gcash" | "bank_transfer" | "maya"
@@ -304,49 +343,6 @@ export default function PackagesPage() {
     setCarouselSlide(CAROUSEL_SLIDES.TERMS);
     carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
   };
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  // const [formData, setFormData] = useState({
-  //   customerName: user?.full_name || "",
-  //   customerEmail: user?.email || "",
-  //   customerPhone: user?.contact_number || "",
-  //   cardNumber: "",
-  //   expiryMonth: "",
-  //   expiryYear: "",
-  //   cvc: "",
-  // });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [checkoutForm] = Form.useForm();
-  const [formData, setFormData] = useState<PurchaseFormData>({
-    productName: "Premium Subscription",
-    productPrice: "1500.00",
-    firstName: user?.first_name,
-    lastName: user?.last_name,
-    customerEmail: user?.email,
-    customerPhone: user?.contact_number,
-    quantity: 1,
-    billingAddress: {
-      line1: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      countryCode: "PH",
-    },
-    shippingAddress: {
-      line1: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      countryCode: "",
-      firstName: "",
-      middleName: "",
-      lastName: "",
-      customerPhone: "",
-      customerEmail: "",
-    },
-  });
 
   useEffect(() => {
     if (user) {
@@ -637,6 +633,13 @@ export default function PackagesPage() {
   return (
     <AuthenticatedLayout>
       {contextHolder}
+
+      {packageLoading && (
+        <Row wrap={false} className="justify-center">
+          <Spin spinning={true} />
+        </Row>
+      )}
+
       <div className="space-y-6">
         {/* <Button onClick={async () => await handleSendConfirmationEmail()}>
           Test email
