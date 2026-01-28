@@ -451,18 +451,32 @@ export default function PackagesPage() {
           cancel: `${window.location.origin}/packages`,
         },
         allowedPaymentMethods: ["CARD", "EWALLET", "QR_PH"],
+        disallowedPaymentMethods: ["INSTALLMENT"],
         requestReferenceNumber: `${uuid}`,
 
         // change to actual URL once website is for go live
         notificationUrl: `${process.env.SYSTEM_ORIGIN_TEMP!!}/api/maya/webhook`,
       };
 
-      console.log("checkoutPayload: ", checkoutPayload);
-      const response = await axiosApi.post("/maya/checkout", checkoutPayload, {
-        headers: {
-          "Content-Type": "application/json",
+      const order = {
+        userID: user?.id,
+        packageID: selectedRecord.id,
+        packageTitle: selectedRecord.title,
+        packagePrice: selectedRecord.price,
+        packageValidityPeriod: selectedRecord.validityPeriod,
+        packageCredits: selectedRecord.packageCredits,
+      };
+
+      // console.log("checkoutPayload: ", checkoutPayload);
+      const response = await axiosApi.post(
+        "/maya/checkout",
+        { checkoutPayload, order },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       const data = response.data;
 
@@ -470,7 +484,12 @@ export default function PackagesPage() {
         // Opens checkoutUrl in a new tab
         window.location.href = data.checkoutUrl;
       } else {
-        throw new Error(data.error || "Failed to create checkout session");
+        showMessage({
+          type: "error",
+          content:
+            "Failed to checkout. Please try again. If this persists, please reach out to us so that we can get this sorted. ",
+        });
+        setProcessingMaya(false);
       }
     } catch (error: any) {
       console.error("error.message: ", error);

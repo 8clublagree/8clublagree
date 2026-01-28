@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { data: payment, error: paymentError } = await supabaseServer
-      .from("manual_payments")
+      .from("orders")
       .select("*")
       .eq("user_id", userID)
       .eq("status", "PENDING")

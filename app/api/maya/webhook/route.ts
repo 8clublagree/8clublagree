@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import supabaseServer from "../../supabase";
+import dayjs from "dayjs";
+import { getDateFromToday } from "@/lib/utils";
 
 const WEBHOOK_STATUS = {
   PAYMENT_SUCCESS: "PAYMENT_SUCCESS",
@@ -8,8 +10,62 @@ const WEBHOOK_STATUS = {
   PAYMENT_CANCELLED: "PAYMENT_CANCELLED",
 };
 
+const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
+  try {
+    // we fetch the order data to create a reference for the new records in client packages and user credits
+    const { data: orderData } = await supabaseServer
+      .from("orders")
+      .select("*")
+      .eq("checkout_id", checkoutId)
+      .single();
+
+    const orderObject = {
+      userID: orderData.user_id,
+      packageID: orderData.package_id,
+      paymentMethod: orderData.payment_method,
+      validityPeriod: orderData.package_validity_period,
+      packageCredits: orderData.package_credits,
+      packageName: orderData.package_title,
+    };
+
+    // FETCH FIRST
+    const { data: userCredits } = await supabaseServer
+      .from("user_credits")
+      .select("*")
+      .eq("user_id", orderObject.userID)
+      .single();
+
+    if (userCredits.credits === 0) {
+      //NOW UPDATE
+      await supabaseServer
+        .from("client_packages")
+        .update({ status: "expired", expirationDate: dayjs().toISOString() })
+        .eq("user_id", orderObject.userID)
+        .single();
+    }
+
+    await supabaseServer
+      .from("client_packages")
+      .insert({
+        user_id: orderObject.userID,
+        package_id: orderObject.packageID,
+        status: "active",
+        validity_period: orderObject.validityPeriod,
+        package_credits: orderObject.packageCredits,
+        purchase_date: dayjs().toISOString(),
+        package_name: orderObject.packageName,
+        payment_method: "maya",
+        expiration_date: getDateFromToday(orderObject.validityPeriod),
+      })
+      .select();
+  } catch (error) {
+    console.log("error assigning credits: ", error);
+  }
+};
+
 export async function POST(req: NextRequest) {
   try {
+    let orderStatus: string = "";
     let nextResponse: any;
     const payload = await req.json();
     const { requestReferenceNumber, status, checkoutId, totalAmount } = payload;
@@ -30,20 +86,37 @@ export async function POST(req: NextRequest) {
           data: payload,
           savePurchase,
         };
+
+        await handleAssignCredits({ checkoutId });
+
+        orderStatus = "SUCCESSFUL";
         break;
       case WEBHOOK_STATUS.PAYMENT_FAILED:
         nextResponse = { received: false, message: "Payment has failed" };
+        orderStatus = "FAILED";
         break;
       case WEBHOOK_STATUS.PAYMENT_EXPIRED:
         nextResponse = { received: false, message: "Payment has expired" };
+        orderStatus = "EXPIRED";
         break;
       case WEBHOOK_STATUS.PAYMENT_CANCELLED:
         nextResponse = {
           received: false,
           message: "Payment has been cancelled",
         };
+        orderStatus = "CANCELLED";
         break;
     }
+
+    await supabaseServer
+      .from("orders")
+      .update({
+        status: orderStatus,
+        checkoutID: checkoutId,
+        approved_at:
+          orderStatus === "SUCCESSFUL" ? dayjs().toISOString() : null,
+      })
+      .eq("checkout_id", checkoutId);
 
     return NextResponse.json(nextResponse);
   } catch (error) {

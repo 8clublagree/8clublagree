@@ -4,7 +4,7 @@ import supabaseServer from "../../../supabase"; // must use service_role key
 export async function GET() {
   try {
     const { data, error } = await supabaseServer
-      .from("orders")
+      .from("orders_temp")
       .select("*")
       .order("created_at", { ascending: false });
 

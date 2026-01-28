@@ -29,20 +29,18 @@ export async function POST(req: Request) {
       packageValidityPeriod,
     } = values;
 
-    const { data, error } = await supabaseServer
-      .from("manual_payments")
-      .insert({
-        status,
-        manual_payment_method: manualPaymentMethod,
-        payment_proof_path: paymentProofPath,
-        user_id: userID,
-        package_id: packageID,
-        uploaded_at: uploadedAt,
-        package_title: packageTitle,
-        package_credits: packageCredits,
-        package_price: packagePrice,
-        package_validity_period: packageValidityPeriod,
-      });
+    const { data, error } = await supabaseServer.from("orders").insert({
+      status,
+      payment_method: manualPaymentMethod,
+      payment_proof_path: paymentProofPath,
+      user_id: userID,
+      package_id: packageID,
+      uploaded_at: uploadedAt,
+      package_title: packageTitle,
+      package_credits: packageCredits,
+      package_price: packagePrice,
+      package_validity_period: packageValidityPeriod,
+    });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

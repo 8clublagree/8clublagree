@@ -36,7 +36,7 @@ interface OrdersTableType {
   payment_proof_path?: string;
   avatar_url?: string;
   uploaded_at?: string;
-  manual_payment_method?: string;
+  payment_method?: string;
   status?: "PENDING" | "SUCCESSFUL";
   approved_at?: string;
   package_title?: string;
@@ -207,7 +207,7 @@ const PaymentsPage = () => {
       console.log("response: ", response);
       setPayments(response?.data.payments);
     } catch (error) {
-      showMessage({ type: "error", content: "Error fetching orders" });
+      showMessage({ type: "error", content: "Error fetching orders_temp" });
       console.log(error);
     }
   };
@@ -285,7 +285,6 @@ const PaymentsPage = () => {
   const handlePurchasePackage = async () => {
     if (selectedPayment) {
       try {
-        // INVESTIGATE CAREFULLY
         if (selectedPayment?.userCredits === 0) {
           await updateClientPackage({
             clientPackageID: selectedPayment.currentActivePackage?.id as string,
@@ -296,7 +295,7 @@ const PaymentsPage = () => {
         const response = await purchasePackage({
           userID: selectedPayment.user_profiles?.id as string,
           packageID: selectedPayment.package_id as string,
-          paymentMethod: selectedPayment.manual_payment_method as string,
+          paymentMethod: selectedPayment.payment_method as string,
           packageName: selectedPayment.package_title as string,
           validityPeriod: Number(selectedPayment.package_validity_period),
           packageCredits: selectedPayment.package_credits as number,
@@ -494,7 +493,7 @@ const PaymentsPage = () => {
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Payment Method">
-                {selectedPayment.manual_payment_method || "N/A"}
+                {selectedPayment.payment_method || "N/A"}
               </Descriptions.Item>
               <Descriptions.Item label="Uploaded At">
                 {selectedPayment.uploaded_at

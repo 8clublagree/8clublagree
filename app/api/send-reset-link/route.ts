@@ -19,6 +19,8 @@ export async function GET(req: Request) {
 
     const attempts = count ?? 0;
 
+    console.log("count: ", count);
+
     if (attempts > MAX_PER_DAY) {
       return NextResponse.json(
         { error: "Too many reset attempts today" },
@@ -52,8 +54,9 @@ export async function GET(req: Request) {
       });
 
     if (resetError) {
+      console.log("resetError: ", resetError);
       return NextResponse.json(
-        { error: "Too many reset attempts today" },
+        { error: "Error sending reset email" },
         { status: 500 },
       );
     }

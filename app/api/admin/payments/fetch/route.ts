@@ -4,7 +4,7 @@ import supabaseServer from "../../../supabase"; // must use service_role key
 export async function GET() {
   try {
     const { data: payments, error: paymentsError } = await supabaseServer
-      .from("manual_payments")
+      .from("orders")
       .select(
         `
           *,
@@ -20,7 +20,7 @@ export async function GET() {
               status
             )
           )
-        `
+        `,
       )
       .eq("user_profiles.client_packages.status", "active")
       .order("created_at", { ascending: false });
@@ -28,7 +28,7 @@ export async function GET() {
     if (paymentsError) {
       return NextResponse.json(
         { error: paymentsError.message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -44,7 +44,7 @@ export async function GET() {
           userCredits: item?.user_profiles?.user_credits?.[0]?.credits ?? null,
           avatar_url: urlError ? null : data?.signedUrl,
         };
-      })
+      }),
     );
 
     // console.log("parsed: ", parsed);

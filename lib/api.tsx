@@ -1057,7 +1057,7 @@ export const useManageOrders = () => {
     try {
       setLoading(true);
 
-      const response = await axiosApi.get("/admin/orders/fetch");
+      const response = await axiosApi.get("/admin/orders_temp/fetch");
       const data = response.data.data;
       if (!data) return null;
 

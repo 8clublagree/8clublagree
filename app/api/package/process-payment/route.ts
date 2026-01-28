@@ -94,15 +94,15 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error: `Unexpected error saving client package: ${JSON.stringify(
-            packageError
+            packageError,
           )}`,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     const { data: orderRecord, error: orderError } = await supabaseServer
-      .from("orders")
+      .from("orders_temp")
       .insert(order)
       .select()
       .single();
@@ -129,14 +129,14 @@ export async function POST(req: Request) {
             },
           },
         }),
-      }
+      },
     );
 
     if (!paymentIntentResponse.ok) {
       const errorData = await paymentIntentResponse.json();
 
       await supabaseServer
-        .from("orders")
+        .from("orders_temp")
         .update({
           status: "failed",
           updated_at: new Date().toISOString(),
@@ -208,7 +208,7 @@ export async function POST(req: Request) {
       };
     } else {
       await supabaseServer
-        .from("orders")
+        .from("orders_temp")
         .update({
           status: "failed",
           updated_at: new Date().toISOString(),
@@ -232,14 +232,14 @@ export async function POST(req: Request) {
           Authorization: authHeader,
         },
         body: JSON.stringify(paymentMethodPayload),
-      }
+      },
     );
 
     if (!paymentMethodResponse.ok) {
       const errorData = await paymentMethodResponse.json();
 
       await supabaseServer
-        .from("orders")
+        .from("orders_temp")
         .update({
           status: "failed",
           updated_at: new Date().toISOString(),
@@ -253,7 +253,7 @@ export async function POST(req: Request) {
         .single();
 
       throw new Error(
-        `Failed to create payment method: ${JSON.stringify(errorData)}`
+        `Failed to create payment method: ${JSON.stringify(errorData)}`,
       );
     }
 
@@ -279,14 +279,14 @@ export async function POST(req: Request) {
             },
           },
         }),
-      }
+      },
     );
 
     if (!attachResponse.ok) {
       const errorData = await attachResponse.json();
 
       await supabaseServer
-        .from("orders")
+        .from("orders_temp")
         .update({
           status: "failed",
           updated_at: new Date().toISOString(),
@@ -300,7 +300,7 @@ export async function POST(req: Request) {
         .single();
 
       throw new Error(
-        `Failed to attach payment method: ${JSON.stringify(errorData)}`
+        `Failed to attach payment method: ${JSON.stringify(errorData)}`,
       );
     }
 
@@ -308,7 +308,7 @@ export async function POST(req: Request) {
     const paymentStatus = attachData.data.attributes.status;
 
     await supabaseServer
-      .from("orders")
+      .from("orders_temp")
       .update({
         payment_intent_id: paymentIntentId,
         payment_method_id: paymentMethodId,
@@ -358,7 +358,7 @@ export async function POST(req: Request) {
           ...corsHeaders,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   }
 }
