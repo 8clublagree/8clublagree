@@ -29,7 +29,7 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
       packageName: orderData.package_title,
     };
 
-    await Promise.all([
+    const [clientPackageResponse, userCreditsResponse] = await Promise.all([
       //NOW UPDATE
       supabaseServer
         .from("client_packages")
@@ -42,7 +42,10 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
         .update({ credits: Number(orderObject.packageCredits) })
         .eq("user_id", orderObject.userID)
         .single(),
-      supabaseServer
+    ]);
+
+    if (clientPackageResponse || userCreditsResponse) {
+      await supabaseServer
         .from("client_packages")
         .insert({
           user_id: orderObject.userID,
@@ -55,8 +58,8 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
           payment_method: "maya",
           expiration_date: getDateFromToday(orderObject.validityPeriod),
         })
-        .select(),
-    ]);
+        .select();
+    }
   } catch (error) {
     console.log("error assigning credits: ", error);
   }
