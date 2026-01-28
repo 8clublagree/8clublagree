@@ -458,6 +458,8 @@ export default function PackagesPage() {
         notificationUrl: `${process.env.SYSTEM_ORIGIN_TEMP!!}/api/maya/webhook`,
       };
 
+      console.log("uuid: ", uuid);
+
       const order = {
         userID: user?.id,
         packageID: selectedRecord.id,
@@ -482,7 +484,9 @@ export default function PackagesPage() {
 
       if (data.success && data.checkoutUrl) {
         // Opens checkoutUrl in a new tab
-        window.location.href = data.checkoutUrl;
+        setTimeout(() => {
+          window.location.href = data.checkoutUrl;
+        }, 10000);
       } else {
         showMessage({
           type: "error",

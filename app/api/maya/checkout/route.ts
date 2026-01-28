@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json(); // ✅ Works here
 
     const { order, checkoutPayload } = body;
+    const { requestReferenceNumber } = checkoutPayload;
 
     // const response = await fetch(MAYA_SANDBOX_URL, {
     const response = await fetch(MAYA_PRODUCTION_URL, {
@@ -41,6 +42,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("data: ", data);
+
     const { data: orderInsert, error } = await supabaseServer
       .from("orders")
       .insert({
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
         status: "PENDING",
         payment_method: "maya",
         uploaded_at: dayjs().toISOString(),
-        checkout_id: data.checkoutId,
+        checkout_id: requestReferenceNumber,
       })
       .select();
 

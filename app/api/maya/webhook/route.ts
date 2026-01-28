@@ -87,8 +87,6 @@ export async function POST(req: NextRequest) {
           savePurchase,
         };
 
-        await handleAssignCredits({ checkoutId });
-
         orderStatus = "SUCCESSFUL";
         break;
       case WEBHOOK_STATUS.PAYMENT_FAILED:
@@ -106,6 +104,10 @@ export async function POST(req: NextRequest) {
         };
         orderStatus = "CANCELLED";
         break;
+    }
+
+    if (orderStatus === "SUCCESSFUL") {
+      await handleAssignCredits({ checkoutId: requestReferenceNumber });
     }
 
     await supabaseServer
