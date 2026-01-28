@@ -15,6 +15,9 @@ export async function middleware(req: NextRequest) {
   if (data.type === "about") {
     return NextResponse.next();
   }
+  if (data.type === "reset-link") {
+    return NextResponse.next();
+  }
 
   // ✅ Allow Maya webhooks
   if (pathname.startsWith("/api/maya/webhook")) {
@@ -47,7 +50,7 @@ export async function middleware(req: NextRequest) {
         Authorization: `Bearer ${token}`,
         apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       },
-    }
+    },
   );
 
   if (!res.ok) {
