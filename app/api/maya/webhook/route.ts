@@ -19,6 +19,13 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
       .eq("checkout_id", checkoutId)
       .single();
 
+    const { data: activePackage } = await supabaseServer
+      .from("client_packages")
+      .select("*")
+      .eq("user_id", orderData.userID)
+      .eq("status", "active")
+      .single();
+
     const orderObject = {
       userID: orderData.user_id,
       packageID: orderData.package_id,
@@ -33,8 +40,7 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
       supabaseServer
         .from("client_packages")
         .update({ status: "expired", expirationDate: dayjs().toISOString() })
-        .eq("user_id", orderObject.userID)
-        .eq("status", "active"),
+        .eq("id", activePackage.id),
       // FETCH FIRST
       supabaseServer
         .from("user_credits")
