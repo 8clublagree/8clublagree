@@ -103,10 +103,21 @@ export async function POST(req: NextRequest) {
       case WEBHOOK_STATUS.PAYMENT_FAILED:
         nextResponse = { received: false, message: "Payment has failed" };
         orderStatus = "FAILED";
+
+        await supabaseServer
+          .from("orders")
+          .update({ status: "FAILED" })
+          .eq("checkout_id", requestReferenceNumber);
+
         break;
       case WEBHOOK_STATUS.PAYMENT_EXPIRED:
         nextResponse = { received: false, message: "Payment has expired" };
         orderStatus = "EXPIRED";
+
+        await supabaseServer
+          .from("orders")
+          .update({ status: "EXPIRED" })
+          .eq("checkout_id", requestReferenceNumber);
         break;
       case WEBHOOK_STATUS.PAYMENT_CANCELLED:
         nextResponse = {
@@ -114,6 +125,11 @@ export async function POST(req: NextRequest) {
           message: "Payment has been cancelled",
         };
         orderStatus = "CANCELLED";
+
+        await supabaseServer
+          .from("orders")
+          .update({ status: "CANCELLED" })
+          .eq("checkout_id", requestReferenceNumber);
         break;
     }
 
