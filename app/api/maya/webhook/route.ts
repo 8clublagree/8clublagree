@@ -13,17 +13,11 @@ const WEBHOOK_STATUS = {
 const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
   try {
     // we fetch the order data to create a reference for the new records in client packages and user credits
+
     const { data: orderData } = await supabaseServer
       .from("orders")
       .select("*")
       .eq("checkout_id", checkoutId)
-      .single();
-
-    const { data: activePackage } = await supabaseServer
-      .from("client_packages")
-      .select("*")
-      .eq("user_id", orderData.userID)
-      .eq("status", "active")
       .single();
 
     const orderObject = {
@@ -40,7 +34,8 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
       supabaseServer
         .from("client_packages")
         .update({ status: "expired", expirationDate: dayjs().toISOString() })
-        .eq("id", activePackage.id),
+        .eq("user_id", orderObject.userID)
+        .eq("status", "active"),
       // FETCH FIRST
       supabaseServer
         .from("user_credits")
