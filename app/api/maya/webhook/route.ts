@@ -16,12 +16,7 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
 
     const { data: orderData } = await supabaseServer
       .from("orders")
-      .select(
-        `
-        *,
-        client_packages
-        `,
-      )
+      .select(`*`)
       .eq("checkout_id", checkoutId)
       .single();
 
