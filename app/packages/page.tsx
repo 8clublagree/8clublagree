@@ -496,6 +496,7 @@ export default function PackagesPage() {
             payment_method: "maya",
             uploaded_at: dayjs().toISOString(),
             checkout_id: uuid,
+            previous_active_package_id: user?.currentPackage?.id ?? null,
           },
         });
 

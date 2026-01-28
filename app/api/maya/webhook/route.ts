@@ -21,13 +21,6 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
       .single();
 
     if (orderData) {
-      const { data: clientPackages } = await supabaseServer
-        .from("client_packages")
-        .select("*")
-        .eq("user_id", orderData.userID);
-
-      const active = clientPackages?.find((x) => x.status === "active");
-
       const orderObject = {
         userID: orderData.user_id,
         packageID: orderData.package_id,
@@ -37,18 +30,27 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
         packageName: orderData.package_title,
       };
 
-      const [clientPackageResponse, userCreditsResponse] = await Promise.all([
-        supabaseServer
-          .from("client_packages")
-          .update({ status: "expired", expirationDate: dayjs().toISOString() })
-          .eq("id", active.id),
-
+      let promises: any = [
         supabaseServer
           .from("user_credits")
           .update({ credits: Number(orderObject.packageCredits) })
           .eq("user_id", orderObject.userID)
           .single(),
-      ]);
+      ];
+
+      if (orderData.previous_active_package_id) {
+        promises.push(
+          supabaseServer
+            .from("client_packages")
+            .update({
+              status: "expired",
+              expirationDate: dayjs().toISOString(),
+            })
+            .eq("id", orderData.previous_active_package_id),
+        );
+      }
+      const [clientPackageResponse, userCreditsResponse] =
+        await Promise.all(promises);
 
       if (clientPackageResponse && userCreditsResponse) {
         await supabaseServer
