@@ -511,9 +511,11 @@ export default function PackagesPage() {
         });
         setProcessingMaya(false);
       }
+      setProcessingMaya(false);
     } catch (error: any) {
       console.error("error.message: ", error);
     }
+    setProcessingMaya(false);
   };
 
   const updateField = (
