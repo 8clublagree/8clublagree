@@ -23,9 +23,9 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
     const { data: clientPackages } = await supabaseServer
       .from("client_packages")
       .select("*")
-      .eq("user_id", orderData.userID)
-      .eq("status", "active")
-      .single();
+      .eq("user_id", orderData.userID);
+
+    const active = clientPackages?.find((x) => x.status === "active");
 
     const orderObject = {
       userID: orderData.user_id,
@@ -40,7 +40,7 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
       supabaseServer
         .from("client_packages")
         .update({ status: "expired", expirationDate: dayjs().toISOString() })
-        .eq("id", clientPackages.id),
+        .eq("id", active.id),
 
       supabaseServer
         .from("user_credits")
