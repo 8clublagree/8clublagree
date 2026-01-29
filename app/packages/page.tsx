@@ -1377,7 +1377,7 @@ export default function PackagesPage() {
                       title={showToolTip && "You still have an active package"}
                     >
                       <Button
-                        // disabled={disablePurchase}
+                        disabled={disablePurchase}
                         onClick={() => handleOpenModal(item)}
                         className={`${
                           !disablePurchase
