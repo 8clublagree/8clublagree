@@ -280,7 +280,6 @@ export default function PackagesPage() {
   };
 
   const handleNext = async () => {
-    //trigger
     try {
       //temporary behavior
       // setIsSubmitting(true);
