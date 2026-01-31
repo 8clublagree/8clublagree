@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
         await supabaseServer
           .from("orders")
           .update({ status: "FAILED" })
-          .eq("checkout_id", requestReferenceNumber);
+          .eq("reference_id", requestReferenceNumber);
 
         break;
       case WEBHOOK_STATUS.PAYMENT_EXPIRED:
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
         await supabaseServer
           .from("orders")
           .update({ status: "EXPIRED" })
-          .eq("checkout_id", requestReferenceNumber);
+          .eq("reference_id", requestReferenceNumber);
         break;
       case WEBHOOK_STATUS.PAYMENT_CANCELLED:
         nextResponse = {
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
         await supabaseServer
           .from("orders")
           .update({ status: "CANCELLED" })
-          .eq("checkout_id", requestReferenceNumber);
+          .eq("reference_id", requestReferenceNumber);
         break;
     }
 
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
             approved_at:
               status === "PAYMENT_SUCCESS" ? dayjs().toISOString() : null,
           })
-          .eq("checkout_id", requestReferenceNumber),
+          .eq("reference_id", requestReferenceNumber),
       ]);
     }
 
