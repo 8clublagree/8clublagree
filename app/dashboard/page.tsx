@@ -290,7 +290,7 @@ export default function DashboardPage() {
                 Are you sure you want to cancel this class?
               </Text>
               <Text className="text-center font-normal text-[14px]">
-                Cancelling would mean you won&apos;t be able to book this class
+                Cancelling would mean you won&apos;t be able to book this schedule
                 again.
               </Text>
             </Row>
@@ -338,7 +338,7 @@ export default function DashboardPage() {
               Are you sure you want to cancel this class?
             </Text>
             <Text className="text-center font-normal text-[14px]">
-              Cancelling would mean you won&apos;t be able to book this class
+              Cancelling would mean you won&apos;t be able to book this schedule
               again.
             </Text>
           </Row>

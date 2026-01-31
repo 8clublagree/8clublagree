@@ -220,6 +220,8 @@ export default function AuthenticatedLayout({
         <div>
           <div className="h-16 flex px-[25px] items-center justify-start border-b border-slate-200 bg-[#800020]">
             <Image
+              className="cursor-pointer"
+              onClick={() => router.push('/about')}
               src="/images/main-logo-white.png"
               alt="Logo"
               width={130}

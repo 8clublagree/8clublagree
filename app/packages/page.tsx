@@ -684,18 +684,7 @@ export default function PackagesPage() {
     setIsSendingPending(false);
   };
 
-  const renderCurrentPurchase = useMemo(() => {
-    const pendingPackage = user?.pendingPurchases;
-    const item = {
-      status: pendingPackage?.status,
-      packages: { title: pendingPackage?.package_title },
-    };
-    return (
-      <Row>
-        <PackageHistoryCard item={item} />
-      </Row>
-    );
-  }, []);
+
 
   const renderCheckoutDrawer = useMemo(() => {
     return (
@@ -1279,93 +1268,7 @@ export default function PackagesPage() {
     previewOpen,
   ]);
 
-  const RenderPackageCard = useCallback((item: any, index: number) => {
-    const showToolTip = user?.currentPackage && user?.credits !== 0;
-    const hasPendingPurchase = user?.pendingPurchases;
 
-    const disablePurchase =
-      (user?.currentPackage !== null ||
-        user?.currentPackage !== undefined) &&
-      user?.credits !== 0;
-
-    return (
-      <Card
-        key={index}
-        title={
-          item.packageCredits ? `${item.packageCredits}` : `Unlimited`
-        }
-        styles={{
-          title: {
-            gap: 0,
-            textWrap: "wrap",
-            textAlign: "center",
-            marginInline: "auto",
-          },
-          cover: {
-            backgroundColor: "black !important",
-          },
-          header: {
-            backgroundColor: "black !important",
-            color: "white",
-            textAlign: "center",
-            fontSize: "36px",
-            height: "120px",
-          },
-          body: {
-            paddingInline: "10px",
-            paddingTop: "15px",
-          },
-        }}
-        className="w-[270px] border-[#fbe2ff] rounded-[24px] shadow-sm transition-all duration-300 flex-nowrap"
-      >
-        <Col className="flex flex-col gap-y-[10px] flex-nowrap">
-          <Col className="flex-nowrap">
-            <p>
-              <span className="font-bold text-[16px]">
-                {item.title}
-              </span>
-            </p>
-            <p>
-              <span className="font-light">
-                {item.packageCredits
-                  ? `${item.packageCredits} sessions`
-                  : "Unlimited Sessions"}
-              </span>
-            </p>
-            <p>
-              <span className="font-light">
-                Valid for{" "}
-                <span className="font-semibold">
-                  {item.validityPeriod}
-                </span>{" "}
-                days
-              </span>
-            </p>
-            <p>
-              <span className="font-normal">
-                PHP {formatPrice(item.price)}
-              </span>
-            </p>
-          </Col>
-
-          <Tooltip
-            title={showToolTip && "You still have an active package"}
-          >
-            <Button
-              disabled={disablePurchase}
-              onClick={() => handleOpenModal(item)}
-              className={`${!disablePurchase
-                ? "!bg-[#36013F] !border-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
-                : "!bg-slate-200 !border-slate-bg-slate-200 hover:!bg-slate-200"
-                } h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
-            >
-              Purchase
-            </Button>
-          </Tooltip>
-        </Col>
-      </Card>
-    );
-  }, [packages])
 
   return (
     <AuthenticatedLayout>
@@ -1383,11 +1286,93 @@ export default function PackagesPage() {
         </Button> */}
         <Row gutter={[20, 20]} className="gap-x-[20px] xl:justify-start">
           {packages &&
-            packages.map((item, index) => (
-              <Fragment key={item?.id ?? index}>
-                {RenderPackageCard(item, index)}
-              </Fragment>
-            ))}
+            packages.map((item, index) => {
+
+
+              const showToolTip = user?.currentPackage && user?.credits !== 0;
+              const hasPendingPurchase = user?.pendingPurchases;
+
+              const disablePurchase =
+                (user?.currentPackage !== null ||
+                  user?.currentPackage !== undefined) &&
+                user?.credits !== 0;
+
+              return (
+                <Card
+                  key={index}
+                  title={
+                    item.packageCredits ? `${item.packageCredits}` : `Unlimited`
+                  }
+                  styles={{
+                    title: {
+                      gap: 0,
+                      textWrap: "wrap",
+                      textAlign: "center",
+                      marginInline: "auto",
+                    },
+                    header: {
+                      backgroundColor: 'black',
+                      color: "white",
+                      textAlign: "center",
+                      fontSize: "36px",
+                      height: "120px",
+                    },
+                    body: {
+                      paddingInline: "10px",
+                      paddingTop: "15px",
+                    },
+                  }}
+                  className="w-[270px] border-[#fbe2ff] rounded-[24px] shadow-sm transition-all duration-300 flex-nowrap"
+                >
+                  <Col className="flex flex-col gap-y-[10px] flex-nowrap">
+                    <Col className="flex-nowrap">
+                      <p>
+                        <span className="font-bold text-[16px]">
+                          {item.title}
+                        </span>
+                      </p>
+                      <p>
+                        <span className="font-light">
+                          {item.packageCredits
+                            ? `${item.packageCredits} sessions`
+                            : "Unlimited Sessions"}
+                        </span>
+                      </p>
+                      <p>
+                        <span className="font-light">
+                          Valid for{" "}
+                          <span className="font-semibold">
+                            {item.validityPeriod}
+                          </span>{" "}
+                          days
+                        </span>
+                      </p>
+                      <p>
+                        <span className="font-normal">
+                          PHP {formatPrice(item.price)}
+                        </span>
+                      </p>
+                    </Col>
+
+                    <Tooltip
+                      title={showToolTip && "You still have an active package"}
+                    >
+                      <Button
+                        disabled={disablePurchase}
+                        onClick={() => handleOpenModal(item)}
+                        className={`${!disablePurchase
+                          ? "!bg-[#36013F] !border-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                          : "!bg-slate-200 !border-slate-bg-slate-200 hover:!bg-slate-200"
+                          } h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                      >
+                        Purchase
+                      </Button>
+                    </Tooltip>
+                  </Col>
+                </Card>
+              );
+
+            })}
         </Row>
         {packages && packages.length === 0 && (
           <Card className="shadow-sm">

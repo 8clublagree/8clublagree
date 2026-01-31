@@ -8,6 +8,24 @@
   --background-end-rgb: 255, 255, 255;
 }
 
+@font-face {
+  font-family: 'Halyard Display';
+  src: url('/fonts/Halyard-Display/Halyard_Display_Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* @font-face {
+  font-family: 'Halyard Display';
+  src: url('/fonts/Halyard-Display/Halyard_Display_Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+} */
+
+.halyard {
+  font-family: 'Halyard Display', sans-serif;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
@@ -44,6 +62,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -76,6 +95,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }

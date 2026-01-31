@@ -60,16 +60,16 @@ export default function LoginPage() {
           <Row className="flex-col text-center mb-8">
             <Row className="justify-center mb-[10px]">
               <Image
-                src="/images/main-logo.png"
+                src="/images/main-8-logo.png"
                 alt="Logo"
-                width={170}
-                height={170}
+                width={70}
+                height={70}
               />
             </Row>
             {/* <Title level={2} className="!mb-2">
               8 Club Lagree
             </Title> */}
-            <Text type="secondary">Sign in to your account</Text>
+            <Text type="secondary">Log in to your account</Text>
           </Row>
 
           {/* <Form

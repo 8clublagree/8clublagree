@@ -96,18 +96,19 @@ export default function CreditsPage() {
             {/* Current Package */}
             <Col xs={24} sm={12} lg={8} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
-                <Title level={3}>Active Package</Title>
+                <Row wrap={false} className="items-center gap-[10px]">
+                  <TfiPackage size={25} />
+                  <Title level={3} className="!m-0">Active Package</Title>
+                </Row>
 
                 <Row
                   wrap={false}
                   justify={"start"}
-                  className={`${
-                    !activePackage && "p-[10px] bg-slate-200"
-                  } rounded-lg items-center gap-[10px]`}
+                  className={`${!activePackage && "p-[10px] bg-slate-200"
+                    } rounded-lg items-center gap-[10px]`}
                 >
                   {activePackage ? (
                     <Row className="items-center gap-[10px]">
-                      <TfiPackage size={25} />
                       <Title level={4} className="!mb-0 !font-normal">
                         {activePackage.packages.title}
                       </Title>
@@ -128,7 +129,10 @@ export default function CreditsPage() {
             <Col xs={24} sm={12} lg={8} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
                 <Row justify={"space-between"}>
-                  <Title level={3}>Credit Tracker</Title>
+                  <Row wrap={false} className="items-center gap-[10px]">
+                    <LiaCoinsSolid size={25} />
+                    <Title level={3} className="!m-0">Credit Tracker</Title>
+                  </Row>
                   {!!packages.length && user?.credits === 0 && (
                     <Button
                       onClick={() => router.push("/packages")}
@@ -142,13 +146,12 @@ export default function CreditsPage() {
                 <Row
                   wrap={false}
                   justify={"start"}
-                  className={`${
-                    !activePackage && "p-[10px] bg-slate-200"
-                  } rounded-lg items-center gap-[10px]`}
+                  className={`${!activePackage && "p-[10px] bg-slate-200"
+                    } rounded-lg items-center gap-[10px]`}
                 >
                   {activePackage ? (
                     <Row className="items-center gap-x-[7px]">
-                      <LiaCoinsSolid size={25} />
+
                       {!activePackage.packages.packageCredits && (
                         <Row className="items-center gap-x-[10px]">
                           <ImInfinite size={25} className="!font-normal" />
@@ -160,11 +163,10 @@ export default function CreditsPage() {
                       {activePackage.packages.packageCredits && (
                         <Title
                           level={4}
-                          className={`${
-                            user?.credits === 0 && "!text-red-400"
-                          } !mb-0 !font-normal`}
+                          className={`${user?.credits === 0 && "!text-red-400"
+                            } !mb-0 !font-normal`}
                         >
-                          {`${user?.credits} / ${activePackage.packages.packageCredits}`}
+                          {`${user?.credits} out of ${activePackage.packages.packageCredits}`}
                         </Title>
                       )}
                       <Title level={4} className="!m-0 !font-normal">
@@ -183,16 +185,18 @@ export default function CreditsPage() {
             {/* Expiration Date */}
             <Col xs={24} sm={12} lg={8} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
-                <Title level={3}>Expiration Date</Title>
+                <Row wrap={false} className="items-center gap-[10px]">
+
+                  <HiOutlineCalendarDateRange size={30} />
+                  <Title level={3} className="!m-0">Expiration Date</Title>
+                </Row>
 
                 <Row
                   wrap={false}
                   justify={"start"}
-                  className={`${
-                    !activePackage && "p-[10px] bg-slate-200"
-                  } rounded-lg items-center gap-[10px]`}
+                  className={`${!activePackage && "p-[10px] bg-slate-200"
+                    } rounded-lg items-center gap-[10px]`}
                 >
-                  <HiOutlineCalendarDateRange size={30} />
                   {activePackage ? (
                     <Title level={4} className="!mb-0 !font-normal">
                       {formatDate(dayjs(activePackage.expirationDate))} (

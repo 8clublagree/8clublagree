@@ -9,16 +9,22 @@ const StudioGuidelines = () => {
   const renderStudioGuidelines = useCallback(() => {
     return (
       <Card
+        styles={{
+          title: {
+            textAlign: 'center'
+          }
+        }}
         className="max-w-3xl mx-auto mt-10 rounded-2xl shadow-sm py-6 px-0 text-justify"
         title={
-          <Title level={4} className="!mb-0">
+          <Title level={2} className="halyard !mb-0">
             8 CLUB LAGREE STUDIO GUIDELINES
           </Title>
         }
       >
-        <Text strong underline>
-          CREDIT USAGE AND VALIDITY POLICY
+        <Text strong className="halyard text-[16px]" underline>
+          Credit Usage and Validity Policy
         </Text>
+
         <Paragraph>
           <ul>
             <li>
@@ -37,8 +43,8 @@ const StudioGuidelines = () => {
             </li>
           </ul>
         </Paragraph>
-        <Text strong underline>
-          PAYMENT POLICY
+        <Text strong className="halyard text-[16px]" underline>
+          Payment Policy
         </Text>
         <Paragraph>
           <ul>
@@ -57,8 +63,8 @@ const StudioGuidelines = () => {
             </li>
           </ul>
         </Paragraph>
-        <Text strong underline>
-          SCHEDULE POLICY
+        <Text strong className="halyard text-[16px]" underline>
+          Schedule Policy
         </Text>
         <Paragraph>
           <ul>
@@ -69,8 +75,8 @@ const StudioGuidelines = () => {
             </li>
           </ul>
         </Paragraph>
-        <Text strong underline>
-          CLASS RESCHEDULE POLICY
+        <Text strong className="halyard text-[16px]" underline>
+          Class Reschedule Policy
         </Text>
         <Paragraph>
           <ul>
@@ -89,8 +95,8 @@ const StudioGuidelines = () => {
             </li>
           </ul>
         </Paragraph>
-        <Text strong underline>
-          CANCELLATION POLICY
+        <Text strong className="halyard text-[16px]" underline>
+          Cancellation Policy
         </Text>
         <Paragraph>
           <ul>
@@ -115,8 +121,8 @@ const StudioGuidelines = () => {
             </li>
           </ul>
         </Paragraph>
-        <Text strong underline>
-          ARRIVAL AND LATE ENTRY POLICY
+        <Text strong className="halyard text-[16px]" underline>
+          Arrival and Late Entry Policy
         </Text>
         <Paragraph>
           <ul>
@@ -137,35 +143,36 @@ const StudioGuidelines = () => {
             </li>
           </ul>
         </Paragraph>
-        <Text strong underline>
-          PARTICIPANT AGE AND ELIGIBILITY POLICY
+        <Text strong className="halyard text-[16px]" underline>
+          Participant and Age Eligibility Policy
         </Text>
-        <Paragraph>
+        <Typography>
           <ul>
             <li>
-              Lagree is a high-intensity workout and may not be suitable for
-              individuals under 14 years of age.
-              <li>
-                <Text strong>Ages 14-15</Text>: participants may join classes only
-                when accompanied by a parent or legal guardian.
-              </li>
-              <li>
-                <Text strong>Ages 16-17</Text>: may participate unaccompanied,
-                provided a parent or guardian has signed a consent and liability
-                waiver prior class.
-              </li>
-              <li>
-                <Text strong>Participants with injuries</Text>: guests with
-                existing or previous injuries are required to inform the
-                instructor <Text strong>prior to class</Text>. This allows the
-                instructor to take note and provide appropriate modifications
-                during the session to ensure safety and comfort.
-              </li>
+              Lagree is a high-intensity workout and may not be suitable for individuals
+              under 14 years of age.
+              <ul>
+                <li>
+                  <Text strong>Ages 14–15</Text>: participants may join classes only when
+                  accompanied by a parent or legal guardian.
+                </li>
+                <li>
+                  <Text strong>Ages 16–17</Text>: may participate unaccompanied, provided a
+                  parent or guardian has signed a consent and liability waiver prior
+                  class.
+                </li>
+                <li>
+                  <Text strong>Participants with injuries</Text>: guests with existing or
+                  previous injuries must inform the instructor{" "}
+                  <Text strong>prior to class</Text>.
+                </li>
+              </ul>
             </li>
           </ul>
-        </Paragraph>
-        <Text strong underline>
-          STUDIO DRESS CODE POLICY
+        </Typography>
+
+        <Text strong className="halyard text-[16px]" underline>
+          Studio Dress Code Policy
         </Text>
         <Paragraph>
           <ul>

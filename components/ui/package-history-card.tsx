@@ -20,23 +20,23 @@ const PackageHistoryCard = ({ item }: { item: any }) => {
             ...(expired
               ? {}
               : {
-                  transition: "box-shadow 0.3s ease",
-                  borderInline: "3px solid #22c55e",
-                  borderTop: "3px solid #22c55e",
-                }),
+                transition: "box-shadow 0.3s ease",
+                borderInline: "3px solid #22c55e",
+                borderTop: "3px solid #22c55e",
+              }),
             color: expired ? "#888" : "white",
             fontSize: 20,
             paddingInline: 15,
-            backgroundColor: expired ? "rgba(0,0,0,0.3)" : "#36013F",
+            backgroundColor: expired ? "rgba(0,0,0,0.3)" : "black",
           },
           body: {
             ...(expired
               ? { border: "1px solid gray" }
               : {
-                  transition: "box-shadow 0.3s ease",
-                  borderInline: "3px solid #22c55e",
-                  borderBottom: "3px solid #22c55e",
-                }),
+                transition: "box-shadow 0.3s ease",
+                borderInline: "3px solid #22c55e",
+                borderBottom: "3px solid #22c55e",
+              }),
             backgroundColor: expired ? "rgba(0,0,0,0.1)" : "white",
             color: expired ? "#888" : "inherit",
             opacity: expired ? 0.6 : 1,

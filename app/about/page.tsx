@@ -11,6 +11,7 @@ import {
   Avatar,
   TableColumnsType,
 } from "antd";
+
 import { EnvironmentOutlined, UserOutlined } from "@ant-design/icons";
 import { Class, Trainer, Schedule, Testimonial } from "@/lib/props";
 import { useRouter } from "next/navigation";
@@ -106,17 +107,27 @@ export default function About() {
     [schedules],
   );
 
+
   return (
     <UnauthenticatedLayout>
       <section
         style={{
           background: "#fff",
-          padding: "300px 40px",
+          padding: "100px 40px",
           textAlign: "center",
         }}
       >
+        <div className="flex justify-center">
+          <img
+            src="/images/main-8-logo.png"
+            alt="Logo"
+            width={400}
+            height={400}
+          />
+        </div>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <Title
+            className="halyard"
             style={{
               fontSize: "3.5rem",
               fontWeight: 300,
@@ -124,7 +135,7 @@ export default function About() {
               letterSpacing: "0.02em",
             }}
           >
-            Welcome to the 8CLUB
+            Welcome to Lagree
           </Title>
           <Paragraph
             style={{
@@ -322,7 +333,7 @@ export default function About() {
                     <span className="px-3 py-1 bg-[#f5f5f5] rounded text-[0.75rem] text-[#666] w-fit">
                       {
                         CERTIFICATION_MAP[
-                          instructor.instructors?.[0]?.certification
+                        instructor.instructors?.[0]?.certification
                         ]
                       }
                     </span>

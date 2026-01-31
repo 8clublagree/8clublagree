@@ -10,17 +10,22 @@ const UserTermsAndConditions = () => {
     return (
       <Card
         className="max-w-3xl mx-auto mt-10 rounded-2xl shadow-sm py-6 px-0 text-justify"
+        styles={{
+          title: {
+            textAlign: 'center'
+          }
+        }}
         title={
-          <Title level={4} className="!mb-0">
+          <Title level={3} className="halyard  !mb-0">
             Terms & Conditions
           </Title>
         }
       >
         <Title level={4}>
-          <span className="font-bold">8 CLUB LAGREE</span> — MEMBER&apos;S
+          <span className="halyard font-bold">8 CLUB LAGREE</span> — MEMBER&apos;S
           ASSUMPTION OF RISK AND RELEASE OF LIABILITY
         </Title>
-        <Text underline>Assumption of Risk</Text>
+        <Text strong className="halyard text-[16px] font-bold" underline>Assumption of Risk</Text>
         <Paragraph>
           I, the undersigned, understands that participation in any fitness class,
           physical training, or related activity at{" "}
@@ -37,7 +42,7 @@ const UserTermsAndConditions = () => {
           and have no health condition, impairment, or injury that would endanger
           myself or others during participation.
         </Paragraph>
-        <Text underline>Release of Liability</Text>
+        <Text strong className="halyard text-[16px] font-bold" underline>Release of Liability</Text>
         <Paragraph>
           In consideration of being allowed to participate in any class, training,
           or activity offered by <span className="font-bold">8 Club Lagree</span>,
@@ -58,7 +63,7 @@ const UserTermsAndConditions = () => {
           studio or any off-site location designated by the studio for fitness
           training or events.{" "}
         </Paragraph>
-        <Text underline>Binding Effect</Text>
+        <Text strong className="halyard text-[16px] font-bold" underline>Binding Effect</Text>
         <Paragraph>
           This agreement shall be binding upon me, my heirs, executors,
           administrators, representatives, successors, and assigns. I agree that
@@ -66,7 +71,7 @@ const UserTermsAndConditions = () => {
           applicable law. If any portion of this agreement is held invalid, the
           remainder shall continue in full legal force and effect.
         </Paragraph>
-        <Text underline>Medical Emergencies</Text>
+        <Text strong className="halyard text-[16px] font-bold" underline>Medical Emergencies</Text>
         <Paragraph>
           If I am signing on behalf of a minor participant, I grant full
           permission to any <span className="font-bold">8 Club Lagree</span> staff
@@ -74,7 +79,7 @@ const UserTermsAndConditions = () => {
           or surgical care, including transportation to a medical facility, in
           case of emergency.
         </Paragraph>
-        <Text underline>Indemnification</Text>
+        <Text strong className="halyard text-[16px] font-bold" underline>Indemnification</Text>
         <Paragraph>
           {" "}
           I agree to indemnify, defend, and hold harmless{" "}
@@ -85,7 +90,7 @@ const UserTermsAndConditions = () => {
           <span className="font-bold">8 Club Lagree</span> activities or from my
           negligent or intentional acts or omissions.{" "}
         </Paragraph>
-        <Text underline>Acknowledgment</Text>
+        <Text strong className="halyard text-[16px] font-bold" underline>Acknowledgment</Text>
         <Paragraph>
           I have carefully read and fully understand this Assumption of Risk and
           Release of Liability Agreement. I voluntarily sign it, acknowledging
