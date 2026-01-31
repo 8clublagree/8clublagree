@@ -1,7 +1,7 @@
 // app/reset-password/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import UnauthenticatedLayout from "@/components/layout/UnauthenticatedLayout";
@@ -14,7 +14,19 @@ const { Title, Text } = Typography;
 
 const REDIRECT_DELAY_MS = 2500;
 
-export default function ResetPasswordPage() {
+function ResetPasswordFallback() {
+  return (
+    <UnauthenticatedLayout>
+      <div className="py-[150px] flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <Text className="text-slate-500">Loading…</Text>
+        </div>
+      </div>
+    </UnauthenticatedLayout>
+  );
+}
+
+function ResetPasswordContent() {
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [changed, setChanged] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -216,5 +228,13 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </UnauthenticatedLayout>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<ResetPasswordFallback />}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

@@ -22,19 +22,24 @@ function setTokenCached(token: string): void {
   tokenCache.set(token, Date.now() + TOKEN_CACHE_TTL_MS);
 }
 
-const PASSWORD_RESET_PATHS = [
-  "/api/request-password-reset",
-  "/api/verify-otp",
-  "/api/validate-reset-token",
-  "/api/reset-password-with-token",
-];
+
 
 export async function middleware(req: NextRequest) {
   const { headers, nextUrl } = req;
   const origin = req.nextUrl.origin;
   const pathname = nextUrl.pathname;
 
-  if (PASSWORD_RESET_PATHS.includes(pathname)) {
+
+  if (pathname === "/api/request-password-reset") {
+    return NextResponse.next();
+  }
+  if (pathname === "/api/verify-otp") {
+    return NextResponse.next();
+  }
+  if (pathname === "/api/validate-reset-token") {
+    return NextResponse.next();
+  }
+  if (pathname === "/api/reset-password-with-token") {
     return NextResponse.next();
   }
 

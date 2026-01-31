@@ -66,25 +66,10 @@ export default function LoginPage() {
                 height={70}
               />
             </Row>
-            {/* <Title level={2} className="!mb-2">
-              8 Club Lagree
-            </Title> */}
+
             <Text type="secondary">Log in to your account</Text>
           </Row>
 
-          {/* <Form
-          name="login"
-          onFinish={onFinish}
-          layout="vertical"
-          size="large"
-          requiredMark={false}
-        >
-          <div className="text-center mb-8">
-            <Title level={2} className="!mb-2">
-              Supra8 Lagree
-            </Title>
-            <Text type="secondary">Sign in to your account</Text>
-          </div> */}
 
           <Form
             name="login"
@@ -129,6 +114,15 @@ export default function LoginPage() {
                 Log In
               </Button>
             </Form.Item>
+
+            <div className="text-center mb-2">
+              <Link
+                href="/forgot-password"
+                className="!text-[#800020] hover:text-[#800020] text-sm"
+              >
+                Forgot password?
+              </Link>
+            </div>
 
             <div className="text-center">
               <Text type="secondary">
