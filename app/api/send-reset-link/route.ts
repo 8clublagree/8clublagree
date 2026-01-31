@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
 import supabaseServer from "../supabase";
 import dayjs from "dayjs";
+import { rateLimit, RATE_LIMIT_PRESETS } from "@/lib/rate-limits";
 
 const MAX_PER_DAY = 5;
 
 export async function GET(req: Request) {
   try {
-    const since = dayjs().subtract(24, "hour").toISOString();
     const params = Object.fromEntries(new URL(req.url).searchParams.entries());
-
     const { email } = params;
 
+    // In-process rate limit by email; fewer DB hits, fail fast
+    const { allowed } = rateLimit(`reset:${email}`, RATE_LIMIT_PRESETS.resetLink);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many reset attempts today" },
+        { status: 429 },
+      );
+    }
+
+    const since = dayjs().subtract(24, "hour").toISOString();
     const { data, error, count } = await supabaseServer
       .from("password_reset_requests")
       .select("*", { count: "exact" })
@@ -18,13 +27,10 @@ export async function GET(req: Request) {
       .gt("requested_at", since);
 
     const attempts = count ?? 0;
-
-    console.log("count: ", count);
-
     if (attempts > MAX_PER_DAY) {
       return NextResponse.json(
         { error: "Too many reset attempts today" },
-        { status: 200 },
+        { status: 429 },
       );
     }
 
@@ -47,14 +53,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // change redirect base URL in production
+    // Change redirect base URL in production
     const { error: resetError } =
       await supabaseServer.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.SYSTEM_ORIGIN_TEST!!}/reset-password`,
+        // redirectTo: `${process.env.SYSTEM_ORIGIN_TEST!!}/reset-password`,
+        redirectTo: `${process.env.SYSTEM_ORIGIN!!}/reset-password`,
       });
 
     if (resetError) {
-      console.log("resetError: ", resetError);
       return NextResponse.json(
         { error: "Error sending reset email" },
         { status: 500 },
@@ -63,7 +69,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ data });
   } catch (err: any) {
-    console.log("err: ", err);
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }

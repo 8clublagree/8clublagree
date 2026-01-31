@@ -10,15 +10,18 @@ type Entry = {
 
 const store = new Map<string, Entry>();
 
+// Reusable presets for cost control (fewer DB/external calls when limit hit)
+export const RATE_LIMIT_PRESETS = {
+  resetLink: { limit: 5, windowMs: 24 * 60 * 60 * 1000 },
+  auth: { limit: 20, windowMs: 60 * 1000 },
+} as const;
+
 export function rateLimit(key: string, { limit, windowMs }: RateLimitOptions) {
   const now = Date.now();
   const entry = store.get(key);
 
   if (!entry || entry.expiresAt < now) {
-    store.set(key, {
-      count: 1,
-      expiresAt: now + windowMs,
-    });
+    store.set(key, { count: 1, expiresAt: now + windowMs });
     return { allowed: true, remaining: limit - 1 };
   }
 
@@ -29,3 +32,18 @@ export function rateLimit(key: string, { limit, windowMs }: RateLimitOptions) {
   entry.count++;
   return { allowed: true, remaining: limit - entry.count };
 }
+
+// Remove expired entries periodically to prevent unbounded Map growth (memory/cost)
+const CLEANUP_INTERVAL_MS = 60_000;
+let cleanupScheduled = false;
+function scheduleCleanup() {
+  if (cleanupScheduled) return;
+  cleanupScheduled = true;
+  setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of store.entries()) {
+      if (v.expiresAt < now) store.delete(k);
+    }
+  }, CLEANUP_INTERVAL_MS);
+}
+scheduleCleanup();

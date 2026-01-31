@@ -32,7 +32,7 @@ export const packagePendingPurchase = ({
     <!-- Header -->
     <h2 style="
       margin:0 0 20px 0;
-      font-size:22px;
+      font-size:18px;
       font-weight:600;
       color:#36013F;
       text-align:center;
@@ -43,7 +43,7 @@ export const packagePendingPurchase = ({
     <!-- Package -->
     <h2 style="
       margin:0 0 20px 0;
-      font-size:30px;
+      font-size:20px;
       font-weight:600;
       color:#36013F;
       text-align:center;
@@ -122,7 +122,7 @@ export const packagePurchase = ({
     <!-- Header -->
     <h2 style="
       margin:0 0 20px 0;
-      font-size:22px;
+      font-size:18px;
       font-weight:600;
       color:#36013F;
       text-align:center;
@@ -133,7 +133,7 @@ export const packagePurchase = ({
     <!-- Package -->
     <h2 style="
       margin:0 0 20px 0;
-      font-size:30px;
+      font-size:20px;
       font-weight:600;
       color:#36013F;
       text-align:center;

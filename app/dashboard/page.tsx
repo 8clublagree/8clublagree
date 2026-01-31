@@ -173,6 +173,9 @@ export default function DashboardPage() {
                   dayjs(data.classes.start_time),
                 );
 
+                console.log('data: ', data)
+                console.log('data: ', data)
+
                 return (
                   <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
                     <Card
@@ -187,7 +190,7 @@ export default function DashboardPage() {
                             justifyContent: "center",
                           }}
                         >
-                          {data?.avatar_url === undefined && (
+                          {data?.avatar_url === undefined || data?.avatar_url === null && (
                             <User style={{ fontSize: 64, color: "#999" }} />
                           )}
                           {data?.avatar_url && (
@@ -216,10 +219,9 @@ export default function DashboardPage() {
                           <Button
                             onClick={handleOpenCancelConfirmation}
                             disabled={notCancellable}
-                            className={`w-full ${
-                              !notCancellable &&
+                            className={`w-full ${!notCancellable &&
                               "!bg-red-400 hover:!bg-red-700 hover:!border-red-600 hover:!text-white"
-                            } border-red-600 bg-red-200 text-white`}
+                              } border-red-600 bg-red-200 text-white`}
                           >
                             Cancel
                           </Button>
