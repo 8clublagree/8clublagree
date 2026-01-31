@@ -348,7 +348,7 @@ export default function BookingsPage() {
         }}
       />
     );
-  }, [classes, loading, isMobile]);
+  }, [classes, loading, isMobile, isSubmitting]);
 
   return (
     <AuthenticatedLayout>
