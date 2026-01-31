@@ -92,20 +92,19 @@ export default function CreditsPage() {
 
       {!fetchingData && (
         <div className="space-y-6">
-          <Row gutter={[16, 16]} className="flex flex-wrap">
+          <Row gutter={[16, 16]} className="flex flex-wrap items-stretch">
             {/* Current Package */}
             <Col xs={24} sm={12} lg={8} className="flex">
-              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
-                <Row wrap={false} className="items-center gap-[10px]">
-                  <TfiPackage size={25} />
-                  <Title level={3} className="!m-0">Active Package</Title>
+              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
+                <Row wrap={false} className="items-center gap-[10px] mb-4">
+                  <TfiPackage size={25} className="flex-shrink-0" />
+                  <Title level={3} className="halyard !m-0">Active Package</Title>
                 </Row>
 
                 <Row
-                  wrap={false}
                   justify={"start"}
                   className={`${!activePackage && "p-[10px] bg-slate-200"
-                    } rounded-lg items-center gap-[10px]`}
+                    } rounded-lg items-center gap-[10px] min-h-[60px]`}
                 >
                   {activePackage ? (
                     <Row className="items-center gap-[10px]">
@@ -114,12 +113,12 @@ export default function CreditsPage() {
                       </Title>
                     </Row>
                   ) : (
-                    <>
-                      <MdErrorOutline size={30} />
-                      <Text>
+                    <Row wrap={false} className="items-start gap-[10px]">
+                      <MdErrorOutline size={30} className="flex-shrink-0 mt-1" />
+                      <Text className="flex-1">
                         Package has expired or hasn&apos;t been purchased
                       </Text>
-                    </>
+                    </Row>
                   )}
                 </Row>
               </Card>
@@ -127,11 +126,11 @@ export default function CreditsPage() {
 
             {/* Credits */}
             <Col xs={24} sm={12} lg={8} className="flex">
-              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
-                <Row justify={"space-between"}>
+              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
+                <Row justify={"space-between"} className="mb-4 flex-wrap gap-y-2">
                   <Row wrap={false} className="items-center gap-[10px]">
-                    <LiaCoinsSolid size={25} />
-                    <Title level={3} className="!m-0">Credit Tracker</Title>
+                    <LiaCoinsSolid size={25} className="flex-shrink-0" />
+                    <Title level={3} className="halyard !m-0">Credit Tracker</Title>
                   </Row>
                   {!!packages.length && user?.credits === 0 && (
                     <Button
@@ -144,18 +143,17 @@ export default function CreditsPage() {
                 </Row>
 
                 <Row
-                  wrap={false}
                   justify={"start"}
                   className={`${!activePackage && "p-[10px] bg-slate-200"
-                    } rounded-lg items-center gap-[10px]`}
+                    } rounded-lg items-center gap-[10px] min-h-[60px]`}
                 >
                   {activePackage ? (
-                    <Row className="items-center gap-x-[7px]">
+                    <Row className="items-center gap-x-[7px] flex-wrap">
 
                       {!activePackage.packages.packageCredits && (
                         <Row className="items-center gap-x-[10px]">
                           <ImInfinite size={25} className="!font-normal" />
-                          <Title level={4} className="!mb-0 !font-normal">
+                          <Title level={4} className="halyard !m-0">
                             Unlimited
                           </Title>
                         </Row>
@@ -174,7 +172,7 @@ export default function CreditsPage() {
                       </Title>
                     </Row>
                   ) : (
-                    <Row className="w-[90%] justify-center">
+                    <Row className="w-full justify-center">
                       <Text>No credits available</Text>
                     </Row>
                   )}
@@ -184,18 +182,16 @@ export default function CreditsPage() {
 
             {/* Expiration Date */}
             <Col xs={24} sm={12} lg={8} className="flex">
-              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full h-full min-h-[120px]">
-                <Row wrap={false} className="items-center gap-[10px]">
-
-                  <HiOutlineCalendarDateRange size={30} />
-                  <Title level={3} className="!m-0">Expiration Date</Title>
+              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
+                <Row wrap={false} className="items-center gap-[10px] mb-4">
+                  <HiOutlineCalendarDateRange size={30} className="flex-shrink-0" />
+                  <Title level={3} className="halyard !m-0">Expiration Date</Title>
                 </Row>
 
                 <Row
-                  wrap={false}
                   justify={"start"}
                   className={`${!activePackage && "p-[10px] bg-slate-200"
-                    } rounded-lg items-center gap-[10px]`}
+                    } rounded-lg items-center gap-[10px] min-h-[60px]`}
                 >
                   {activePackage ? (
                     <Title level={4} className="!mb-0 !font-normal">
@@ -203,7 +199,7 @@ export default function CreditsPage() {
                       {formatDate(dayjs(activePackage.expirationDate), "dddd")})
                     </Title>
                   ) : (
-                    <Row className="w-[90%] justify-center">
+                    <Row className="w-full justify-center">
                       <Text>No package</Text>
                     </Row>
                   )}

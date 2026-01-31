@@ -249,11 +249,10 @@ export default function BookingsPage() {
           {!!item.class_bookings.length && (
             <Button
               type="primary"
-              className={`${
-                isCancelled
-                  ? "bg-red-700 hover:!bg-red-700"
-                  : "bg-green-600 hover:!bg-green-600"
-              } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
+              className={`${isCancelled
+                ? "bg-red-700 hover:!bg-red-700"
+                : "bg-green-600 hover:!bg-green-600"
+                } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
             >
               {isCancelled ? "You Cancelled" : "Joined"}
             </Button>
@@ -267,13 +266,12 @@ export default function BookingsPage() {
                   : item.taken_slots === item.available_slots
               }
               onClick={() => handleScheduleAction(item)}
-              className={`bg-[#800020] ${
-                user?.credits === 0
-                  ? "hover:!bg-[#800020]"
-                  : item.taken_slots === item.available_slots
-                    ? ""
-                    : "hover:!bg-[#800020]"
-              } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
+              className={`bg-[#800020] ${user?.credits === 0
+                ? "hover:!bg-[#800020]"
+                : item.taken_slots === item.available_slots
+                  ? ""
+                  : "hover:!bg-[#800020]"
+                } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
             >
               {user?.credits === 0 ? "Get Credits" : "Join"}
             </Button>
@@ -326,11 +324,10 @@ export default function BookingsPage() {
                     <div className={`flex flex-col ${isMobile && "mt-1"}`}>
                       <Text className="text-xs sm:text-sm">{item.slots}</Text>
                       <span
-                        className={`font-bold text-xs sm:text-sm ${
-                          slotsRemaining === 1 || slotsRemaining === 0
-                            ? `text-red-500 font-semibold`
-                            : ``
-                        }`}
+                        className={`font-bold text-xs sm:text-sm ${slotsRemaining === 1 || slotsRemaining === 0
+                          ? `text-red-500 font-semibold`
+                          : ``
+                          }`}
                       >
                         {slotsRemaining <= 0
                           ? "Full"
@@ -364,7 +361,7 @@ export default function BookingsPage() {
               className="items-center"
               justify={"space-between"}
             >
-              <p className="!mb-0 !pb-0 text-[24px] sm:text-[28px] md:text-[34px] xl:text-[42px] font-bold">
+              <p className="halyard !mb-0 !pb-0 text-[24px] sm:text-[28px] md:text-[34px] xl:text-[42px]">
                 {`${dayjs(selectedDate).format("MMMM YYYY").toUpperCase()}`}
               </p>
 
@@ -516,13 +513,11 @@ export default function BookingsPage() {
                   loading={loading || isSubmitting}
                   onClick={handleBookClass}
                   disabled={!acceptsTerms || loading || isSubmitting}
-                  className={`${
-                    acceptsTerms && "hover:!bg-[#800020] hover:scale-[1.03]"
-                  } ${
-                    !acceptsTerms || loading || isSubmitting
+                  className={`${acceptsTerms && "hover:!bg-[#800020] hover:scale-[1.03]"
+                    } ${!acceptsTerms || loading || isSubmitting
                       ? "!bg-slate-200"
                       : "!bg-[#800020]"
-                  } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}
+                    } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}
                 >
                   Book
                 </Button>

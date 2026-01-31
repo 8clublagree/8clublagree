@@ -163,11 +163,11 @@ export default function About() {
           <Title
             level={2}
             style={{
-              fontSize: "2rem",
               fontWeight: 300,
               marginBottom: "48px",
               textAlign: "center",
             }}
+            className="halyard font-[2rem]"
           >
             What is Lagree?
           </Title>
@@ -191,11 +191,11 @@ export default function About() {
             principle of{" "}
             <span className="font-bold">progressive overload,</span> gradually
             increasing resistance, time, or intensity so the body continuously
-            adapts and grows stronger—while supporting fat loss, muscle tone,
-            metabolism, mental toughness, and long-term joint health.
+            adapts and grows <span className="font-bold">stronger</span>, while supporting <span className="font-bold">fat loss, muscle tone,
+              metabolism, and mental toughness.</span>
           </Paragraph>
 
-          <Row wrap={false} className="flex-col">
+          <Row wrap={false} className="flex-col !mt-[50px] justify-center items-center">
             <Text className="text-[1.25rem] font-bold !m-0 text-justify">
               Are you ready to shake, sweat, and sore?
             </Text>
@@ -279,11 +279,12 @@ export default function About() {
         <Title
           level={2}
           style={{
-            fontSize: "2rem",
+            // fontSize: "2rem",
             fontWeight: 300,
             marginBottom: "24px",
             textAlign: "center",
           }}
+          className="halyard font-[2rem]"
         >
           Our Trainers
         </Title>
@@ -357,11 +358,12 @@ export default function About() {
         <Title
           level={2}
           style={{
-            fontSize: "2rem",
+            // fontSize: "2rem",
             fontWeight: 300,
             marginBottom: "5px",
             textAlign: "center",
           }}
+          className="halyard font-[2rem]"
         >
           Class Schedule
         </Title>
@@ -422,11 +424,12 @@ export default function About() {
         <Title
           level={2}
           style={{
-            fontSize: "2rem",
+
             fontWeight: 300,
             marginBottom: "48px",
             textAlign: "center",
           }}
+          className="halyard font-[2rem]"
         >
           Visit Us
         </Title>
@@ -492,7 +495,7 @@ export default function About() {
       </section>
       <Divider style={{ margin: "60px 0", borderColor: "#e8e8e8" }} />
       {/* Community / Testimonials */}
-      <section
+      {/* <section
         id="community"
         style={{
           maxWidth: 1200,
@@ -560,7 +563,7 @@ export default function About() {
             </Col>
           ))}
         </Row>
-      </section>
+      </section> */}
     </UnauthenticatedLayout>
   );
 }

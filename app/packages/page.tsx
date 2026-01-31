@@ -1284,7 +1284,7 @@ export default function PackagesPage() {
         {/* <Button onClick={async () => await handleSendConfirmationEmail()}>
           Test email
         </Button> */}
-        <Row gutter={[20, 20]} className="gap-x-[20px] xl:justify-start">
+        <Row gutter={[20, 20]} className="xl:justify-start gap-[20px]">
           {packages &&
             packages.map((item, index) => {
 
@@ -1298,78 +1298,83 @@ export default function PackagesPage() {
                 user?.credits !== 0;
 
               return (
-                <Card
-                  key={index}
-                  title={
-                    item.packageCredits ? `${item.packageCredits}` : `Unlimited`
-                  }
-                  styles={{
-                    title: {
-                      gap: 0,
-                      textWrap: "wrap",
-                      textAlign: "center",
-                      marginInline: "auto",
-                    },
-                    header: {
-                      backgroundColor: 'black',
-                      color: "white",
-                      textAlign: "center",
-                      fontSize: "36px",
-                      height: "120px",
-                    },
-                    body: {
-                      paddingInline: "10px",
-                      paddingTop: "15px",
-                    },
-                  }}
-                  className="w-[270px] border-[#fbe2ff] rounded-[24px] shadow-sm transition-all duration-300 flex-nowrap"
-                >
-                  <Col className="flex flex-col gap-y-[10px] flex-nowrap">
-                    <Col className="flex-nowrap">
-                      <p>
-                        <span className="font-bold text-[16px]">
-                          {item.title}
-                        </span>
-                      </p>
-                      <p>
-                        <span className="font-light">
-                          {item.packageCredits
-                            ? `${item.packageCredits} sessions`
-                            : "Unlimited Sessions"}
-                        </span>
-                      </p>
-                      <p>
-                        <span className="font-light">
-                          Valid for{" "}
-                          <span className="font-semibold">
-                            {item.validityPeriod}
-                          </span>{" "}
-                          days
-                        </span>
-                      </p>
-                      <p>
-                        <span className="font-normal">
-                          PHP {formatPrice(item.price)}
-                        </span>
-                      </p>
-                    </Col>
+                <Col key={index} className="flex">
+                  <Card
+                    title={
+                      item.packageCredits ? `${item.packageCredits}` : `Unlimited`
+                    }
+                    styles={{
+                      title: {
+                        gap: 0,
+                        textWrap: "wrap",
+                        textAlign: "center",
+                        marginInline: "auto",
+                      },
+                      header: {
+                        backgroundColor: 'black',
+                        color: "white",
+                        textAlign: "center",
+                        fontSize: "36px",
+                        height: "120px",
+                      },
+                      body: {
+                        paddingInline: "10px",
+                        paddingTop: "15px",
+                        // paddingBottom: "15px",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
+                      },
+                    }}
+                    className="w-[270px] h-full border-[#fbe2ff] rounded-[24px] shadow-sm transition-all duration-300 flex flex-col"
+                  >
+                    <div className="flex flex-col h-full justify-between">
+                      <div className="flex-grow">
+                        <p className="mb-2">
+                          <span className="halyard font-bold text-[20px]">
+                            {item.title}
+                          </span>
+                        </p>
+                        <p className="mb-2">
+                          <span className="font-light">
+                            {item.packageCredits
+                              ? `${item.packageCredits} sessions`
+                              : "Unlimited Sessions"}
+                          </span>
+                        </p>
+                        <p className="mb-2">
+                          <span className="font-light">
+                            Valid for{" "}
+                            <span className="font-semibold">
+                              {item.validityPeriod}
+                            </span>{" "}
+                            days
+                          </span>
+                        </p>
+                        <p className="mb-3">
+                          <span className="font-normal">
+                            PHP {formatPrice(item.price)}
+                          </span>
+                        </p>
+                      </div>
 
-                    <Tooltip
-                      title={showToolTip && "You still have an active package"}
-                    >
-                      <Button
-                        disabled={disablePurchase}
-                        onClick={() => handleOpenModal(item)}
-                        className={`${!disablePurchase
-                          ? "!bg-[#36013F] !border-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
-                          : "!bg-slate-200 !border-slate-bg-slate-200 hover:!bg-slate-200"
-                          } h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                      <Tooltip
+                        title={showToolTip && "You still have an active package"}
                       >
-                        Purchase
-                      </Button>
-                    </Tooltip>
-                  </Col>
-                </Card>
+                        <Button
+                          disabled={disablePurchase}
+                          onClick={() => handleOpenModal(item)}
+                          className={`${!disablePurchase
+                            ? "!bg-[#36013F] !border-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                            : "!bg-slate-200 !border-slate-bg-slate-200 hover:!bg-slate-200"
+                            } h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                        >
+                          Purchase
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </Card>
+                </Col>
               );
 
             })}

@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     );
 
     const sender = {
-      address: "test@8clublagree.com",
+      address: "8clublagree@gmail.com",
       name: "8 Club Lagree",
     };
     const info = await transport.sendMail({

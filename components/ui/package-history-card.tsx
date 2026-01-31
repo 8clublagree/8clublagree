@@ -6,8 +6,14 @@ const { Text } = Typography;
 
 const PackageHistoryCard = ({ item }: { item: any }) => {
   const expired = item.status === "expired";
+  const tooltipContent = (
+    <div className="text-center">
+      <div className="font-semibold">{item.packages.title}</div>
+      <div className="text-xs mt-1">{expired ? "Expired" : "Active"}</div>
+    </div>
+  );
   return (
-    <Tooltip title={expired ? "Expired" : "Active"}>
+    <Tooltip title={tooltipContent}>
       <Card
         className="w-full shadow-sm transition-shadow border-none relative"
         style={{

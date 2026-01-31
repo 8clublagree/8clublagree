@@ -144,7 +144,7 @@ export default function DashboardPage() {
     <AuthenticatedLayout>
       <div className="space-y-6">
         <div>
-          <Title level={2} className="!mb-2">
+          <Title level={1} className="halyard !mb-2">
             Quick View
           </Title>
         </div>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
         </Row>
 
         <Col>
-          <Title level={2} className="!mb-2">
+          <Title level={1} className="halyard !mb-2">
             Upcoming Classes
           </Title>
           <Row gutter={[16, 16]}>

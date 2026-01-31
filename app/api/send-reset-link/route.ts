@@ -10,6 +10,13 @@ export async function GET(req: Request) {
     const params = Object.fromEntries(new URL(req.url).searchParams.entries());
     const { email } = params;
 
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email is required" },
+        { status: 400 },
+      );
+    }
+
     // In-process rate limit by email; fewer DB hits, fail fast
     const { allowed } = rateLimit(`reset:${email}`, RATE_LIMIT_PRESETS.resetLink);
     if (!allowed) {
@@ -54,15 +61,24 @@ export async function GET(req: Request) {
     }
 
     // Change redirect base URL in production
+    const redirectUrl = `${process.env.SYSTEM_ORIGIN_TEST}/reset-password`;
+
+    console.log('Attempting to send reset email to:', email);
+    console.log('Redirect URL:', redirectUrl);
+
     const { error: resetError } =
       await supabaseServer.auth.resetPasswordForEmail(email, {
-        // redirectTo: `${process.env.SYSTEM_ORIGIN_TEST!!}/reset-password`,
-        redirectTo: `${process.env.SYSTEM_ORIGIN!!}/reset-password`,
+        redirectTo: redirectUrl,
+        // redirectTo: `${process.env.SYSTEM_ORIGIN}/reset-password`,
       });
 
     if (resetError) {
+      console.error('Supabase reset password error:', resetError);
       return NextResponse.json(
-        { error: "Error sending reset email" },
+        {
+          error: "Error sending reset email",
+          details: resetError.message
+        },
         { status: 500 },
       );
     }

@@ -148,9 +148,9 @@ export default function AuthenticatedLayout({
     if (pathname === "/credits") return "3";
     if (pathname === "/packages") return "4";
     if (pathname === "/bookings") return "5";
-    if (pathname === "/user-terms-and-conditions") return "6";
+    if (pathname === "/studio-guidelines") return "6";
     if (pathname === "/faq") return "7";
-    if (pathname === "/studio-guidelines") return "8";
+    if (pathname === "/user-terms-and-conditions") return "8";
     return "1";
   };
 
@@ -182,10 +182,8 @@ export default function AuthenticatedLayout({
     },
     {
       key: "6",
-      icon: <FaBook />,
-      label: (
-        <Link href="/user-terms-and-conditions">Terms and Conditions</Link>
-      ),
+      icon: <FaList />,
+      label: <Link href="/studio-guidelines">Studio Guidelines</Link>,
     },
     {
       key: "7",
@@ -194,9 +192,12 @@ export default function AuthenticatedLayout({
     },
     {
       key: "8",
-      icon: <FaList />,
-      label: <Link href="/studio-guidelines">Studio Guidelines</Link>,
+      icon: <FaBook />,
+      label: (
+        <Link href="/user-terms-and-conditions">Terms and Conditions</Link>
+      ),
     },
+
   ];
 
   const userMenuItems = [

@@ -43,21 +43,21 @@ const FAQ = () => {
           your <span className="font-bold">8 Club Lagree</span> account online to
           activate your class credits.{" "}
         </Paragraph>
-        <Text strong className="halyard text-[16px]" underline>Binding Effect</Text>
+        {/* <Text strong className="halyard text-[16px]" underline>Binding Effect</Text>
         <Paragraph>
           This agreement shall be binding upon me, my heirs, executors,
           administrators, representatives, successors, and assigns. I agree that
           this waiver is intended to be as broad and inclusive as permitted by
           applicable law. If any portion of this agreement is held invalid, the
           remainder shall continue in full legal force and effect.
-        </Paragraph>
+        </Paragraph> */}
         <Text strong className="halyard text-[16px]" underline>How often should I train?</Text>
         <Paragraph>
           For best results, we recommend at least 3 sessions per week. Lagree
           works all major muscle groups at once, so your body benefits most with
           consistency and proper recovery between classes.
         </Paragraph>
-        <Text strong className="halyard text-[16px]" underline>Indemnification</Text>
+        {/* <Text strong className="halyard text-[16px]" underline>Indemnification</Text>
         <Paragraph>
           {" "}
           I agree to indemnify, defend, and hold harmless{" "}
@@ -67,7 +67,7 @@ const FAQ = () => {
           from my participation in{" "}
           <span className="font-bold">8 Club Lagree</span> Lagree activities or
           from my negligent or intentional acts or omissions.{" "}
-        </Paragraph>
+        </Paragraph> */}
         <Text strong className="halyard text-[16px]" underline>How early should I come to class?</Text>
         <Paragraph>
           If it’s your first time, please arrive 15 minutes early for a short
