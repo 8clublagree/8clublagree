@@ -35,7 +35,7 @@ const { Title, Text } = Typography;
 export default function DashboardPage() {
   const router = useRouter();
   const { cancelClass, loading: cancellingClass } = useClassManagement();
-  const { fetchClientBookings } = useClientBookings();
+  const { fetchClientBookings, loading: fetchingBookings } = useClientBookings();
   const user = useAppSelector((state) => state.auth.user);
 
   const [isMobile, setIsMobile] = useState(false);
@@ -172,9 +172,6 @@ export default function DashboardPage() {
                 const notCancellable = isNotMoreThan24HoursAway(
                   dayjs(data.classes.start_time),
                 );
-
-                console.log('data: ', data)
-                console.log('data: ', data)
 
                 return (
                   <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
