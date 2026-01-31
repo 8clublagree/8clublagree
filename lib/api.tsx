@@ -172,24 +172,95 @@ export const useManagePassword = () => {
     }
   };
 
-  const sendResetLink = async ({ email }: { email: string }) => {
+
+
+  return { validatePassword, changePassword, loading };
+};
+
+export const useForgotPassword = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const requestPasswordReset = async ({ email }: { email: string }) => {
     try {
       setLoading(true);
-      const response = await axiosApi.get(`/send-reset-link`, {
-        params: { email, type: "reset-link" },
+      const response = await axiosApi.post("/request-password-reset", {
+        email,
+        type: "reset-link"
       });
-      const data = response?.data;
-      if (!response.data) return null;
-      return data;
-    } catch (error) {
-      console.log("error sending reset link: ", error);
-      return null;
+      return { data: response?.data, error: null };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error ?? "Failed to send OTP";
+      return { data: null, error: message };
     } finally {
       setLoading(false);
     }
   };
 
-  return { validatePassword, changePassword, loading, sendResetLink };
+  const verifyOtp = async ({
+    email,
+    otp,
+  }: {
+    email: string;
+    otp: string;
+  }) => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.post("/verify-otp", { email, otp });
+      const data = response?.data;
+      return { data, error: null };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error ?? "Invalid or expired OTP";
+      return { data: null, error: message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { requestPasswordReset, verifyOtp, loading };
+};
+
+export const useResetPasswordWithToken = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const validateResetToken = async (token: string) => {
+    try {
+      const response = await axiosApi.get("/validate-reset-token", {
+        params: { token },
+      });
+      return { data: response?.data, error: null };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error ?? "Invalid or expired link";
+      return { data: null, error: message };
+    }
+  };
+
+  const resetPasswordWithToken = async ({
+    token,
+    new_password,
+  }: {
+    token: string;
+    new_password: string;
+  }) => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.post("/reset-password-with-token", {
+        token,
+        new_password,
+      });
+      return { data: response?.data, error: null };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error ?? "Failed to update password";
+      return { data: null, error: message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { validateResetToken, resetPasswordWithToken, loading };
 };
 
 export const useUpdateUser = () => {

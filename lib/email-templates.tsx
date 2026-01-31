@@ -234,8 +234,22 @@ export const classBookingConfirmation = ({
   };
 };
 
+export const passwordResetOtp = ({ otp }: { otp: string }) => ({
+  subject: "Your 8 Club Lagree password reset code",
+  body: `
+  <div style="width:100%; background:#f4f4f4; padding:40px 0;">
+  <div style="max-width:480px; margin:0 auto; background:#fff; padding:32px; border-radius:10px; font-family:sans-serif; color:#333;">
+    <h2 style="margin:0 0 20px; font-size:18px; color:#36013F; text-align:center;">Password reset code</h2>
+    <p style="font-size:16px; text-align:center; margin:0 0 16px;">Use this code to reset your password. It expires in 15 minutes.</p>
+    <p style="font-size:28px; font-weight:700; letter-spacing:8px; color:#36013F; text-align:center; margin:24px 0;">${otp}</p>
+    <p style="font-size:12px; color:#666; text-align:center; margin:24px 0 0 0;">If you didn't request this, you can ignore this email.</p>
+  </div>
+  </div>`,
+});
+
 export const EMAIL_TEMPLATE: any = {
   package_purchase: packagePurchase,
   package_pending_purchase: packagePendingPurchase,
   class_booking_confirmation: classBookingConfirmation,
+  password_reset_otp: passwordResetOtp,
 };
