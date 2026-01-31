@@ -12,6 +12,7 @@ import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
 import { useAppMessage } from "@/components/ui/message-popup";
 import EditProfileForm from "@/components/forms/EditProfileForm";
 import { useRouter } from "next/navigation";
+import axiosApi from "@/lib/axiosConfig";
 
 export default function ProfilePage() {
   const [personalInfoForm] = Form.useForm();
@@ -31,27 +32,12 @@ export default function ProfilePage() {
   const handleSubmit = async (values: UpdateUserProfile) => {
     try {
 
-      const { data: emailResponse, error } = await supabase.auth.updateUser({
-        email: values.email,
-      });
 
-      if (error) {
-        console.log(error)
-        showMessage({
-          type: "error",
-          content: "Error updating your profile. Please try again.",
-          duration: 9000,
-        });
-      } else {
+      await axiosApi.post('/request-email-change', {
+        userId: user?.id,
+        email: values.email
+      })
 
-        showMessage({
-          type: "success",
-          content: "Please check your email for a confirmation link",
-          duration: 9000,
-        });
-
-        return
-      }
       const response = await updateUser({
         values,
         id: user?.id as string,
@@ -63,7 +49,9 @@ export default function ProfilePage() {
           content: "Profile updated successfully!",
         });
 
-        const updated = { ...values, ...user, id: user?.id as string };
+        const updated = { ...user, ...values, id: user?.id as string };
+
+        console.log('updated: ', updated)
         dispatch(setUser(updated as any));
       }
 
