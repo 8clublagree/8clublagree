@@ -41,9 +41,9 @@ function scheduleCleanup() {
   cleanupScheduled = true;
   setInterval(() => {
     const now = Date.now();
-    for (const [k, v] of store.entries()) {
+    Array.from(store.entries()).forEach(([k, v]) => {
       if (v.expiresAt < now) store.delete(k);
-    }
+    });
   }, CLEANUP_INTERVAL_MS);
 }
 scheduleCleanup();
