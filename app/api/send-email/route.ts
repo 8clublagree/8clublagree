@@ -114,6 +114,8 @@ export async function POST(req: NextRequest) {
       html: body,
     });
 
+    console.log("Email sent", info);
+
     /**
      * REAL EMAILS SNIPPET END
      */
