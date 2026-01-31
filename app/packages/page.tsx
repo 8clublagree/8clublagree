@@ -443,8 +443,7 @@ export default function PackagesPage() {
         disallowedPaymentMethods: ["INSTALLMENT"],
         requestReferenceNumber: `${uuid}`,
 
-        // change to actual URL once website is for go live
-        notificationUrl: `${process.env.SYSTEM_ORIGIN_TEMP!!}/api/maya/webhook`,
+        notificationUrl: `${process.env.SYSTEM_ORIGIN!!}/api/maya/webhook`,
       };
 
       // console.log("uuid: ", uuid);

@@ -90,41 +90,68 @@ export async function POST(req: NextRequest) {
     // ==========================================
 
     /**
-     * REAL EMAILS SNIPPET START
-     * THIS UTILIZES THE API TOKEN FROM MAILTRAP
+     * REAL EMAILS: Mailtrap Email Sending API (or SMTP fallback)
+     * API token: https://mailtrap.io/api-tokens — use a token with Email Sending
+     * permission and Domain Admin for your sending domain. Verify domain first.
      */
 
     const recipients = [to];
-
-    // Mailtrap SMTP transporter
-    const transport = nodemailer.createTransport(
-      MailtrapTransport({
-        token: process.env.MAILTRAP_TOKEN!,
-      }),
-    );
-
     const sender = {
       address: "8clublagree@gmail.com",
       name: "8 Club Lagree",
     };
-    const info = await transport.sendMail({
-      from: sender,
-      to: recipients,
-      subject,
-      html: body,
-    });
+
+    const apiToken =
+      process.env.MAILTRAP_TOKEN || process.env.MAILTRAP_API_KEY;
+
+    if (!apiToken?.trim()) {
+      return NextResponse.json(
+        {
+          message:
+            "Mailtrap API token missing. Set MAILTRAP_TOKEN or MAILTRAP_API_KEY in .env. Get a token at https://mailtrap.io/api-tokens (Email Sending permission, domain verified).",
+        },
+        { status: 500 },
+      );
+    }
+
+    let info;
+    try {
+      const transport = nodemailer.createTransport(
+        MailtrapTransport({ token: apiToken }),
+      );
+      info = await transport.sendMail({
+        from: sender,
+        to: recipients,
+        subject,
+        html: body,
+      });
+    } catch (sendError: any) {
+      const isUnauthorized =
+        sendError?.message?.includes("Unauthorized") ||
+        sendError?.response?.status === 401 ||
+        sendError?.code === "EAUTH";
+
+      if (isUnauthorized) {
+        console.error("Mailtrap Unauthorized:", sendError?.message ?? sendError);
+        return NextResponse.json(
+          {
+            message:
+              "Mailtrap authentication failed (401). Check: 1) Token is from Settings → API Tokens with Email Sending permission. 2) Token has Domain Admin for your sending domain. 3) Sending domain is verified. 4) Token was not reset (old token expires in 12h). See https://help.mailtrap.io/email-api-smtp/help/troubleshooting/unauthorized-401-error",
+            error: "Unauthorized",
+          },
+          { status: 500 },
+        );
+      }
+      throw sendError;
+    }
 
     console.log("Email sent", info);
 
-    /**
-     * REAL EMAILS SNIPPET END
-     */
-
     return NextResponse.json({ message: "Email sent", info });
   } catch (error) {
-    console.log(error);
+    console.error("send-email error:", error);
     return NextResponse.json(
-      { message: "Error sending email", error },
+      { message: "Error sending email", error: String(error) },
       { status: 500 },
     );
   }
