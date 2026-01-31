@@ -85,7 +85,15 @@ export default function PackagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [isSendingPending, setIsSendingPending] = useState<boolean>(false);
+  const [file, setFile] = useState<UploadFile[] | null>(null);
+  const [previewImage, setPreviewImage] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [uploadingPayment, setUploadingPayment] = useState(false);
+  const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<
+    boolean | null
+  >(null);
+
   const [checkoutForm] = Form.useForm();
   const [formData, setFormData] = useState<PurchaseFormData>({
     productName: "Premium Subscription",
@@ -163,7 +171,7 @@ export default function PackagesPage() {
       },
       {
         key: "maya",
-        label: "PayMaya (Coming Soon)",
+        label: "PayMaya",
         className: `${selectedPaymentMethod === "maya" ? "bg-green-400" : ""}`,
         children: (
           <Row wrap={false} className="flex-col gap-y-[10px]">
@@ -367,26 +375,8 @@ export default function PackagesPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Test Maya Checkout
+
   const [sameAsBilling, setSameAsBilling] = useState(true);
-
-  const handleSameAsBillingToggle = (checked: boolean) => {
-    setSameAsBilling(checked);
-
-    if (checked) {
-      setFormData((prev) => ({
-        ...prev,
-        shippingAddress: {
-          ...prev.billingAddress,
-          firstName: prev.firstName,
-          middleName: prev.middleName,
-          lastName: prev.lastName,
-          customerPhone: prev.customerPhone,
-          customerEmail: prev.customerEmail,
-        },
-      }));
-    }
-  };
 
   const handleBillingAddressChange = (field: keyof Address, value: string) => {
     const newBillingAddress = { ...formData.billingAddress, [field]: value };
@@ -457,7 +447,7 @@ export default function PackagesPage() {
         notificationUrl: `${process.env.SYSTEM_ORIGIN_TEMP!!}/api/maya/webhook`,
       };
 
-      console.log("uuid: ", uuid);
+      // console.log("uuid: ", uuid);
 
       const order = {
         userID: user?.id,
@@ -491,7 +481,7 @@ export default function PackagesPage() {
             package_title: selectedRecord.title,
             package_price: selectedRecord.price,
             package_validity_period: selectedRecord.validityPeriod,
-            status: "PENDING",
+            status: "MAYA CHECKOUT",
             payment_method: "maya",
             uploaded_at: dayjs().toISOString(),
             reference_id: uuid,
@@ -516,29 +506,6 @@ export default function PackagesPage() {
     }
     setProcessingMaya(false);
   };
-
-  const updateField = (
-    section: string,
-    field: string,
-    value: string | number | undefined,
-  ) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [section]:
-        typeof prev[section] === "object"
-          ? { ...prev[section], [field]: value }
-          : value,
-    }));
-  };
-
-  const [isSendingPending, setIsSendingPending] = useState<boolean>(false);
-  const [file, setFile] = useState<UploadFile[] | null>(null);
-  const [previewImage, setPreviewImage] = useState("");
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [uploadingPayment, setUploadingPayment] = useState(false);
-  const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<
-    boolean | null
-  >(null);
 
   const renderCheckoutLoader = useCallback(() => {
     return (
@@ -603,6 +570,7 @@ export default function PackagesPage() {
     setIsSendingPending(true);
     try {
       if (user && !!file.length) {
+        const uuid = uuidv4();
         const filePath = `${user?.id}_${dayjs().toDate().getTime()}`;
         const fileExt = (file[0] as File).name.split(".").pop();
         const fileName = `payment_proof_${filePath}.${fileExt}`;
@@ -652,6 +620,7 @@ export default function PackagesPage() {
             packagePrice: selectedRecord.price,
             packageValidityPeriod: selectedRecord.validityPeriod,
             uploadedAt: dayjs().toISOString(),
+            referenceId: uuid
           },
         });
 

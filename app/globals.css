@@ -100,3 +100,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Admin payments table: Method filter dropdown OK button */
+.admin-payments-method-filter .ant-btn-primary {
+  background: crimson !important;
+  border-color: crimson !important;
+}
+
+.admin-payments-method-filter .ant-btn-primary:hover {
+  background: #b01030 !important;
+  border-color: #b01030 !important;
+}

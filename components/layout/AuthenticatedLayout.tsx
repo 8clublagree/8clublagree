@@ -32,9 +32,6 @@ import {
   usePackageManagement,
 } from "@/lib/api";
 import Image from "next/image";
-
-import dayjs from "dayjs";
-import axios from "axios";
 import axiosApi from "@/lib/axiosConfig";
 
 const { Header, Sider, Content } = Layout;
@@ -50,8 +47,6 @@ export default function AuthenticatedLayout({
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const { updateClientPackage, loading } = usePackageManagement();
-  const { updateUserCredits, loading: updatingCredits } = useManageCredits();
   const user = useAppSelector((state) => state.auth.user);
   const { fetchImage } = useManageImage();
 
@@ -62,6 +57,7 @@ export default function AuthenticatedLayout({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       (() => {
+
         if (event === "SIGNED_OUT") {
           dispatch(logoutAction());
           router.push("/login");

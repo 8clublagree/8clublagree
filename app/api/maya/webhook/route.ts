@@ -89,6 +89,11 @@ export async function POST(req: NextRequest) {
         checkoutID: checkoutId,
       });
 
+    await supabaseServer
+      .from("orders")
+      .update({ status: "PENDING" })
+      .eq("reference_id", requestReferenceNumber);
+
     switch (status) {
       case WEBHOOK_STATUS.PAYMENT_SUCCESS:
         nextResponse = {

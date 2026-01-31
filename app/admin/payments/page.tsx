@@ -114,6 +114,13 @@ const PaymentsPage = () => {
         key: "payment_method",
         width: "12%",
         ellipsis: true,
+        filters: [
+          { text: "Maya", value: "maya" },
+          { text: "GCash", value: "gcash" },
+          { text: "Bank Transfer", value: "bank_transfer" },
+        ],
+        onFilter: (value, record) => record.payment_method === value,
+        filterDropdownClassName: "admin-payments-method-filter",
         render: (value) => {
           if (!value) return "";
           return (
@@ -139,10 +146,29 @@ const PaymentsPage = () => {
         key: "status",
         width: "12%",
         ellipsis: true,
+        filters: [
+          { text: "Successful", value: "SUCCESSFUL" },
+          { text: "Failed", value: "FAILED" },
+          { text: "Cancelled", value: "CANCELLED" },
+          { text: "Expired", value: "EXPIRED" },
+          { text: "Maya Checkout", value: "MAYA CHECKOUT" },
+        ],
+        onFilter: (value, record) => record.status === value,
+        filterDropdownClassName: "admin-payments-method-filter",
         render: (value) => {
           if (!value) return "";
+          const color =
+            value === "SUCCESSFUL"
+              ? "green"
+              : value === "FAILED"
+                ? "red"
+                : value === "CANCELLED"
+                  ? "orange"
+                  : value === "EXPIRED"
+                    ? "default"
+                    : "red";
           return (
-            <Tag color={value === "SUCCESSFUL" ? "green" : "red"}>
+            <Tag color={color}>
               {value.toUpperCase()}
             </Tag>
           );
@@ -230,7 +256,6 @@ const PaymentsPage = () => {
   const handleFetchOrders = async () => {
     try {
       const response = await fetchCustomerPayments();
-      console.log("response: ", response);
       setPayments(response?.data.payments);
     } catch (error) {
       showMessage({ type: "error", content: "Error fetching orders_temp" });
@@ -437,13 +462,11 @@ const PaymentsPage = () => {
                       selectedPayment.status === "SUCCESSFUL"
                     }
                     onClick={() => handleUpdatePaymentStatus("SUCCESSFUL")}
-                    className={`${
-                      selectedPayment.status !== "SUCCESSFUL" &&
+                    className={`${selectedPayment.status !== "SUCCESSFUL" &&
                       "hover:!bg-green-400 hover:!border-green-400 hover:!text-white bg-green-400"
-                    } ${
-                      selectedPayment.status === "SUCCESSFUL" &&
+                      } ${selectedPayment.status === "SUCCESSFUL" &&
                       "hover:!bg-green-200 hover:!border-green-200 hover:!text-white bg-green-200"
-                    } h-[40px] rounded-[10px]  text-white`}
+                      } h-[40px] rounded-[10px]  text-white`}
                   >
                     {selectedPayment.status === "SUCCESSFUL"
                       ? "Confirmed"
@@ -509,15 +532,15 @@ const PaymentsPage = () => {
               <Descriptions.Item label="Uploaded At">
                 {selectedPayment.uploaded_at
                   ? dayjs(selectedPayment.uploaded_at).format(
-                      "MMM DD, YYYY (hh:mm A)",
-                    )
+                    "MMM DD, YYYY (hh:mm A)",
+                  )
                   : "N/A"}
               </Descriptions.Item>
               <Descriptions.Item label="Approved At">
                 {selectedPayment.approved_at
                   ? dayjs(selectedPayment.approved_at).format(
-                      "MMM DD, YYYY (hh:mm A)",
-                    )
+                    "MMM DD, YYYY (hh:mm A)",
+                  )
                   : "N/A"}
               </Descriptions.Item>
               <Descriptions.Item label="Order ID">
