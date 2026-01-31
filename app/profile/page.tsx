@@ -30,22 +30,32 @@ export default function ProfilePage() {
 
   const handleSubmit = async (values: UpdateUserProfile) => {
     try {
-      const response = await updateUser({
-        values,
-        id: user?.id as string,
-      });
 
       const { data: emailResponse, error } = await supabase.auth.updateUser({
         email: values.email,
       });
 
       if (error) {
+        console.log(error)
+        showMessage({
+          type: "error",
+          content: "Error updating your profile. Please try again.",
+          duration: 9000,
+        });
+      } else {
+
         showMessage({
           type: "success",
           content: "Please check your email for a confirmation link",
-          duration: 10000,
+          duration: 9000,
         });
+
+        return
       }
+      const response = await updateUser({
+        values,
+        id: user?.id as string,
+      });
 
       if (response) {
         showMessage({
