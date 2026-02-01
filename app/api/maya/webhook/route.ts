@@ -10,14 +10,14 @@ const WEBHOOK_STATUS = {
   PAYMENT_CANCELLED: "PAYMENT_CANCELLED",
 };
 
-const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
+const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => {
   try {
     // we fetch the order data to create a reference for the new records in client packages and user credits
 
     const { data: orderData } = await supabaseServer
       .from("orders")
       .select(`*`)
-      .eq("checkout_id", checkoutId)
+      .eq("reference_id", referenceId)
       .single();
 
     if (orderData) {
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
 
     if (status === "PAYMENT_SUCCESS") {
       await Promise.all([
-        handleAssignCredits({ checkoutId: requestReferenceNumber }).catch(
+        handleAssignCredits({ referenceId: requestReferenceNumber }).catch(
           (err) => console.error("Assign credits failed:", err),
         ),
         supabaseServer
