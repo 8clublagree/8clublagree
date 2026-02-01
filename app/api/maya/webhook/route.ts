@@ -12,65 +12,55 @@ const WEBHOOK_STATUS = {
 
 const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => {
   try {
-    // we fetch the order data to create a reference for the new records in client packages and user credits
-
     const { data: orderData } = await supabaseServer
       .from("orders")
       .select(`*`)
       .eq("reference_id", referenceId)
       .single();
 
-    if (orderData) {
-      const orderObject = {
-        userID: orderData.user_id,
-        packageID: orderData.package_id,
-        paymentMethod: orderData.payment_method,
-        validityPeriod: orderData.package_validity_period,
-        packageCredits: orderData.package_credits,
-        packageName: orderData.package_title,
-      };
+    if (!orderData) return;
 
-      let promises: any = [
-        supabaseServer
-          .from("user_credits")
-          .update({ credits: Number(orderObject.packageCredits) })
-          .eq("user_id", orderObject.userID)
-          .single(),
-      ];
+    const orderObject = {
+      userID: orderData.user_id,
+      packageID: orderData.package_id,
+      paymentMethod: orderData.payment_method,
+      validityPeriod: orderData.package_validity_period,
+      packageCredits: orderData.package_credits,
+      packageName: orderData.package_title,
+    };
 
-      if (orderData.previous_active_package_id) {
-        promises.push(
-          supabaseServer
-            .from("client_packages")
-            .update({
-              status: "expired",
-              expiration_date: dayjs().toISOString(),
-            })
-            .eq("id", orderData.previous_active_package_id),
-        );
-      }
-      const [clientPackageResponse, userCreditsResponse] =
-        await Promise.all(promises);
+    const updateUserCredits = supabaseServer
+      .from("user_credits")
+      .update({ credits: Number(orderObject.packageCredits) })
+      .eq("user_id", orderObject.userID)
+      .select()
+      .single();
 
-      if (clientPackageResponse && userCreditsResponse) {
-        await supabaseServer
-          .from("client_packages")
-          .insert({
-            user_id: orderObject.userID,
-            package_id: orderObject.packageID,
-            status: "active",
-            validity_period: orderObject.validityPeriod,
-            package_credits: orderObject.packageCredits,
-            purchase_date: dayjs().toISOString(),
-            package_name: orderObject.packageName,
-            payment_method: "maya",
-            expiration_date: getDateFromToday(orderObject.validityPeriod),
-          })
-          .select();
-      }
-    }
+    const expirePreviousPackage = orderData.previous_active_package_id
+      ? supabaseServer
+        .from("client_packages")
+        .update({
+          status: "expired",
+          expiration_date: dayjs().toISOString(),
+        })
+        .eq("id", orderData.previous_active_package_id)
+      : Promise.resolve({ error: null });
+
+    await Promise.all([updateUserCredits, expirePreviousPackage]);
+
+    await supabaseServer.from("client_packages").insert({
+      user_id: orderObject.userID,
+      package_id: orderObject.packageID,
+      status: "active",
+      validity_period: orderObject.validityPeriod,
+      package_credits: orderObject.packageCredits,
+      purchase_date: dayjs().toISOString(),
+      package_name: orderObject.packageName,
+      payment_method: "maya",
+      expiration_date: getDateFromToday(orderObject.validityPeriod),
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
 };
 
@@ -79,7 +69,12 @@ export async function POST(req: NextRequest) {
     let orderStatus: string = "";
     let nextResponse: any;
     const payload = await req.json();
-    const { requestReferenceNumber, status, checkoutId, totalAmount } = payload;
+    const {
+      requestReferenceNumber,
+      checkoutId,
+      totalAmount,
+    } = payload;
+    const status = (payload.status ?? "").toString().toUpperCase();
 
     let savePurchase = await supabaseServer
       .from("package_purchase_history")
@@ -140,7 +135,7 @@ export async function POST(req: NextRequest) {
         break;
     }
 
-    if (status === "PAYMENT_SUCCESS") {
+    if (status === WEBHOOK_STATUS.PAYMENT_SUCCESS) {
       await Promise.all([
         handleAssignCredits({ referenceId: requestReferenceNumber }).catch(
           (err) => console.error("Assign credits failed:", err),
@@ -148,9 +143,8 @@ export async function POST(req: NextRequest) {
         supabaseServer
           .from("orders")
           .update({
-            status: status === "PAYMENT_SUCCESS" && "SUCCESSFUL",
-            approved_at:
-              status === "PAYMENT_SUCCESS" ? dayjs().toISOString() : null,
+            status: "SUCCESSFUL",
+            approved_at: dayjs().toISOString(),
           })
           .eq("reference_id", requestReferenceNumber),
       ]);
