@@ -470,21 +470,21 @@ export default function PackagesPage() {
 
       if (data.success && data.checkoutUrl) {
         // Opens checkoutUrl in a new tab
-        // const response = await axiosApi.post("/orders/create", {
-        //   values: {
-        //     user_id: user?.id as string,
-        //     package_id: selectedRecord.id,
-        //     package_credits: selectedRecord.packageCredits,
-        //     package_title: selectedRecord.title,
-        //     package_price: selectedRecord.price,
-        //     package_validity_period: selectedRecord.validityPeriod,
-        //     status: "MAYA CHECKOUT",
-        //     payment_method: "maya",
-        //     uploaded_at: dayjs().toISOString(),
-        //     reference_id: uuid,
-        //     previous_active_package_id: user?.currentPackage?.id ?? null,
-        //   },
-        // });
+        const response = await axiosApi.post("/orders/create", {
+          values: {
+            user_id: user?.id as string,
+            package_id: selectedRecord.id,
+            package_credits: selectedRecord.packageCredits,
+            package_title: selectedRecord.title,
+            package_price: selectedRecord.price,
+            package_validity_period: selectedRecord.validityPeriod,
+            status: "MAYA CHECKOUT",
+            payment_method: "maya",
+            uploaded_at: dayjs().toISOString(),
+            reference_id: uuid,
+            previous_active_package_id: user?.currentPackage?.id ?? null,
+          },
+        });
 
         if (response.data) {
           window.location.href = data.checkoutUrl;
