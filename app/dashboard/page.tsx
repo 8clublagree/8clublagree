@@ -149,18 +149,20 @@ export default function DashboardPage() {
           </Title>
         </div>
 
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
-              <Statistic
-                title="Total Credits"
-                value={(user?.credits as number) ?? "Unlimited"}
-                prefix={<CalendarOutlined className="text-blue-600" />}
-                valueStyle={{ color: "#1e293b", margin: 0, padding: 0 }}
-              />
-            </Card>
-          </Col>
-        </Row>
+        {user !== null && user !== undefined &&
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} lg={8}>
+              <Card className="shadow-sm hover:shadow-md transition-shadow">
+                <Statistic
+                  title="Total Credits"
+                  value={(user?.credits as number) ?? "Unlimited"}
+                  prefix={<CalendarOutlined className="text-blue-600" />}
+                  valueStyle={{ color: "#1e293b", margin: 0, padding: 0 }}
+                />
+              </Card>
+            </Col>
+          </Row>
+        }
 
         <Col>
           <Title level={1} className="halyard !mb-2">

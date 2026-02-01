@@ -11,6 +11,14 @@ const axiosApi = axios.create({
 const SESSION_CACHE_TTL_MS = 45_000;
 let sessionCache: { token: string; expires: number } | null = null;
 
+/** Set token for the next request(s). Use after signUp() so the first API call uses the new session. */
+export function setSessionToken(accessToken: string): void {
+  sessionCache = {
+    token: accessToken,
+    expires: Date.now() + SESSION_CACHE_TTL_MS,
+  };
+}
+
 axiosApi.interceptors.request.use(
   async (config) => {
     const now = Date.now();

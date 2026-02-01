@@ -27,7 +27,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
   const menuItems = [
     { label: "Home", href: "/about", primary: false },
     { label: "Login", href: "/login", primary: false },
-    // { label: "JOIN THE 8CLUB", href: "/signup", primary: true },
+    { label: "JOIN THE 8CLUB", href: "/signup", primary: true },
   ];
   return (
     <div className="h-[100vh]">
@@ -87,11 +87,10 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
                     <Button
                       key={item.label}
                       type={item?.primary ? "primary" : "text"}
-                      className={`${
-                        item?.primary
+                      className={`${item?.primary
                           ? "bg-[#800020] border-[#800020] text-white hover:!bg-[#800020] font-medium w-full"
                           : "px-2 py-3 text-left text-sm font-normal w-full"
-                      }`}
+                        }`}
                       onClick={() => {
                         router.push(item.href);
                         setDrawerVisible(false);
@@ -110,11 +109,10 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
                 <Button
                   key={item.label}
                   type={item?.primary ? "primary" : "text"}
-                  className={`${
-                    item?.primary
+                  className={`${item?.primary
                       ? "bg-[#800020] border-[#800020] text-white hover:!bg-[#800020] font-medium px-3 sm:px-4"
                       : "px-2 sm:px-3 text-sm sm:text-base font-normal"
-                  }`}
+                    }`}
                   onClick={() => router.push(item.href)}
                 >
                   {item.label}

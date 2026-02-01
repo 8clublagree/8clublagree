@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { SearchOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
 import { Button, Input, Row, Space, Table, Modal, Typography, App } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
@@ -188,21 +188,40 @@ const AdminPackageTable = ({
   const columns = useMemo<TableColumnsType<CreatePackageProps>>(
     () => [
       {
+        title: "Offered",
+        dataIndex: "offered_for_clients",
+        key: "offered_for_clients",
+        width: isMobile ? undefined : 90,
+        render: (value) => {
+          return (
+            <Row>
+              {value === true ? <CheckOutlined size={20} className="font-[700] text-green-500" /> : <CloseOutlined size={20} className="font-[700] text-red-500" />}
+
+            </Row>
+          )
+        },
+      },
+      {
         title: "Title",
         dataIndex: "title",
         key: "title",
-        width: isMobile ? undefined : "20%",
+        width: isMobile ? undefined : undefined,
         ...getColumnSearchProps("name"),
+        render: (value) => (
+          <Row>
+            <Text className="font-bold">{value}</Text>
+          </Row>
+        ),
       },
       {
         title: "Price (PHP)",
         dataIndex: "price",
         key: "price",
-        width: isMobile ? undefined : "20%",
+        width: isMobile ? undefined : 100,
         ...getColumnSearchProps("price"),
         render: (_, record) => (
           <Row>
-            <Text>{formatPrice(record.price as number)}</Text>
+            <Text>{formatPrice(record.price as number, { decimals: 2 })}</Text>
           </Row>
         ),
       },
@@ -210,7 +229,7 @@ const AdminPackageTable = ({
         title: "Package Credits",
         dataIndex: "package_credits",
         key: "package_credits",
-        width: isMobile ? undefined : "20%",
+        width: isMobile ? undefined : 120,
         render: (_, record) => (
           <Row>
             <Text>
@@ -223,13 +242,13 @@ const AdminPackageTable = ({
         title: "Validity Period (days)",
         dataIndex: "validity_period",
         key: "validity_period",
-        width: isMobile ? undefined : "20%",
+        width: isMobile ? undefined : 130,
         ...getColumnSearchProps("validity_period"),
       },
       {
         title: "Action",
         key: "action",
-        width: isMobile ? undefined : "10%",
+        width: isMobile ? undefined : 90,
         fixed: isMobile ? undefined : "right",
         render: (_, record) => {
           return (
