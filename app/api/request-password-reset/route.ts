@@ -33,7 +33,10 @@ export async function POST(req: NextRequest) {
     );
     if (!allowed) {
       return NextResponse.json(
-        { error: "Too many reset attempts today" },
+        {
+          error:
+            "Maximum requests have been reached. Please try again in 24 hours.",
+        },
         { status: 429 },
       );
     }
