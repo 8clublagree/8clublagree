@@ -470,7 +470,6 @@ export default function PackagesPage() {
 
       if (data.success && data.checkoutUrl) {
         // Opens checkoutUrl in a new tab
-        console.log("uuid: ", uuid);
         const response = await axiosApi.post("/orders/create", {
           values: {
             user_id: user?.id as string,
