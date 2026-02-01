@@ -91,10 +91,10 @@ export async function POST(req: NextRequest) {
         temp: JSON.stringify(payload)
       });
 
-    await supabaseServer
-      .from("orders")
-      .update({ status: "PENDING" })
-      .eq("reference_id", requestReferenceNumber);
+    // await supabaseServer
+    //   .from("orders")
+    //   .update({ status: "PENDING" })
+    //   .eq("reference_id", requestReferenceNumber);
 
     switch (status) {
       case WEBHOOK_STATUS.PAYMENT_SUCCESS:
