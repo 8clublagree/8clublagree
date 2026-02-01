@@ -208,7 +208,7 @@ function ResetPasswordContent() {
               <Button
                 block
                 loading={submitLoading}
-                disabled={submitLoading}
+                disabled={submitLoading || changed}
                 htmlType="submit"
                 className={`${submitLoading
                   ? "!bg-slate-200 hover:!bg-slate-200"

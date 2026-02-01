@@ -1283,21 +1283,21 @@ export default function PackagesPage() {
                         color: "white",
                         textAlign: "center",
                         fontSize: "36px",
-                        height: "120px",
+                        height: "170px",
                       },
                       body: {
-                        paddingInline: "10px",
+                        paddingInline: "20px",
                         paddingTop: "15px",
                         // paddingBottom: "15px",
                         display: "flex",
                         flexDirection: "column",
-                        height: "100%",
+                        height: "80%",
                       },
                     }}
                     className="w-[270px] h-full border-[#fbe2ff] rounded-[24px] shadow-sm transition-all duration-300 flex flex-col"
                   >
-                    <div className="flex flex-col h-full justify-between">
-                      <div className="flex-grow">
+                    <div className="flex flex-col h-[80%] justify-between">
+                      <div>
                         <p className="mb-2">
                           <span className="halyard font-bold text-[20px]">
                             {item.title}
@@ -1333,7 +1333,7 @@ export default function PackagesPage() {
                           disabled={disablePurchase}
                           onClick={() => handleOpenModal(item)}
                           className={`${!disablePurchase
-                            ? "!bg-[#36013F] !border-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                            ? "!bg-[#36013F] !border-[black] hover:!bg-[black] hover:scale-[1.03]"
                             : "!bg-slate-200 !border-slate-bg-slate-200 hover:!bg-slate-200"
                             } h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
                         >

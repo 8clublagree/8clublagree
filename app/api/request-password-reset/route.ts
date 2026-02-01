@@ -86,12 +86,13 @@ export async function POST(req: NextRequest) {
 
     const transport = nodemailer.createTransport(
       MailtrapTransport({
-        token: process.env.MAILTRAP_TOKEN!,
+        token: process.env.MAILTRAP_TOKEN!!,
       }),
     );
 
+
     await transport.sendMail({
-      from: { address: "8clublagree@gmail.com", name: "8 Club Lagree" },
+      from: "8 Club Lagree <noreply@8clublagree.com>",
       to: [email],
       subject,
       html: body,

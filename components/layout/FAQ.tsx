@@ -23,25 +23,17 @@ const FAQ = () => {
       >
         <Text strong className="halyard text-[16px]" underline>How is Lagree Fitness different from Pilates?</Text>
         <Paragraph>
-          While Lagree and Pilates may appear similar at first glance, they are
-          fundamentally different in purpose, benefits, and equipment. Lagree uses
-          the "Megaformer", built for a high-intensity yet low-impact, full-body
-          workout that simultaneously develops strength, endurance, and
-          flexibility. Movements are performed slowly and with control to maximize
-          muscle tension and results, whereas Pilates features faster movements,
-          generally focusing on smaller, faster movements, that get your core
-          muscles working.{" "}
+          Lagree and Pilates are fundamentally different in purpose, benefits, and equipment.
         </Paragraph>
         <Text strong className="halyard text-[16px]" underline>How do I purchase sessions?</Text>
         <Paragraph>
-          You can purchase sessions directly through our website or via our studio
-          front desk.{" "}
+          Pilates focuses on healing, rehabilitation, body alignment, core stability, and flexibility at a low intensity level. Lagree is a high-intensity, full-body, muscular endurance workout, focusing on cardiovascular fitness, muscular strength and endurance, flexibility, core stability, mental toughness. Lagree = high-intensity, low-impact, whereas, Pilates = low-intensity, low-impact.
         </Paragraph>{" "}
         <Paragraph>
-          {" "}
-          If you choose to pay in-studio, our team will assist you with setting up
-          your <span className="font-bold">8 Club Lagree</span> account online to
-          activate your class credits.{" "}
+          Movements in Lagree are slow and with control, with little to no rest in between an exercise, all to maximize muscle tension and results (e.g. about 1 rep in 10 seconds), whereas Pilates generally focuses on smaller, faster movements (e.g. 10 reps in 10 seconds).
+        </Paragraph>
+        <Paragraph>
+          The Megaformer's look was inspired by the Pilates reformer, but is designed differently, to fit the purpose, methods, and goals of Lagree.
         </Paragraph>
         {/* <Text strong className="halyard text-[16px]" underline>Binding Effect</Text>
         <Paragraph>

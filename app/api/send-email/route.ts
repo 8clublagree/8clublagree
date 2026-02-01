@@ -96,13 +96,10 @@ export async function POST(req: NextRequest) {
      */
 
     const recipients = [to];
-    const sender = {
-      address: "8clublagree@gmail.com",
-      name: "8 Club Lagree",
-    };
+
 
     const apiToken =
-      process.env.MAILTRAP_TOKEN || process.env.MAILTRAP_API_KEY;
+      process.env.MAILTRAP_TOKEN
 
     if (!apiToken?.trim()) {
       return NextResponse.json(
@@ -120,7 +117,7 @@ export async function POST(req: NextRequest) {
         MailtrapTransport({ token: apiToken }),
       );
       info = await transport.sendMail({
-        from: sender,
+        from: "8 Club Lagree <noreply@8clublagree.com>",
         to: recipients,
         subject,
         html: body,
