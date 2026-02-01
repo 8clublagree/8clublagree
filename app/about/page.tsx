@@ -12,7 +12,7 @@ import {
   TableColumnsType,
 } from "antd";
 
-import { EnvironmentOutlined, UserOutlined } from "@ant-design/icons";
+import { UserOutlined } from "@ant-design/icons";
 import { Class, Trainer, Schedule, Testimonial } from "@/lib/props";
 import { useRouter } from "next/navigation";
 import UnauthenticatedLayout from "@/components/layout/UnauthenticatedLayout";
@@ -438,17 +438,39 @@ export default function About() {
           <Col xs={24} md={12}>
             <div
               style={{
-                background: "#f5f5f5",
                 height: 400,
                 borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                overflow: "hidden",
+                border: "1px solid #e8e8e8",
+              }}
+            >
+              <img
+                src="/images/streetscape-location.png"
+                alt="8 Club Lagree location - Banilad Streetscape, Cebu"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+                loading="lazy"
+              />
+            </div>
+            <Paragraph
+              style={{
+                marginTop: "8px",
+                fontSize: "0.75rem",
                 color: "#999",
               }}
             >
-              <EnvironmentOutlined style={{ fontSize: "4rem" }} />
-            </div>
+              <a
+                href="https://www.google.com/maps/search/streetscape,+cebu+city"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View on Google Maps
+              </a>
+            </Paragraph>
           </Col>
           <Col xs={24} md={12}>
             <Title level={4} style={{ fontWeight: 400, marginBottom: "24px" }}>
