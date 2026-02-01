@@ -214,6 +214,7 @@ export default function PackagesPage() {
     };
   }, []);
 
+
   useEffect(() => {
     handleFetchPackages();
   }, []);
@@ -1258,7 +1259,7 @@ export default function PackagesPage() {
               const hasPendingPurchase = user?.pendingPurchases;
 
               const disablePurchase =
-                (user?.currentPackage !== null ||
+                (user?.currentPackage !== null &&
                   user?.currentPackage !== undefined) &&
                 user?.credits !== 0;
 

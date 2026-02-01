@@ -84,6 +84,7 @@ export default function AuthenticatedLayout({
 
     const clientPackages = await fetchClientPackages({ findExpiry: true });
 
+
     if (!!clientPackages?.length) {
       const toExpire = clientPackages.flatMap((item: any) => [
         updateClientPackage({
