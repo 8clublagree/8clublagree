@@ -31,7 +31,7 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
 
     const updateUserCredits = supabaseServer
       .from("user_credits")
-      .update({ credits: Number(orderObject.packageCredits) })
+      .update({ credits: orderObject.packageCredits })
       .eq("user_id", orderObject.userID)
       .select()
       .single();
