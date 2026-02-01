@@ -87,6 +87,8 @@ export async function POST(req: NextRequest) {
         status,
         referenceID: requestReferenceNumber,
         checkoutID: checkoutId,
+        // temporary just to see the payload
+        temp: JSON.stringify(payload)
       });
 
     await supabaseServer
