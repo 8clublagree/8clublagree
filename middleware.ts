@@ -33,6 +33,11 @@ export async function middleware(req: NextRequest) {
   if (pathname === "/api/signup") {
     return NextResponse.next();
   }
+
+  if (pathname === "/api/maya/webhook") {
+    return NextResponse.next();
+  }
+
   if (pathname === "/api/request-password-reset") {
     return NextResponse.next();
   }
