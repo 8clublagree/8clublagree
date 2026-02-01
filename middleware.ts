@@ -30,6 +30,9 @@ export async function middleware(req: NextRequest) {
   const pathname = nextUrl.pathname;
 
 
+  if (pathname === "/api/signup") {
+    return NextResponse.next();
+  }
   if (pathname === "/api/request-password-reset") {
     return NextResponse.next();
   }
@@ -55,9 +58,9 @@ export async function middleware(req: NextRequest) {
   }
 
   // Origin check before any auth work
-  // if (origin !== process.env.SYSTEM_ORIGIN_TEST!) {
-  // if (origin !== process.env.SYSTEM_ORIGIN_TEMP!) {
-  if (origin !== process.env.SYSTEM_ORIGIN!) {
+  if (origin !== process.env.SYSTEM_ORIGIN_TEST!) {
+    // if (origin !== process.env.SYSTEM_ORIGIN_TEMP!) {
+    // if (origin !== process.env.SYSTEM_ORIGIN!) {
     return NextResponse.json({ error: "Unauthorized Origin" }, { status: 401 });
   }
 
