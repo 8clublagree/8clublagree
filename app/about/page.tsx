@@ -176,18 +176,17 @@ export default function About() {
             <span className="font-bold">
               More than just a workout, Lagree is a method
             </span>
-            —a joint-friendly alternative to{" "}
+            —a full-body workout method that is{" "}
             <span className="font-bold">
-              high-impact training that delivers a high-intensity, low-impact,
-              full-body workout.
+              high-intensity, but low-impact,
             </span>{" "}
-            Performed on the Megaformer, it builds strength, endurance, core
+            Performed on the <span className="font-bold">Megaformer</span> This unique workout builds strength, muscle endurance, core
             stability, cardiovascular fitness, balance, and flexibility through
-            slow, controlled, resistance-based movement that&apos;s safe on the
-            joints.
+            <span className="font-bold">slow and controlled, resistance-based movement</span> that&apos;s <span className="font-bold">safe on the
+              joints.</span>
           </Paragraph>
           <Paragraph className="text-[1.25rem] font-light mb-12 text-justify">
-            Each <span className="font-bold">45-minute class</span> follows the
+            Each 45-minute class follows the
             principle of{" "}
             <span className="font-bold">progressive overload,</span> gradually
             increasing resistance, time, or intensity so the body continuously
