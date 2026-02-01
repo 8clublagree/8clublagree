@@ -5,6 +5,7 @@ import { useAppMessage } from "@/components/ui/message-popup";
 import {
   useManageCredits,
   useManageOrders,
+  useManagePassword,
   usePackageManagement,
 } from "@/lib/api";
 import axiosApi from "@/lib/axiosConfig";
@@ -20,6 +21,9 @@ import {
   Descriptions,
   Image,
   Button,
+  Modal,
+  Input,
+  Empty,
 } from "antd";
 import { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
@@ -68,6 +72,11 @@ const PaymentsPage = () => {
     updateClientPackage,
     loading: modifyingPackage,
   } = usePackageManagement();
+  const { validatePassword, loading: validatingPassword } = useManagePassword();
+
+  const [adminConfirmModalOpen, setAdminConfirmModalOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminPasswordError, setAdminPasswordError] = useState("");
 
   useEffect(() => {
     handleFetchOrders();
@@ -150,6 +159,7 @@ const PaymentsPage = () => {
           { text: "Successful", value: "SUCCESSFUL" },
           { text: "Failed", value: "FAILED" },
           { text: "Cancelled", value: "CANCELLED" },
+          { text: "Pending", value: "PENDING" },
           { text: "Expired", value: "EXPIRED" },
           { text: "Maya Checkout", value: "MAYA CHECKOUT" },
         ],
@@ -258,9 +268,39 @@ const PaymentsPage = () => {
       const response = await fetchCustomerPayments();
       setPayments(response?.data.payments);
     } catch (error) {
-      showMessage({ type: "error", content: "Error fetching orders_temp" });
+      showMessage({ type: "error", content: "Error fetching orders" });
       console.log(error);
     }
+  };
+
+  const handleOpenAdminConfirmModal = () => {
+    setAdminPasswordError("");
+    setAdminPassword("");
+    setAdminConfirmModalOpen(true);
+  };
+
+  const handleAdminConfirmSubmit = async () => {
+    const adminEmail = user?.email;
+    if (!adminEmail) {
+      setAdminPasswordError("Unable to verify: no admin email.");
+      return;
+    }
+    if (!adminPassword.trim()) {
+      setAdminPasswordError("Please enter your password.");
+      return;
+    }
+    setAdminPasswordError("");
+    const valid = await validatePassword({
+      email: adminEmail,
+      currentPassword: adminPassword,
+    });
+    if (!valid) {
+      setAdminPasswordError("Wrong password.");
+      return;
+    }
+    setAdminConfirmModalOpen(false);
+    setAdminPassword("");
+    handleUpdatePaymentStatus("SUCCESSFUL");
   };
 
   const handleUpdatePaymentStatus = async (status: string) => {
@@ -327,7 +367,6 @@ const PaymentsPage = () => {
         values: { credits },
       });
 
-      // dispatch(setUser({ ...user, credits, currentPackage: selectedRecord }));
     } catch (error) {
       console.log(error);
     }
@@ -368,6 +407,9 @@ const PaymentsPage = () => {
         scroll={{ x: true }}
         columns={columns}
         dataSource={payments}
+        locale={{
+          emptyText: <Empty description="No payments have been made yet" />,
+        }}
         size={isMobile ? "small" : "middle"}
         pagination={{
           defaultPageSize: 10,
@@ -448,33 +490,32 @@ const PaymentsPage = () => {
                     placeholder={true}
                   />
                 </Row>
-                <Row wrap={false} className="gap-x-[10px]" justify={"center"}>
-                  <Button
-                    loading={
-                      loading ||
-                      updatingCredits ||
-                      modifyingPackage ||
-                      confirmingPayment
-                    }
-                    disabled={
-                      confirmingPayment ||
-                      loading ||
-                      selectedPayment.status === "SUCCESSFUL"
-                    }
-                    onClick={() => handleUpdatePaymentStatus("SUCCESSFUL")}
-                    className={`${selectedPayment.status !== "SUCCESSFUL" &&
-                      "hover:!bg-green-400 hover:!border-green-400 hover:!text-white bg-green-400"
-                      } ${selectedPayment.status === "SUCCESSFUL" &&
-                      "hover:!bg-green-200 hover:!border-green-200 hover:!text-white bg-green-200"
-                      } h-[40px] rounded-[10px]  text-white`}
-                  >
-                    {selectedPayment.status === "SUCCESSFUL"
-                      ? "Confirmed"
-                      : "Confirm Transaction"}
-                  </Button>
-                </Row>
               </Row>
             )}
+            <Row wrap={false} className="gap-x-[10px]" justify="center">
+              <Button
+                loading={
+                  loading ||
+                  updatingCredits ||
+                  modifyingPackage ||
+                  confirmingPayment
+                }
+                disabled={
+                  confirmingPayment ||
+                  loading ||
+                  selectedPayment.status === "SUCCESSFUL"
+                }
+                onClick={() => handleOpenAdminConfirmModal()}
+                className={`${selectedPayment.status !== "SUCCESSFUL"
+                  ? "hover:!bg-green-400 hover:!border-green-400 hover:!text-white bg-green-400"
+                  : "hover:!bg-green-200 hover:!border-green-200 hover:!text-white bg-green-200"
+                  } h-[40px] rounded-[10px] text-white !border-none`}
+              >
+                {selectedPayment.status === "SUCCESSFUL"
+                  ? "Confirmed"
+                  : "Confirm Transaction"}
+              </Button>
+            </Row>
             <Descriptions
               title="Customer Information"
               bordered
@@ -550,6 +591,64 @@ const PaymentsPage = () => {
           </div>
         )}
       </Drawer>
+
+      <Modal
+        title="Confirm administrator password"
+        open={adminConfirmModalOpen}
+        onCancel={() => {
+          setAdminConfirmModalOpen(false);
+          setAdminPassword("");
+          setAdminPasswordError("");
+        }}
+        destroyOnHidden
+        width={isMobile ? "90%" : 440}
+        centered
+        footer={
+          <Row justify="end" gutter={8} className="gap-x-[10px]">
+            <Button
+              onClick={() => {
+                setAdminConfirmModalOpen(false);
+                setAdminPassword("");
+                setAdminPasswordError("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              loading={validatingPassword}
+              onClick={handleAdminConfirmSubmit}
+              className="!bg-green-400 hover:!bg-green-400 !border-none"
+            >
+              Confirm
+            </Button>
+          </Row>
+        }
+      >
+        <Row className="gap-y-2 pt-2">
+          <Typography.Text className={isMobile ? "text-sm" : undefined}>
+            To confirm this transaction, please input the administrator
+            password.
+          </Typography.Text>
+          <Input.Password
+            placeholder="Administrator password"
+            value={adminPassword}
+            onChange={(e) => {
+              setAdminPassword(e.target.value);
+              setAdminPasswordError("");
+            }}
+            status={adminPasswordError ? "error" : undefined}
+            onPressEnter={handleAdminConfirmSubmit}
+            size={isMobile ? "middle" : "large"}
+            className="mt-2 w-full"
+          />
+          {adminPasswordError && (
+            <Typography.Text type="danger" className="text-sm">
+              {adminPasswordError}
+            </Typography.Text>
+          )}
+        </Row>
+      </Modal>
     </AdminAuthenticatedLayout>
   );
 };

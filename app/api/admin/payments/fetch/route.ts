@@ -54,7 +54,6 @@ export async function GET() {
       }),
     );
 
-    // console.log("parsed: ", parsed);
 
     return NextResponse.json({ payments: parsed });
   } catch (err: any) {

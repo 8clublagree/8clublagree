@@ -15,14 +15,12 @@ export async function POST(req: Request) {
         contentType: file.type,
       });
 
-    console.log("uploadError: ", uploadError);
     if (uploadError) {
       return NextResponse.json({ error: uploadError.message }, { status: 400 });
     }
 
     return NextResponse.json({ data });
   } catch (err: any) {
-    console.log("err: ", err);
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }

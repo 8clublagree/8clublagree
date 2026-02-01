@@ -269,7 +269,6 @@ export default function DashboardPage() {
           const index = element.index;
           const clicked = classes[index];
 
-          console.log("Clicked candle:", clicked);
           dispatch(setClickedDashboardDate(clicked.classDate));
           router.push("/admin/class-management");
         }

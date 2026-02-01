@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data: profile });
   } catch (err: any) {
-    console.log("err: ", err);
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }

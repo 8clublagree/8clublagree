@@ -51,7 +51,6 @@ export default function ProfilePage() {
 
         const updated = { ...user, ...values, id: user?.id as string };
 
-        console.log('updated: ', updated)
         dispatch(setUser(updated as any));
       }
 

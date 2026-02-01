@@ -9,7 +9,6 @@ export async function POST(req: Request) {
     // const { error: authDeleteError } =
     //   await supabaseServer.auth.admin.deleteUser(id);
 
-    // console.log("authDeleteError: ", authDeleteError);
 
     const { data, error: profileSoftDeleteError }: any = await supabaseServer
       .from("user_profiles")
@@ -17,7 +16,6 @@ export async function POST(req: Request) {
       .eq("id", id)
       .select();
 
-    // console.log("profileDeleteError: ", profileSoftDeleteError);
 
     // if (data?.user_type === "instructor") {
     //   const { error: deleteInstructorError } = await supabaseServer

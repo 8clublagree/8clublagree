@@ -70,7 +70,7 @@ const handleAssignCredits = async ({ checkoutId }: { checkoutId: string }) => {
       }
     }
   } catch (error) {
-    console.log("error assigning credits: ", error);
+    throw error
   }
 };
 

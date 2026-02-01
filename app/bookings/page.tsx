@@ -221,7 +221,6 @@ export default function BookingsPage() {
         handleFetchClasses();
       }
     } catch (error) {
-      console.log(error);
       setIsSubmitting(false);
       showMessage({ type: "error", content: "Error while booking a class" });
     }

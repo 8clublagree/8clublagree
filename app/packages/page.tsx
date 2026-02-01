@@ -243,7 +243,7 @@ export default function PackagesPage() {
 
       dispatch(setUser({ ...user, credits, currentPackage: selectedRecord }));
     } catch (error) {
-      console.log(error);
+      throw (error);
     }
   };
 
@@ -336,7 +336,7 @@ export default function PackagesPage() {
 
       return response;
     } catch (error) {
-      console.log(error);
+      throw error
     }
   };
 
@@ -446,7 +446,6 @@ export default function PackagesPage() {
         notificationUrl: `${process.env.SYSTEM_ORIGIN!!}/api/maya/webhook`,
       };
 
-      // console.log("uuid: ", uuid);
 
       const order = {
         userID: user?.id,
@@ -457,7 +456,6 @@ export default function PackagesPage() {
         packageCredits: selectedRecord.packageCredits,
       };
 
-      // console.log("checkoutPayload: ", checkoutPayload);
       const response = await axiosApi.post(
         "/maya/checkout",
         { checkoutPayload, order },
@@ -856,7 +854,6 @@ export default function PackagesPage() {
                           beforeUpload={() => false}
                           accept="image/*"
                           disabled={paymentUploadSuccess === true}
-                          onDrop={(e) => console.log(e)}
                         >
                           {file && file.length > 0 ? null : uploadButton}
                         </Upload>
@@ -1333,7 +1330,7 @@ export default function PackagesPage() {
                           disabled={disablePurchase}
                           onClick={() => handleOpenModal(item)}
                           className={`${!disablePurchase
-                            ? "!bg-[#36013F] !border-[black] hover:!bg-[black] hover:scale-[1.03]"
+                            ? "!bg-[#800020] !border-[#800020] hover:!bg-[#800020] hover:scale-[1.03]"
                             : "!bg-slate-200 !border-slate-bg-slate-200 hover:!bg-slate-200"
                             } h-[40px] !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
                         >

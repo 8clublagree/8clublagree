@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // console.log("data: ", data);
 
     // const { data: orderInsert, error } = await supabaseServer
     //   .from("orders")
@@ -77,7 +76,6 @@ export async function POST(request: NextRequest) {
       checkoutId: data.checkoutId,
     });
   } catch (error) {
-    console.log("error: ", error);
     return NextResponse.json(
       {
         success: false,

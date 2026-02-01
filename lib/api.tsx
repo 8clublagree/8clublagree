@@ -143,7 +143,6 @@ export const useManagePassword = () => {
       });
       return response?.data?.data ?? null;
     } catch (error) {
-      console.log("error validating password: ", error);
       return null;
     } finally {
       setLoading(false);
@@ -165,7 +164,6 @@ export const useManagePassword = () => {
       });
       return response?.data?.data ?? null;
     } catch (error) {
-      console.log("error changing password: ", error);
       return null;
     } finally {
       setLoading(false);
@@ -1029,23 +1027,6 @@ export const useManageOrders = () => {
     setLoading(false);
   };
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-
-      const response = await axiosApi.get("/admin/orders_temp/fetch");
-      const data = response.data.data;
-      if (!data) return null;
-
-      setLoading(false);
-      return data;
-    } catch (error) {
-      setLoading(false);
-      console.error(error);
-    }
-    setLoading(false);
-  };
-
   const fetchCustomerPayments = async () => {
     try {
       setLoading(true);
@@ -1063,5 +1044,5 @@ export const useManageOrders = () => {
     setLoading(false);
   };
 
-  return { loading, fetchOrders, fetchCustomerPayments, updatePaymentStatus };
+  return { loading, fetchCustomerPayments, updatePaymentStatus };
 };

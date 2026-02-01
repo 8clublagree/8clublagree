@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
       throw sendError;
     }
 
-    console.log("Email sent", info);
+
 
     return NextResponse.json({ message: "Email sent", info });
   } catch (error) {

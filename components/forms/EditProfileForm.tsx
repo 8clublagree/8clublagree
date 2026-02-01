@@ -88,7 +88,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
     const fileKeys = keys(file?.[0]);
     if (
       JSON.stringify(watchedValues) !==
-        JSON.stringify(initialValuesRef.current) ||
+      JSON.stringify(initialValuesRef.current) ||
       (!!fileKeys.length && !fileKeys.includes("url")) ||
       file?.length !== initialFileState?.length
     ) {
@@ -229,7 +229,6 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
           onPreview={handlePreview}
           onChange={handleChange}
           accept="image/*"
-          onDrop={(e) => console.log(e)}
         >
           {file && file.length > 0 ? null : uploadButton}
         </Upload>
@@ -382,9 +381,8 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
             disabled={loading}
             type="primary"
             onClick={handleResetProfileForm}
-            className={`${
-              !loading && "!bg-[#800020] hover:!bg-[#800020] hover:scale-[1.03]"
-            } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+            className={`${!loading && "!bg-[#800020] hover:!bg-[#800020] hover:scale-[1.03]"
+              } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
           >
             Cancel
           </Button>
@@ -393,10 +391,9 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
             disabled={!isModified || loading}
             loading={loading}
             htmlType="submit"
-            className={`${
-              isModified &&
+            className={`${isModified &&
               "!bg-[#800020] hover:!bg-[#800020] hover:scale-[1.03]"
-            } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+              } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
           >
             Save Changes
           </Button>
