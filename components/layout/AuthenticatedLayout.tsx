@@ -357,7 +357,7 @@ export default function AuthenticatedLayout({
               fontSize: "0.72rem",
               fontWeight: 300,
             }}
-            className="text-[0.72rem] sm:text-xs !mt-[10px]"
+            className="text-[0.72rem] sm:text-xs !mt-[10px] text-center"
           >
             © 2026 8ClubLagree. All rights reserved.
           </Paragraph>
