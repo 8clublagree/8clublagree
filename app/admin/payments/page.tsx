@@ -1,6 +1,7 @@
 "use client";
 
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
+import { AdminPasswordConfirmModal } from "@/components/modals/AdminPasswordConfirmModal";
 import { useAppMessage } from "@/components/ui/message-popup";
 import {
   useManageCredits,
@@ -21,8 +22,6 @@ import {
   Descriptions,
   Image,
   Button,
-  Modal,
-  Input,
   Empty,
 } from "antd";
 import { ColumnsType } from "antd/es/table";
@@ -72,11 +71,9 @@ const PaymentsPage = () => {
     updateClientPackage,
     loading: modifyingPackage,
   } = usePackageManagement();
-  const { validatePassword, loading: validatingPassword } = useManagePassword();
+  const { validatePassword } = useManagePassword();
 
   const [adminConfirmModalOpen, setAdminConfirmModalOpen] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
-  const [adminPasswordError, setAdminPasswordError] = useState("");
 
   useEffect(() => {
     handleFetchOrders();
@@ -273,33 +270,20 @@ const PaymentsPage = () => {
     }
   };
 
-  const handleOpenAdminConfirmModal = () => {
-    setAdminPasswordError("");
-    setAdminPassword("");
-    setAdminConfirmModalOpen(true);
-  };
+  const handleOpenAdminConfirmModal = () => setAdminConfirmModalOpen(true);
 
-  const handleAdminConfirmSubmit = async () => {
+  const handleAdminConfirmSubmit = async (password: string) => {
     const adminEmail = user?.email;
     if (!adminEmail) {
-      setAdminPasswordError("Unable to verify: no admin email.");
-      return;
+      throw new Error("Unable to verify: no admin email.");
     }
-    if (!adminPassword.trim()) {
-      setAdminPasswordError("Please enter your password.");
-      return;
-    }
-    setAdminPasswordError("");
     const valid = await validatePassword({
       email: adminEmail,
-      currentPassword: adminPassword,
+      currentPassword: password,
     });
     if (!valid) {
-      setAdminPasswordError("Wrong password.");
-      return;
+      throw new Error("Wrong password.");
     }
-    setAdminConfirmModalOpen(false);
-    setAdminPassword("");
     handleUpdatePaymentStatus("SUCCESSFUL");
   };
 
@@ -592,63 +576,13 @@ const PaymentsPage = () => {
         )}
       </Drawer>
 
-      <Modal
-        title="Confirm administrator password"
+      <AdminPasswordConfirmModal
         open={adminConfirmModalOpen}
-        onCancel={() => {
-          setAdminConfirmModalOpen(false);
-          setAdminPassword("");
-          setAdminPasswordError("");
-        }}
-        destroyOnHidden
-        width={isMobile ? "90%" : 440}
-        centered
-        footer={
-          <Row justify="end" gutter={8} className="gap-x-[10px]">
-            <Button
-              onClick={() => {
-                setAdminConfirmModalOpen(false);
-                setAdminPassword("");
-                setAdminPasswordError("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="primary"
-              loading={validatingPassword}
-              onClick={handleAdminConfirmSubmit}
-              className="!bg-green-400 hover:!bg-green-400 !border-none"
-            >
-              Confirm
-            </Button>
-          </Row>
-        }
-      >
-        <Row className="gap-y-2 pt-2">
-          <Typography.Text className={isMobile ? "text-sm" : undefined}>
-            To confirm this transaction, please input the administrator
-            password.
-          </Typography.Text>
-          <Input.Password
-            placeholder="Administrator password"
-            value={adminPassword}
-            onChange={(e) => {
-              setAdminPassword(e.target.value);
-              setAdminPasswordError("");
-            }}
-            status={adminPasswordError ? "error" : undefined}
-            onPressEnter={handleAdminConfirmSubmit}
-            size={isMobile ? "middle" : "large"}
-            className="mt-2 w-full"
-          />
-          {adminPasswordError && (
-            <Typography.Text type="danger" className="text-sm">
-              {adminPasswordError}
-            </Typography.Text>
-          )}
-        </Row>
-      </Modal>
+        onCancel={() => setAdminConfirmModalOpen(false)}
+        onConfirm={handleAdminConfirmSubmit}
+        compact={isMobile}
+        confirmButtonClassName="!bg-green-400 hover:!bg-green-400 !border-none"
+      />
     </AdminAuthenticatedLayout>
   );
 };

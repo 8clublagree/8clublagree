@@ -25,9 +25,11 @@ import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import PackageHistoryCard from "../ui/package-history-card";
+import { AdminPasswordConfirmModal } from "@/components/modals/AdminPasswordConfirmModal";
 import {
   useManageCredits,
   useManageImage,
+  useManagePassword,
   usePackageManagement,
   useSearchUser,
 } from "@/lib/api";
@@ -263,6 +265,8 @@ const EditClientForm = ({
 
   const [isPackagesModalOpen, setIsPackagesModalOpen] =
     useState<boolean>(false);
+  const [expireConfirmModalOpen, setExpireConfirmModalOpen] =
+    useState<boolean>(false);
   const {
     fetchPackages,
     purchasePackage,
@@ -270,6 +274,8 @@ const EditClientForm = ({
     loading: addingPackage,
   } = usePackageManagement();
   const { updateUserCredits } = useManageCredits();
+  const { validatePassword } = useManagePassword();
+  const user = useAppSelector((state) => state.auth.user);
   const [packages, setPackages] = useState<any>([]);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
 
@@ -347,6 +353,34 @@ const EditClientForm = ({
       console.log(error);
     }
   };
+
+  const handleExpirePackageConfirm = async (password: string) => {
+    const adminEmail = user?.email;
+    if (!adminEmail) {
+      throw new Error("Unable to verify: no admin email.");
+    }
+    const valid = await validatePassword({
+      email: adminEmail,
+      currentPassword: password,
+    });
+    if (!valid) {
+      throw new Error("Wrong password.");
+    }
+    const clientPackageId =
+      initialValues?.clientPackage?.id ??
+      initialValues?.clientPackage?.clientPackageID;
+    if (!clientPackageId) {
+      throw new Error("No active package to expire.");
+    }
+    await updateClientPackage({
+      clientPackageID: clientPackageId,
+      values: { status: "expired", expirationDate: dayjs() },
+    });
+
+    handleClose();
+    refetch?.();
+  };
+
   return (
     <>
       <Form layout="vertical" form={form} onFinish={handleSubmit}>
@@ -466,35 +500,53 @@ const EditClientForm = ({
         <Row gutter={[16, 0]}>
           {/* Remaining Credits */}
 
+          {/* {initialValues?.clientPackage &&
+            <Row className="flex flex-col w-full">
+
+              <Row wrap={false} justify={'center'}>
+                <Button className="bg-red-500 hover:bg-red-600 text-white" >Expire Package</Button>
+              </Row>
+            </Row>
+          } */}
           <Row className="w-full mb-[40px]" justify={"center"}>
             {initialValues?.clientPackage && (
-              <Row justify={"center"}>
+
+              <Row justify={"center"} className="gap-y-[10px]">
+                <Row wrap={false} justify={'center'}>
+                  <Button
+                    className="bg-red-500 hover:!bg-red-600 hover:!text-white hover:!border-red-600 text-white"
+                    onClick={() => setExpireConfirmModalOpen(true)}
+                  >
+                    Expire Package
+                  </Button>
+                </Row>
+
                 <PackageHistoryCard
                   item={initialValues?.clientPackage as any}
                 />
               </Row>
+
             )}
             {(!initialValues?.clientPackage ||
               initialValues?.credits === 0) && (
-              <Row
-                justify={"center"}
-                className={`bg-slate-200 w-full rounded-[10px] p-[30px] flex-col flex items-center ${
-                  initialValues?.credits === 0 && "mt-[10px]"
-                }`}
-              >
-                <Title className="!font-light" level={5}>
-                  {initialValues?.credits === 0
-                    ? "Client has no more credits"
-                    : "Client has no active package"}
-                </Title>
-                <Button
-                  className={`bg-white`}
-                  onClick={handleOpenPackagesModal}
+                <Row
+                  justify={"center"}
+                  className={`bg-slate-200 w-full rounded-[10px] p-[30px] flex-col flex items-center ${initialValues?.credits === 0 && "mt-[10px]"
+                    }`}
                 >
-                  Add Package
-                </Button>
-              </Row>
-            )}
+                  <Title className="!font-light" level={5}>
+                    {initialValues?.credits === 0
+                      ? "Client has no more credits"
+                      : "Client has no active package"}
+                  </Title>
+                  <Button
+                    className={`bg-white`}
+                    onClick={handleOpenPackagesModal}
+                  >
+                    Add Package
+                  </Button>
+                </Row>
+              )}
           </Row>
 
           {initialValues?.clientPackage && (
@@ -554,11 +606,10 @@ const EditClientForm = ({
             loading={loading}
             disabled={loading || isValidating || emailTaken || !isModified}
             htmlType="submit"
-            className={`${
-              !isValidating && !emailTaken && isModified
-                ? "!bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
-                : "!bg-[gray] hover:!bg-[gray]"
-            } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+            className={`${!isValidating && !emailTaken && isModified
+              ? "!bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+              : "!bg-[gray] hover:!bg-[gray]"
+              } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
           >
             Save Changes
           </Button>
@@ -601,6 +652,14 @@ const EditClientForm = ({
           </Row>
         </Row>
       </Modal>
+      <AdminPasswordConfirmModal
+        confirmButtonClassName="!bg-red-500 hover:!bg-red-600 hover:!text-white hover:!border-red-600 text-white"
+        open={expireConfirmModalOpen}
+        onCancel={() => setExpireConfirmModalOpen(false)}
+        onConfirm={handleExpirePackageConfirm}
+        title="Confirm administrator password"
+        description="To expire this client's package, please input the administrator password."
+      />
     </>
   );
 };
