@@ -263,7 +263,7 @@ export default function AuthenticatedLayout({
                 <Text className="halyard block text-sm font-medium !text-slate-200">
                   {user?.first_name || "User"}
                 </Text>
-                <Text className="block text-xs text-white">{user?.email}</Text>
+                <Text className="halyard block text-xs text-white">{user?.email}</Text>
               </div>
               <Avatar
                 size="large"
