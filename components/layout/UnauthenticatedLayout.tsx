@@ -1,4 +1,4 @@
-import { Button, Drawer, Row, Typography } from "antd";
+import { Button, Drawer, Layout, Row, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MenuOutlined } from "@ant-design/icons";
@@ -9,6 +9,7 @@ interface LayoutProps {
 }
 
 const { Title, Text, Paragraph } = Typography;
+const { Content } = Layout;
 
 export default function UnauthenticatedLayout({ children }: LayoutProps) {
   const router = useRouter();
@@ -123,7 +124,9 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
         </div>
       </header>
 
-      <div>{children}</div>
+      <Content className="justify-between flex-1 min-h-0 overflow-auto pb-0 bg-slate-50">
+        <div>{children}</div>
+      </Content>
 
       {/* Footer */}
       <footer className="flex-shrink-0 bg-[#800020] text-white px-3 sm:px-6 md:px-16 lg:px-24 py-5 sm:py-8">

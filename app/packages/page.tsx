@@ -260,7 +260,14 @@ export default function PackagesPage() {
 
   const handleCloseModal = () => {
     setAcceptsTerms(false);
-    if (carouselSlide === CAROUSEL_SLIDES.CHECKOUT) {
+
+    if (carouselSlide === CAROUSEL_SLIDES.CHECKOUT && paymentUploadSuccess === true) {
+      setIsModalOpen(false);
+      carouselRef.current?.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
+      return
+    }
+
+    if (carouselSlide === CAROUSEL_SLIDES.CHECKOUT && (paymentUploadSuccess === false || paymentUploadSuccess === null)) {
       setCarouselSlide(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       carouselRef.current?.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       return;
@@ -279,7 +286,7 @@ export default function PackagesPage() {
       console.error("Error sending confirmation email: ", error);
     }
   };
-  // trigger deployment
+
   const handleNext = async () => {
     try {
       //temporary behavior
@@ -641,6 +648,8 @@ export default function PackagesPage() {
     setPaymentUploadSuccess(status === 200);
     setUploadingPayment(false);
     setIsSendingPending(false);
+
+    window.location.reload();
   };
 
 
@@ -660,7 +669,7 @@ export default function PackagesPage() {
         <Drawer
           keyboard={false}
           closeIcon={
-            carouselSlide === CAROUSEL_SLIDES.CHECKOUT ? (
+            carouselSlide === CAROUSEL_SLIDES.CHECKOUT && (paymentUploadSuccess === false || paymentUploadSuccess === null) ? (
               <ChevronLeft />
             ) :
               carouselSlide === CAROUSEL_SLIDES.CHECKOUT && paymentUploadSuccess === true ?
@@ -815,14 +824,27 @@ export default function PackagesPage() {
                           </Descriptions>
                         )}
                         {selectedPaymentMethod === "gcash" && (
-                          <Descriptions bordered column={1} size="small">
-                            <Descriptions.Item label="GCash Account Name">
-                              {"Juan Dela Cruz"}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="GCash Account Number">
-                              {"1234567890"}
-                            </Descriptions.Item>
-                          </Descriptions>
+                          <Row>
+                            <Descriptions bordered column={1} size="small">
+                              <Descriptions.Item label="GCash Account Name">
+                                {"BE*****T AN**E C."}
+                              </Descriptions.Item>
+                              <Descriptions.Item label="GCash Account Number">
+                                {"09524831558"}
+                              </Descriptions.Item>
+
+                            </Descriptions>
+                            <Divider>OR Scan the QR code</Divider>
+
+                            <Row justify={'center'} className="w-full text-center items-center">
+                              <Image
+                                src="/images/gcash-qr.png"
+                                alt="GCash QR"
+                                width={130}
+                                height={200}
+                              />
+                            </Row>
+                          </Row>
                         )}
                       </Row>
                     </Row>
@@ -1213,8 +1235,8 @@ export default function PackagesPage() {
                 )}
               </div>
             </Carousel>
-          </div>
-        </Drawer>
+          </div >
+        </Drawer >
       </>
     );
   }, [
