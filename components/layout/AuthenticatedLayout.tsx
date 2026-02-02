@@ -278,7 +278,7 @@ export default function AuthenticatedLayout({
         </Header>
 
         <Content className="justify-between flex-1 min-h-0 overflow-auto pt-4 md:pt-6 pb-0 bg-slate-50">
-          <div className="px-4 max-w-7xl mx-auto">{children}</div>
+          <div className="py-[40px] px-4 max-w-7xl mx-auto">{children}</div>
 
         </Content>
         <footer className="flex-shrink-0 bg-[#800020] text-white px-3 sm:px-6 md:px-16 lg:px-24 py-5 sm:py-8">
