@@ -899,9 +899,7 @@ export default function PackagesPage() {
                   </Row>
                   <Row>
                     <Title level={4}>
-                      <span className="text-red-400">Step 3</span>: We will
-                      contact you via email that your payment has been
-                      confirmed. Once confirmed, you will see the credits
+                      <span className="text-red-400">Step 3</span>: Please check your email for the confirmation of your payment, or any concern we might have upon payment proof review. Once confirmed, you will see the credits
                       reflected to your account.
                     </Title>
 
