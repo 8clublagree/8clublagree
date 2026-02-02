@@ -35,7 +35,7 @@ import Image from "next/image";
 import axiosApi from "@/lib/axiosConfig";
 
 const { Header, Sider, Content } = Layout;
-const { Text } = Typography;
+const { Text, Title, Paragraph } = Typography;
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -207,7 +207,7 @@ export default function AuthenticatedLayout({
   ];
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="h-screen min-h-screen flex !halyard">
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
@@ -233,10 +233,10 @@ export default function AuthenticatedLayout({
             mode="inline"
             selectedKeys={[getSelectedKey()]}
             items={menuItems}
-            className="border-r-0 pt-4"
+            className="border-r-0 pt-4 halyard text-[16px]"
           />
-          <Text className="text-xl font-semibold text-slate-200 lg:hidden">
-            LagreeStudio
+          <Text className="halyard text-xl font-semibold text-slate-200 lg:hidden">
+            8ClubLagree
           </Text>
         </div>
 
@@ -246,8 +246,8 @@ export default function AuthenticatedLayout({
         </Row> */}
       </Sider>
 
-      <Layout>
-        <Header className="!bg-[#800020] border-b border-slate-200 !px-4 md:!px-6 flex items-center justify-between !h-16">
+      <Layout className="flex flex-col flex-1 min-h-0">
+        <Header className="!bg-[#800020] flex-shrink-0 border-b border-slate-200 !px-4 md:!px-6 flex items-center justify-between !h-16">
           <div className="flex items-center">
             <Button
               type="text"
@@ -260,7 +260,7 @@ export default function AuthenticatedLayout({
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div className="flex items-center gap-3 cursor-pointer px-3 py-2 rounded-lg transition-colors">
               <div className="text-right hidden md:block">
-                <Text className="block text-sm font-medium !text-slate-200">
+                <Text className="halyard block text-sm font-medium !text-slate-200">
                   {user?.first_name || "User"}
                 </Text>
                 <Text className="block text-xs text-white">{user?.email}</Text>
@@ -269,7 +269,7 @@ export default function AuthenticatedLayout({
                 size="large"
                 src={user?.avatar_url}
                 icon={<UserOutlined />}
-                className="bg-slate-200 border-slate-500"
+                className="halyard bg-slate-200 border-slate-500"
               >
                 {user?.first_name?.[0]?.toUpperCase() || "U"}
               </Avatar>
@@ -277,9 +277,96 @@ export default function AuthenticatedLayout({
           </Dropdown>
         </Header>
 
-        <Content className="p-4 md:p-6 bg-slate-50 scroll-auto">
-          <div className="max-w-7xl mx-auto">{children}</div>
+        <Content className="flex-1 min-h-0 overflow-auto pt-4 md:pt-6 pb-0 bg-slate-50">
+          <div className="px-4 max-w-7xl mx-auto">{children}</div>
+
+          <footer className="flex-shrink-0 bg-[#800020] text-white px-3 sm:px-6 md:px-16 lg:px-24 py-5 sm:py-8">
+            <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:justify-between md:items-start gap-5 sm:gap-8 md:gap-16">
+              <div className="flex-1 flex flex-col items-center md:items-start">
+                <Title
+                  level={3}
+                  className="!text-white !mb-1 !mt-0 font-light tracking-[0.1em] text-center md:text-left !text-[1.35rem] sm:!text-2xl"
+                >
+                  8CLUBLAGREE
+                </Title>
+                <Paragraph
+                  className="!text-white"
+                  style={{
+                    fontWeight: 300,
+                    fontSize: "0.95rem",
+                    lineHeight: "1.3rem",
+                    marginBottom: 0,
+                    marginTop: 0,
+                  }}
+                >
+                  Streetscape Mall Banilad, Maria Luisa Road
+                  <br />
+                  Cebu City, Cebu 6000
+                </Paragraph>
+              </div>
+
+              <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
+                <Title
+                  level={5}
+                  className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
+                >
+                  Interested in the website?
+                </Title>
+                <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
+                  <a
+                    href="https://julianchiongbian.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  >
+                    Let's connect
+                  </a>
+                </Paragraph>
+              </div>
+
+              <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
+                <Title
+                  level={5}
+                  className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
+                >
+                  Contact Us
+                </Title>
+                <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
+                  <a
+                    href="mailto:8clublagree@gmail.com"
+                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  >
+                    Email
+                  </a>
+                  <br />
+                  <a
+                    href="https://www.instagram.com/8clublagree"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  >
+                    Instagram
+                  </a>
+                </Paragraph>
+              </div>
+            </div>
+
+            <div className="max-w-[1200px] mx-auto border-t border-white/20 mt-5 sm:mt-8 pt-4 sm:pt-6 text-center">
+              <Paragraph
+                style={{
+                  color: "white",
+                  fontSize: "0.72rem",
+                  margin: 0,
+                  fontWeight: 300,
+                }}
+                className="text-[0.72rem] sm:text-xs"
+              >
+                © 2026 8ClubLagree. All rights reserved.
+              </Paragraph>
+            </div>
+          </footer>
         </Content>
+
       </Layout>
 
       <Drawer

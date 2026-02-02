@@ -14,10 +14,10 @@ const StudioGuidelines = () => {
             textAlign: 'center'
           }
         }}
-        className="max-w-3xl mx-auto mt-10 rounded-2xl shadow-sm py-6 px-0 text-justify"
+        className="max-w-3xl mx-auto mt-6 sm:mt-10 rounded-2xl shadow-sm py-4 px-4 sm:py-6 sm:px-6 md:px-0 text-justify"
         title={
-          <Title level={2} className="halyard !mb-0">
-            8 CLUB LAGREE STUDIO GUIDELINES
+          <Title level={2} className="halyard !mb-0 text-base sm:text-lg md:text-xl lg:text-2xl text-center break-words">
+            STUDIO GUIDELINES
           </Title>
         }
       >

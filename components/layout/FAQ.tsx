@@ -9,15 +9,15 @@ const FAQ = () => {
   const renderFAQ = useCallback(() => {
     return (
       <Card
-        className="max-w-3xl mx-auto mt-10 rounded-2xl shadow-sm py-6 px-0 text-justify"
+        className="max-w-3xl mx-auto mt-6 sm:mt-10 rounded-2xl shadow-sm py-4 px-4 sm:py-6 sm:px-6 md:px-0 text-justify"
         styles={{
           title: {
             textAlign: 'center'
           }
         }}
         title={
-          <Title level={3} className="halyard !mb-0">
-            FREQUENTLY ASKED QUESTIONS
+          <Title level={3} className="halyard !mb-0 text-base sm:text-lg md:text-xl text-center break-words">
+            FAQ
           </Title>
         }
       >
