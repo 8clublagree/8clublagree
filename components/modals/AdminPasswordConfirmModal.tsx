@@ -101,7 +101,7 @@ export function AdminPasswordConfirmModal({
       maskClosable={false}
       keyboard={false}
       onCancel={handleCancel}
-      destroyOnClose
+      destroyOnHidden
       width={compact ? "90%" : width}
       centered={centered}
       footer={

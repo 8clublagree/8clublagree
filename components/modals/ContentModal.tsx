@@ -38,7 +38,7 @@ export function ContentModal({
       onCancel={onClose}
       footer={null}
       width={width}
-      destroyOnClose
+      destroyOnHidden
       maskClosable={maskClosable}
       keyboard={keyboard}
       className={className}
