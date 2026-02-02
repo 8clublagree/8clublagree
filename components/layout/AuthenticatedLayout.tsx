@@ -351,20 +351,19 @@ export default function AuthenticatedLayout({
               </Paragraph>
             </div>
           </div>
+          <Paragraph
+            style={{
+              color: "white",
+              fontSize: "0.72rem",
+              fontWeight: 300,
+            }}
+            className="text-[0.72rem] sm:text-xs !mt-[10px]"
+          >
+            © 2026 8ClubLagree. All rights reserved.
+          </Paragraph>
 
-          <div className="max-w-[1200px] mx-auto border-t border-white/20 mt-5 sm:mt-8 pt-4 sm:pt-6 text-center">
-            <Paragraph
-              style={{
-                color: "white",
-                fontSize: "0.72rem",
-                margin: 0,
-                fontWeight: 300,
-              }}
-              className="text-[0.72rem] sm:text-xs"
-            >
-              © 2026 8ClubLagree. All rights reserved.
-            </Paragraph>
-          </div>
+          {/* <div className="max-w-[1200px] mx-auto border-t border-white/20 mt-5 sm:mt-8 pt-4 sm:pt-6 text-center">
+          </div> */}
         </footer>
 
       </Layout>
