@@ -284,7 +284,7 @@ const PaymentsPage = () => {
     if (!valid) {
       throw new Error("Wrong password.");
     }
-    handleUpdatePaymentStatus("SUCCESSFUL");
+    await handleUpdatePaymentStatus("SUCCESSFUL");
   };
 
   const handleUpdatePaymentStatus = async (status: string) => {
