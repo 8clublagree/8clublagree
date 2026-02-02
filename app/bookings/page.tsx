@@ -11,14 +11,13 @@ import {
   Divider,
   Drawer,
   Checkbox,
-  Carousel,
 } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { ImInfinite } from "react-icons/im";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import {
@@ -30,21 +29,16 @@ import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
-import { Calendar, ChevronRight, Clock, User } from "lucide-react";
+import { ContentModal } from "@/components/modals/ContentModal";
+import { Calendar, Clock, User } from "lucide-react";
 import { useAppMessage } from "@/components/ui/message-popup";
 import axiosApi from "@/lib/axiosConfig";
 
 const { Title, Text } = Typography;
 
-const CAROUSEL_SLIDES = {
-  TERMS: 0,
-  BOOKING_DETAILS: 1,
-};
-
 export default function BookingsPage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const carouselRef = useRef<any>(null);
   const user = useAppSelector((state) => state.auth.user);
 
   const { updateUserCredits } = useManageCredits();
@@ -55,8 +49,8 @@ export default function BookingsPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [classes, setClasses] = useState<any[]>([]);
-  const [carouselSlide, setCarouselSlide] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -145,12 +139,6 @@ export default function BookingsPage() {
   };
 
   const handleCloseModal = () => {
-    if (carouselSlide === CAROUSEL_SLIDES.TERMS) {
-      carouselRef.current.next();
-      setCarouselSlide(CAROUSEL_SLIDES.BOOKING_DETAILS);
-      return;
-    }
-
     setAcceptsTerms(false);
     setIsModalOpen(false);
     setSelectedRecord(null);
@@ -235,8 +223,7 @@ export default function BookingsPage() {
   };
 
   const handleShowTermsAndConditions = () => {
-    setCarouselSlide(CAROUSEL_SLIDES.TERMS);
-    carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
+    setTermsModalOpen(true);
   };
 
   const renderActionButton = useMemo(
@@ -418,12 +405,19 @@ export default function BookingsPage() {
         </Row>
       </div>
 
+      <ContentModal
+        open={termsModalOpen}
+        onClose={() => setTermsModalOpen(false)}
+        title="Terms and Conditions"
+        width={isMobile ? "95%" : 720}
+      >
+        <UserTermsAndConditions />
+      </ContentModal>
+
       <Drawer
         keyboard={false}
         maskClosable={false}
         placement="right"
-        title={carouselSlide === CAROUSEL_SLIDES.TERMS && "Back to Agreement"}
-        closeIcon={carouselSlide === CAROUSEL_SLIDES.TERMS && <ChevronRight />}
         closable={!isSubmitting}
         onClose={handleCloseModal}
         open={isModalOpen}
@@ -437,92 +431,80 @@ export default function BookingsPage() {
         }}
       >
         <div className="flex-1 overflow-hidden">
-          <Carousel
-            ref={carouselRef}
-            autoplay={false}
-            infinite={false}
-            dots={false}
-            initialSlide={1}
-            className="h-full"
-          >
-            <div className="h-full overflow-y-auto">
-              <UserTermsAndConditions />
-            </div>
-            {selectedRecord && (
-              <Row className="flex flex-col items-center">
-                <Row className="w-full justify-center">
-                  <Avatar
-                    className="border-slate-200 border w-full"
-                    size={200}
-                    icon={<UserOutlined />}
-                    src={selectedRecord?.avatar_url}
-                  />
-                </Row>
-                <Divider />
-                <Col className="mb-[20px] items-start w-full">
-                  <Title>{selectedRecord?.class_name}</Title>
-                  <Row wrap={false} className="items-center gap-2 mb-[10px]">
-                    <User size={18} />
-                    <Title level={5} className="!m-0">
-                      Class with{" "}
-                      <span className="text-red-400">
-                        {selectedRecord?.instructor_name}
-                      </span>{" "}
-                    </Title>
-                  </Row>
-
-                  <Row wrap={false} className="items-center gap-2 mb-[10px]">
-                    <Calendar size={18} />
-                    <Title level={5} className="!m-0 p-0">
-                      {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
-                        selectedDate,
-                      ).format("D")}, ${dayjs(selectedDate).format("YYYY")}`}
-                    </Title>
-                  </Row>
-                  <Row wrap={false} className="items-center gap-2 mb-[10px]">
-                    <Clock size={18} />
-                    <Title level={5} className="!m-0">
-                      <span className="text-red-400">
-                        {dayjs(selectedRecord?.date).format("dddd")}
-                      </span>{" "}
-                      at{" "}
-                      <span className="text-red-400">
-                        {dayjs(selectedRecord?.start_time).format("h:mm A")}
-                      </span>
-                    </Title>
-                  </Row>
-                </Col>
-                <Row justify={"start"} className="w-full mb-[10px]">
-                  <Checkbox
-                    defaultChecked={acceptsTerms}
-                    checked={acceptsTerms}
-                    onChange={handleAcceptTermsChange}
-                  >
-                    I have read the
-                  </Checkbox>
-                  <span
-                    onClick={handleShowTermsAndConditions}
-                    className="text-blue-400 cursor-pointer"
-                  >
-                    Terms and Conditions
-                  </span>
-                </Row>
-
-                <Button
-                  loading={loading || isSubmitting}
-                  onClick={handleBookClass}
-                  disabled={!acceptsTerms || loading || isSubmitting}
-                  className={`${acceptsTerms && "hover:!bg-[#800020] hover:scale-[1.03]"
-                    } ${!acceptsTerms || loading || isSubmitting
-                      ? "!bg-slate-200"
-                      : "!bg-[#800020]"
-                    } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}
-                >
-                  Book
-                </Button>
+          {selectedRecord && (
+            <Row className="flex flex-col items-center">
+              <Row className="w-full justify-center">
+                <Avatar
+                  className="border-slate-200 border w-full"
+                  size={200}
+                  icon={<UserOutlined />}
+                  src={selectedRecord?.avatar_url}
+                />
               </Row>
-            )}
-          </Carousel>
+              <Divider />
+              <Col className="mb-[20px] items-start w-full">
+                <Title>{selectedRecord?.class_name}</Title>
+                <Row wrap={false} className="items-center gap-2 mb-[10px]">
+                  <User size={18} />
+                  <Title level={5} className="!m-0">
+                    Class with{" "}
+                    <span className="text-red-400">
+                      {selectedRecord?.instructor_name}
+                    </span>{" "}
+                  </Title>
+                </Row>
+
+                <Row wrap={false} className="items-center gap-2 mb-[10px]">
+                  <Calendar size={18} />
+                  <Title level={5} className="!m-0 p-0">
+                    {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
+                      selectedDate,
+                    ).format("D")}, ${dayjs(selectedDate).format("YYYY")}`}
+                  </Title>
+                </Row>
+                <Row wrap={false} className="items-center gap-2 mb-[10px]">
+                  <Clock size={18} />
+                  <Title level={5} className="!m-0">
+                    <span className="text-red-400">
+                      {dayjs(selectedRecord?.date).format("dddd")}
+                    </span>{" "}
+                    at{" "}
+                    <span className="text-red-400">
+                      {dayjs(selectedRecord?.start_time).format("h:mm A")}
+                    </span>
+                  </Title>
+                </Row>
+              </Col>
+              <Row justify={"start"} className="w-full mb-[10px]">
+                <Checkbox
+                  defaultChecked={acceptsTerms}
+                  checked={acceptsTerms}
+                  onChange={handleAcceptTermsChange}
+                >
+                  I have read the
+                </Checkbox>
+                <span
+                  onClick={handleShowTermsAndConditions}
+                  className="text-blue-400 cursor-pointer"
+                >
+                  Terms and Conditions
+                </span>
+              </Row>
+
+              <Button
+                loading={loading || isSubmitting}
+                onClick={handleBookClass}
+                disabled={!acceptsTerms || loading || isSubmitting}
+                className={`${acceptsTerms && "hover:!bg-[#800020] hover:scale-[1.03]"
+                  } ${!acceptsTerms || loading || isSubmitting
+                    ? "!bg-slate-200"
+                    : "!bg-[#800020]"
+                  } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}
+              >
+                Book
+              </Button>
+            </Row>
+          )}
         </div>
       </Drawer>
     </AuthenticatedLayout>

@@ -41,6 +41,7 @@ import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
 import UserTermsAndConditions from "@/components/layout/UserTermsAndConditions";
+import { ContentModal } from "@/components/modals/ContentModal";
 import { Address, PackageProps, PurchaseFormData } from "@/lib/props";
 import dayjs from "dayjs";
 import { useAppMessage } from "@/components/ui/message-popup";
@@ -50,9 +51,8 @@ import PackageHistoryCard from "@/components/ui/package-history-card";
 
 const { Title, Text } = Typography;
 const CAROUSEL_SLIDES = {
-  TERMS: 0,
-  PACKAGE_DETAILS: 1,
-  CHECKOUT: 2,
+  PACKAGE_DETAILS: 0,
+  CHECKOUT: 1,
 };
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phPhoneRegex = /^(\+63|0)9\d{9}$/;
@@ -75,7 +75,8 @@ export default function PackagesPage() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [carouselSlide, setCarouselSlide] = useState(1);
+  const [carouselSlide, setCarouselSlide] = useState(0);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [packages, setPackages] = useState<PackageProps[]>();
@@ -259,17 +260,9 @@ export default function PackagesPage() {
 
   const handleCloseModal = () => {
     setAcceptsTerms(false);
-    // setSelectedRecord(null);
     if (carouselSlide === CAROUSEL_SLIDES.CHECKOUT) {
       setCarouselSlide(CAROUSEL_SLIDES.PACKAGE_DETAILS);
-      carouselRef.current.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
-      setAcceptsTerms(false);
-      return;
-    }
-    if (carouselSlide === CAROUSEL_SLIDES.TERMS) {
-      setCarouselSlide(CAROUSEL_SLIDES.PACKAGE_DETAILS);
-      carouselRef.current.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
-      setAcceptsTerms(false);
+      carouselRef.current?.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       return;
     }
     setIsModalOpen(false);
@@ -299,7 +292,7 @@ export default function PackagesPage() {
       //temporary behavior
 
       // temporarily commented out until payments is integrated
-      setCarouselSlide(2);
+      setCarouselSlide(CAROUSEL_SLIDES.CHECKOUT);
       carouselRef.current.next();
       // temporarily commented out until payments is integrated
 
@@ -347,9 +340,7 @@ export default function PackagesPage() {
   };
 
   const handleShowTermsAndConditions = () => {
-    setAcceptsTerms(false);
-    setCarouselSlide(CAROUSEL_SLIDES.TERMS);
-    carouselRef.current.goTo(CAROUSEL_SLIDES.TERMS);
+    setTermsModalOpen(true);
   };
 
   useEffect(() => {
@@ -656,299 +647,292 @@ export default function PackagesPage() {
 
   const renderCheckoutDrawer = useMemo(() => {
     return (
-      <Drawer
-        keyboard={false}
-        title={carouselSlide === CAROUSEL_SLIDES.TERMS && "Back to Agreement"}
-        closeIcon={
-          carouselSlide === CAROUSEL_SLIDES.TERMS ? (
-            <ChevronRight />
-          ) : carouselSlide === CAROUSEL_SLIDES.CHECKOUT ? (
-            <ChevronLeft />
-          ) : (
-            <X />
-          )
-        }
-        // closable={carouselSlide === CAROUSEL_SLIDES.CHECKOUT ? false : true}
-        maskClosable={false}
-        placement="right"
-        onClose={handleCloseModal}
-        open={isModalOpen}
-        width={isMobile ? "100%" : "33%"}
-        // destroyOnHidden={true}
-        styles={{
-          body: {
-            paddingTop: 24,
-            overflow: "auto",
-          },
-        }}
-      >
-        <div className="flex-1 overflow-hidden">
-          <Carousel
-            ref={carouselRef}
-            autoplay={false}
-            infinite={false}
-            dots={false}
-            initialSlide={1}
-            className="h-full"
-          >
-            <div className="h-full overflow-y-auto">
-              <UserTermsAndConditions />
-            </div>
+      <>
+        <ContentModal
+          open={termsModalOpen}
+          onClose={() => setTermsModalOpen(false)}
+          title="Terms and Conditions"
+          width={isMobile ? "95%" : 720}
+        >
+          <UserTermsAndConditions />
+        </ContentModal>
 
-            <div className="flex flex-col items-center h-full overflow-y-hidden">
-              <Row className="w-full justify-center">
-                <Avatar
-                  className="!text-[50px] bg-[#36013F] border w-full"
-                  size={200}
-                >
-                  {selectedRecord?.validityPeriod}
-                </Avatar>
-              </Row>
-              <Divider />
+        <Drawer
+          keyboard={false}
+          closeIcon={
+            carouselSlide === CAROUSEL_SLIDES.CHECKOUT ? (
+              <ChevronLeft />
+            ) :
+              carouselSlide === CAROUSEL_SLIDES.CHECKOUT && paymentUploadSuccess === true ?
+                <X /> :
+                <ChevronLeft />
+          }
+          // closable={carouselSlide === CAROUSEL_SLIDES.CHECKOUT ? false : true}
+          maskClosable={false}
+          placement="right"
+          onClose={handleCloseModal}
+          open={isModalOpen}
+          width={isMobile ? "100%" : "33%"}
+          // destroyOnHidden={true}
+          styles={{
+            body: {
+              paddingTop: 24,
+              overflow: "auto",
+            },
+          }}
+        >
+          <div className="flex-1 overflow-hidden">
+            <Carousel
+              ref={carouselRef}
+              autoplay={false}
+              infinite={false}
+              dots={false}
+              initialSlide={0}
+              className="h-full"
+            >
+              <div className="flex flex-col items-center h-full overflow-y-hidden">
+                <Row className="w-full justify-center">
+                  <Avatar
+                    className="!text-[50px] bg-[#36013F] border w-full"
+                    size={200}
+                  >
+                    {selectedRecord?.validityPeriod}
+                  </Avatar>
+                </Row>
+                <Divider />
 
-              <div className="items-start w-full">
-                <Row wrap={false} className="mb-[10px] items-start w-full">
-                  <Title level={5}>
-                    Package:{" "}
-                    <span className="font-normal">{selectedRecord?.title}</span>
-                  </Title>
-                </Row>
-                <Row wrap={false} className="mb-[15px] items-center w-full">
-                  <Title level={5} className="!mb-0">
-                    Number of Sessions:{" "}
-                    <span className="font-normal">
-                      {selectedRecord?.packageCredits ?? "Unlimited"}
-                    </span>
-                  </Title>
-                </Row>
+                <div className="items-start w-full">
+                  <Row wrap={false} className="mb-[10px] items-start w-full">
+                    <Title level={5}>
+                      Package:{" "}
+                      <span className="font-normal">{selectedRecord?.title}</span>
+                    </Title>
+                  </Row>
+                  <Row wrap={false} className="mb-[15px] items-center w-full">
+                    <Title level={5} className="!mb-0">
+                      Number of Sessions:{" "}
+                      <span className="font-normal">
+                        {selectedRecord?.packageCredits ?? "Unlimited"}
+                      </span>
+                    </Title>
+                  </Row>
 
-                <Row wrap={false} className="mb-[10px] items-start w-full">
-                  <Title level={5}>
-                    Validity Period:{" "}
-                    <span className="font-normal">
-                      {selectedRecord?.validityPeriod} days
+                  <Row wrap={false} className="mb-[10px] items-start w-full">
+                    <Title level={5}>
+                      Validity Period:{" "}
+                      <span className="font-normal">
+                        {selectedRecord?.validityPeriod} days
+                      </span>
+                    </Title>
+                  </Row>
+                  <Row wrap={false} className="mb-[10px] items-start w-full">
+                    <Title level={5}>
+                      Price:{" "}
+                      <span className="font-normal">
+                        PHP {formatPrice(selectedRecord?.price)}
+                      </span>
+                    </Title>
+                  </Row>
+                </div>
+
+                {user?.pendingPurchases && (
+                  <Row className="bg-slate-200 p-[15px] rounded-[10px]">
+                    <Title level={4}>
+                      Please wait for us to review your current purchase
+                    </Title>
+                  </Row>
+                )}
+
+                {!user?.pendingPurchases && (
+                  <>
+                    <div className="py-[10px]">
+                      <Collapse
+                        defaultActiveKey={selectedPaymentMethod}
+                        onChange={(e: any) => {
+                          if (!!e?.length) {
+                            setSelectedPaymentMethod(e[0] as any);
+                          }
+                        }}
+                        accordion
+                        items={items}
+                      />
+                    </div>
+
+                    <Row justify={"start"} className="w-full mb-[10px]">
+                      <Checkbox
+                        defaultChecked={acceptsTerms}
+                        checked={acceptsTerms}
+                        // value={acceptsTerms}
+                        onChange={handleAcceptTermsChange}
+                      >
+                        I have read the
+                      </Checkbox>
+                      <span
+                        onClick={handleShowTermsAndConditions}
+                        className="text-blue-400 cursor-pointer"
+                      >
+                        Terms and Conditions
+                      </span>
+                    </Row>
+
+                    <Button
+                      onClick={handleNext}
+                      loading={isSubmitting}
+                      disabled={!acceptsTerms || isSubmitting}
+                      className={`bg-[#36013F] ${acceptsTerms ? "hover:!bg-[#36013F]" : ""
+                        } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
+                    >
+                      Continue
+                    </Button>
+                    <span className="font-normal text-slate-500">
+                      You won&apos;t be charged yet.
                     </span>
-                  </Title>
-                </Row>
-                <Row wrap={false} className="mb-[10px] items-start w-full">
-                  <Title level={5}>
-                    Price:{" "}
-                    <span className="font-normal">
-                      PHP {formatPrice(selectedRecord?.price)}
-                    </span>
-                  </Title>
-                </Row>
+                  </>
+                )}
               </div>
 
-              {user?.pendingPurchases && (
-                <Row className="bg-slate-200 p-[15px] rounded-[10px]">
-                  <Title level={4}>
-                    Please wait for us to review your current purchase
-                  </Title>
-                </Row>
-              )}
+              <div className="flex flex-col items-center h-full overflow-y-auto">
+                {selectedPaymentMethod !== "maya" && (
+                  <Row className="flex-col gap-y-[50px]">
+                    <Row>
+                      <Title level={4}>
+                        <span className="text-red-400">Step 1</span>: Please make
+                        the transaction to the account details below
+                      </Title>
 
-              {!user?.pendingPurchases && (
-                <>
-                  <div className="py-[10px]">
-                    <Collapse
-                      defaultActiveKey={selectedPaymentMethod}
-                      onChange={(e: any) => {
-                        if (!!e?.length) {
-                          setSelectedPaymentMethod(e[0] as any);
-                        }
-                      }}
-                      accordion
-                      items={items}
-                    />
-                  </div>
-
-                  <Row justify={"start"} className="w-full mb-[10px]">
-                    <Checkbox
-                      defaultChecked={acceptsTerms}
-                      checked={acceptsTerms}
-                      // value={acceptsTerms}
-                      onChange={handleAcceptTermsChange}
-                    >
-                      I have read the
-                    </Checkbox>
-                    <span
-                      onClick={handleShowTermsAndConditions}
-                      className="text-blue-400 cursor-pointer"
-                    >
-                      Terms and Conditions
-                    </span>
-                  </Row>
-
-                  <Button
-                    onClick={handleNext}
-                    loading={isSubmitting}
-                    disabled={!acceptsTerms || isSubmitting}
-                    className={`bg-[#36013F] ${acceptsTerms ? "hover:!bg-[#36013F]" : ""
-                      } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
-                  >
-                    Continue
-                  </Button>
-                  <span className="font-normal text-slate-500">
-                    You won&apos;t be charged yet.
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="flex flex-col items-center h-full overflow-y-auto">
-              {selectedPaymentMethod !== "maya" && (
-                <Row className="flex-col gap-y-[50px]">
-                  <Row>
-                    <Title level={4}>
-                      <span className="text-red-400">Step 1</span>: Please make
-                      the transaction to the account details below
-                    </Title>
-
-                    <Row wrap={false} className="flex-col">
-                      {selectedPaymentMethod === "bank_transfer" && (
-                        <Descriptions bordered column={1} size="small">
-                          <Descriptions.Item label="Bank">
-                            {"METROBANK"}
-                          </Descriptions.Item>
-                          <Descriptions.Item label="Account Name">
-                            {"8CLUB LAGREE FITNESS STUDIO"}
-                          </Descriptions.Item>
-                          <Descriptions.Item label="Account Number">
-                            {"401-7-401046522"}
-                          </Descriptions.Item>
-                        </Descriptions>
-                      )}
-                      {selectedPaymentMethod === "gcash" && (
-                        <Descriptions bordered column={1} size="small">
-                          <Descriptions.Item label="GCash Account Name">
-                            {"Juan Dela Cruz"}
-                          </Descriptions.Item>
-                          <Descriptions.Item label="GCash Account Number">
-                            {"1234567890"}
-                          </Descriptions.Item>
-                        </Descriptions>
-                      )}
+                      <Row wrap={false} className="flex-col">
+                        {selectedPaymentMethod === "bank_transfer" && (
+                          <Descriptions bordered column={1} size="small">
+                            <Descriptions.Item label="Bank">
+                              {"METROBANK"}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Account Name">
+                              {"8CLUB LAGREE FITNESS STUDIO"}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Account Number">
+                              {"401-7-401046522"}
+                            </Descriptions.Item>
+                          </Descriptions>
+                        )}
+                        {selectedPaymentMethod === "gcash" && (
+                          <Descriptions bordered column={1} size="small">
+                            <Descriptions.Item label="GCash Account Name">
+                              {"Juan Dela Cruz"}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="GCash Account Number">
+                              {"1234567890"}
+                            </Descriptions.Item>
+                          </Descriptions>
+                        )}
+                      </Row>
                     </Row>
-                  </Row>
-                  <Row>
-                    <Title level={4}>
-                      <span className="text-red-400">Step 2</span>: Take a
-                      screenshot of your proof of payment, and upload it here.
-                      If upload fails, please try re-uploading the image or
-                      refresh the page.
-                    </Title>
+                    <Row>
+                      <Title level={4}>
+                        <span className="text-red-400">Step 2</span>: Take a
+                        screenshot of your proof of payment, and upload it here.
+                        If upload fails, please try re-uploading the image or
+                        refresh the page.
+                      </Title>
 
-                    <Row
-                      className="w-full m-auto gap-y-[10px] flex-col"
-                      justify={"center"}
-                    >
                       <Row
-                        wrap={false}
-                        className="w-full m-auto"
+                        className="w-full m-auto gap-y-[10px] flex-col"
                         justify={"center"}
                       >
-                        <Upload
-                          listType="picture-circle"
-                          fileList={file as UploadFile[]}
-                          onPreview={handlePreview}
-                          onChange={handleChange}
-                          beforeUpload={() => false}
-                          accept="image/*"
-                          disabled={paymentUploadSuccess === true}
+                        <Row
+                          wrap={false}
+                          className="w-full m-auto"
+                          justify={"center"}
                         >
-                          {file && file.length > 0 ? null : uploadButton}
-                        </Upload>
-                      </Row>
+                          <Upload
+                            listType="picture-circle"
+                            fileList={file as UploadFile[]}
+                            onPreview={handlePreview}
+                            onChange={handleChange}
+                            beforeUpload={() => false}
+                            accept="image/*"
+                            disabled={paymentUploadSuccess === true}
+                          >
+                            {file && file.length > 0 ? null : uploadButton}
+                          </Upload>
+                        </Row>
 
-                      {previewImage && (
-                        <Image
-                          wrapperStyle={{ display: "none" }}
-                          preview={{
-                            visible: previewOpen,
-                            onVisibleChange: (visible) =>
-                              setPreviewOpen(visible),
-                            afterOpenChange: (visible) =>
-                              !visible && setPreviewImage(""),
-                          }}
-                          src={previewImage}
-                        />
-                      )}
+                        {previewImage && (
+                          <Image
+                            wrapperStyle={{ display: "none" }}
+                            preview={{
+                              visible: previewOpen,
+                              onVisibleChange: (visible) =>
+                                setPreviewOpen(visible),
+                              afterOpenChange: (visible) =>
+                                !visible && setPreviewImage(""),
+                            }}
+                            src={previewImage}
+                          />
+                        )}
 
-                      <Row className="justify-center">
-                        <Button
-                          loading={uploadingPayment || isSendingPending}
-                          disabled={
-                            isSendingPending ||
-                            paymentUploadSuccess === true ||
-                            uploadingPayment ||
-                            !file ||
-                            file.length === 0
-                          }
-                          onClick={handleSubmit}
-                          className={`${paymentUploadSuccess === true
-                            ? "!bg-green-400 hover:!bg-green-400"
-                            : "!bg-[#36013F] hover:!bg-[#36013F]"
-                            } !text-white hover:!text-white rounded-[13px]`}
-                        >
-                          {paymentUploadSuccess === true
-                            ? "Proof Submitted"
-                            : "Submit Proof"}
-                        </Button>
+                        <Row className="justify-center">
+                          <Button
+                            loading={uploadingPayment || isSendingPending}
+                            disabled={
+                              isSendingPending ||
+                              paymentUploadSuccess === true ||
+                              uploadingPayment ||
+                              !file ||
+                              file.length === 0
+                            }
+                            onClick={handleSubmit}
+                            className={`${paymentUploadSuccess === true
+                              ? "!bg-green-400 hover:!bg-green-400"
+                              : "!bg-[#36013F] hover:!bg-[#36013F]"
+                              } !text-white hover:!text-white rounded-[13px]`}
+                          >
+                            {paymentUploadSuccess === true
+                              ? "Proof Submitted"
+                              : "Submit Proof"}
+                          </Button>
+                        </Row>
                       </Row>
                     </Row>
-                  </Row>
-                  <Row>
-                    <Title level={4}>
-                      <span className="text-red-400">Step 3</span>: Please check your email for the confirmation of your payment, or any concern we might have upon payment proof review. Once confirmed, you will see the credits
-                      reflected to your account.
-                    </Title>
+                    <Row>
+                      <Title level={4}>
+                        <span className="text-red-400">Step 3</span>: Please check your email for the confirmation of your payment, or any concern we might have upon payment proof review. Once confirmed, you will see the credits
+                        reflected to your account.
+                      </Title>
 
-                    <Text className="bg-slate-200 p-[10px] rounded-[10px]">
-                      Should you have any concerns, please reach out to us
-                      through our Instagram, or email us at
-                      8clublagree@gmail.com
-                    </Text>
+                      <Text className="bg-slate-200 p-[10px] rounded-[10px]">
+                        Should you have any concerns, please reach out to us
+                        through our Instagram, or email us at
+                        8clublagree@gmail.com
+                      </Text>
+                    </Row>
                   </Row>
-                </Row>
-              )}
-              {selectedPaymentMethod === "maya" && (
-                <>
-                  <Row className="w-full items-center mb-6 gap-[10px]">
-                    {/* <ChevronLeft
+                )}
+                {selectedPaymentMethod === "maya" && (
+                  <>
+                    <Row className="w-full items-center mb-6 gap-[10px]">
+                      {/* <ChevronLeft
                       size={20}
                       onClick={handlePrev}
                       className="cursor-pointer"
                     /> */}
-                    <Title level={3} className="!m-0">
-                      Payment Details
-                    </Title>
-                  </Row>
-                  {selectedRecord && (
-                    <Row wrap={false} className="flex flex-col gap-y-[20px]">
-                      <div className="bg-white">
-                        <div className="border-2 border-[#36013F] rounded-xl p-3">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            {selectedRecord.title}
-                          </h3>
-                          <p className="text-gray-600 mb-4">
-                            Valid for {selectedRecord.validityPeriod} days
-                          </p>
+                      <Title level={3} className="!m-0">
+                        Payment Details
+                      </Title>
+                    </Row>
+                    {selectedRecord && (
+                      <Row wrap={false} className="flex flex-col gap-y-[20px]">
+                        <div className="bg-white">
+                          <div className="border-2 border-[#36013F] rounded-xl p-3">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                              {selectedRecord.title}
+                            </h3>
+                            <p className="text-gray-600 mb-4">
+                              Valid for {selectedRecord.validityPeriod} days
+                            </p>
 
-                          <div className="space-y-2 text-sm text-gray-600">
-                            <div className="flex justify-between">
-                              <span>Subtotal</span>
-                              <span>
-                                ₱
-                                {formatPrice(selectedRecord.price, {
-                                  decimals: 2,
-                                })}
-                              </span>
-                            </div>
-
-                            <div className="border-t border-gray-200 pt-2 mt-2">
-                              <div className="flex justify-between text-lg font-bold text-gray-900">
-                                <span>Total</span>
+                            <div className="space-y-2 text-sm text-gray-600">
+                              <div className="flex justify-between">
+                                <span>Subtotal</span>
                                 <span>
                                   ₱
                                   {formatPrice(selectedRecord.price, {
@@ -956,273 +940,287 @@ export default function PackagesPage() {
                                   })}
                                 </span>
                               </div>
-                            </div>
-                          </div>
 
-                          <div className="bg-blue-50 rounded-lg p-4">
-                            <div className="flex items-start gap-2">
-                              <Lock className="w-5 h-5 text-blue-600 mt-0.5" />
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">
-                                  Secure Payment
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">
-                                  Your payment information is encrypted and
-                                  secure
-                                </p>
+                              <div className="border-t border-gray-200 pt-2 mt-2">
+                                <div className="flex justify-between text-lg font-bold text-gray-900">
+                                  <span>Total</span>
+                                  <span>
+                                    ₱
+                                    {formatPrice(selectedRecord.price, {
+                                      decimals: 2,
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-blue-50 rounded-lg p-4">
+                              <div className="flex items-start gap-2">
+                                <Lock className="w-5 h-5 text-blue-600 mt-0.5" />
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">
+                                    Secure Payment
+                                  </p>
+                                  <p className="text-xs text-gray-600 mt-1">
+                                    Your payment information is encrypted and
+                                    secure
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="bg-white ">
-                        <Divider className="p-0 my-[5px]" />
+                        <div className="bg-white ">
+                          <Divider className="p-0 my-[5px]" />
 
-                        <Form
-                          form={checkoutForm}
-                          layout="vertical"
-                          onFinish={handleCheckout}
-                          className="flex flex-col gap-y-[10px] mt-[20px]"
-                        >
-                          {/* Personal Information */}
-                          <div className="flex items-center gap-2 mb-1">
-                            <User className="w-5 h-5 text-slate-700" />
-                            <h2 className="text-lg font-medium text-slate-900">
-                              Personal Information
-                            </h2>
-                          </div>
-
-                          <Row wrap={false} className="gap-3">
-                            <Form.Item
-                              className="mb-0"
-                              label="First Name"
-                              name="firstName"
-                              rules={[
-                                {
-                                  required: true,
-                                  message: "First Name is required",
-                                },
-                              ]}
-                            >
-                              <Input
-                                name="firstName"
-                                value={formData.firstName}
-                                onChange={handleInputChange}
-                                placeholder="Juan"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                              />
-                            </Form.Item>
-
-                            <Form.Item
-                              className="mb-0"
-                              label="Last Name"
-                              name="lastName"
-                              rules={[
-                                {
-                                  required: true,
-                                  message: "Last Name is required",
-                                },
-                              ]}
-                            >
-                              <Input
-                                name="lastName"
-                                value={formData.lastName}
-                                onChange={handleInputChange}
-                                placeholder="Dela Cruz"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                              />
-                            </Form.Item>
-                          </Row>
-
-                          <Row wrap={false} className="gap-3">
-                            <Form.Item
-                              className="mb-0"
-                              label="Email Address"
-                              name="customerEmail"
-                              rules={[
-                                {
-                                  required: true,
-                                  message: "Email is required",
-                                },
-                                {
-                                  pattern: emailRegex,
-                                  message: "Enter a valid email address",
-                                },
-                              ]}
-                            >
-                              <Input
-                                name="customerEmail"
-                                value={formData.customerEmail}
-                                onChange={handleInputChange}
-                                placeholder="juan@example.com"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                              />
-                            </Form.Item>
-
-                            <Form.Item
-                              className="mb-0"
-                              label="Phone Number"
-                              name="customerPhone"
-                              rules={[
-                                {
-                                  required: true,
-                                  message: "Phone number is required",
-                                },
-                                {
-                                  pattern: phPhoneRegex,
-                                  message:
-                                    "Enter a valid Philippine phone number",
-                                },
-                              ]}
-                            >
-                              <Input
-                                name="customerPhone"
-                                value={formData.customerPhone}
-                                onChange={handleInputChange}
-                                placeholder="09123456789"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                              />
-                            </Form.Item>
-                          </Row>
-
-                          <Divider className="my-4" />
-
-                          {/* Billing Address */}
-                          <div className="flex items-center gap-2 mb-4">
-                            <CreditCard className="w-5 h-5 text-slate-700" />
-                            <h2 className="text-lg font-medium text-slate-900">
-                              Billing Address
-                            </h2>
-                          </div>
-
-                          <Form.Item
-                            className="mb-0"
-                            label="Street Address"
-                            name={["billingAddress", "line1"]}
-                            rules={[
-                              {
-                                required: true,
-                                message: "Street Address is required",
-                              },
-                            ]}
+                          <Form
+                            form={checkoutForm}
+                            layout="vertical"
+                            onFinish={handleCheckout}
+                            className="flex flex-col gap-y-[10px] mt-[20px]"
                           >
-                            <Input
-                              onChange={(e) =>
-                                handleBillingAddressChange(
-                                  "line1",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="Street Address"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                            />
-                          </Form.Item>
+                            {/* Personal Information */}
+                            <div className="flex items-center gap-2 mb-1">
+                              <User className="w-5 h-5 text-slate-700" />
+                              <h2 className="text-lg font-medium text-slate-900">
+                                Personal Information
+                              </h2>
+                            </div>
 
-                          <Row wrap={false} className="gap-3">
+                            <Row wrap={false} className="gap-3">
+                              <Form.Item
+                                className="mb-0"
+                                label="First Name"
+                                name="firstName"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "First Name is required",
+                                  },
+                                ]}
+                              >
+                                <Input
+                                  name="firstName"
+                                  value={formData.firstName}
+                                  onChange={handleInputChange}
+                                  placeholder="Juan"
+                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                />
+                              </Form.Item>
+
+                              <Form.Item
+                                className="mb-0"
+                                label="Last Name"
+                                name="lastName"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Last Name is required",
+                                  },
+                                ]}
+                              >
+                                <Input
+                                  name="lastName"
+                                  value={formData.lastName}
+                                  onChange={handleInputChange}
+                                  placeholder="Dela Cruz"
+                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                />
+                              </Form.Item>
+                            </Row>
+
+                            <Row wrap={false} className="gap-3">
+                              <Form.Item
+                                className="mb-0"
+                                label="Email Address"
+                                name="customerEmail"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Email is required",
+                                  },
+                                  {
+                                    pattern: emailRegex,
+                                    message: "Enter a valid email address",
+                                  },
+                                ]}
+                              >
+                                <Input
+                                  name="customerEmail"
+                                  value={formData.customerEmail}
+                                  onChange={handleInputChange}
+                                  placeholder="juan@example.com"
+                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                />
+                              </Form.Item>
+
+                              <Form.Item
+                                className="mb-0"
+                                label="Phone Number"
+                                name="customerPhone"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Phone number is required",
+                                  },
+                                  {
+                                    pattern: phPhoneRegex,
+                                    message:
+                                      "Enter a valid Philippine phone number",
+                                  },
+                                ]}
+                              >
+                                <Input
+                                  name="customerPhone"
+                                  value={formData.customerPhone}
+                                  onChange={handleInputChange}
+                                  placeholder="09123456789"
+                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                />
+                              </Form.Item>
+                            </Row>
+
+                            <Divider className="my-4" />
+
+                            {/* Billing Address */}
+                            <div className="flex items-center gap-2 mb-4">
+                              <CreditCard className="w-5 h-5 text-slate-700" />
+                              <h2 className="text-lg font-medium text-slate-900">
+                                Billing Address
+                              </h2>
+                            </div>
+
                             <Form.Item
                               className="mb-0"
-                              label="City"
-                              name={["billingAddress", "city"]}
-                              rules={[
-                                { required: true, message: "City is required" },
-                              ]}
-                            >
-                              <Input
-                                onChange={(e) =>
-                                  handleBillingAddressChange(
-                                    "city",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="City"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                              />
-                            </Form.Item>
-
-                            <Form.Item
-                              className="mb-0"
-                              label="State/Province"
-                              name={["billingAddress", "state"]}
+                              label="Street Address"
+                              name={["billingAddress", "line1"]}
                               rules={[
                                 {
                                   required: true,
-                                  message: "State/Province is required",
+                                  message: "Street Address is required",
                                 },
                               ]}
                             >
                               <Input
                                 onChange={(e) =>
                                   handleBillingAddressChange(
-                                    "state",
+                                    "line1",
                                     e.target.value,
                                   )
                                 }
-                                placeholder="State/Province"
+                                placeholder="Street Address"
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                               />
                             </Form.Item>
 
-                            <Form.Item
-                              className="mb-0"
-                              label="Zip Code"
-                              name={["billingAddress", "zipCode"]}
-                              rules={[
-                                {
-                                  required: true,
-                                  message: "Zip Code is required",
-                                },
-                              ]}
-                            >
-                              <Input
-                                onChange={(e) =>
-                                  handleBillingAddressChange(
-                                    "zipCode",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="Zip Code"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                              />
-                            </Form.Item>
-                          </Row>
+                            <Row wrap={false} className="gap-3">
+                              <Form.Item
+                                className="mb-0"
+                                label="City"
+                                name={["billingAddress", "city"]}
+                                rules={[
+                                  { required: true, message: "City is required" },
+                                ]}
+                              >
+                                <Input
+                                  onChange={(e) =>
+                                    handleBillingAddressChange(
+                                      "city",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="City"
+                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                />
+                              </Form.Item>
 
-                          <Divider className="my-4" />
+                              <Form.Item
+                                className="mb-0"
+                                label="State/Province"
+                                name={["billingAddress", "state"]}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "State/Province is required",
+                                  },
+                                ]}
+                              >
+                                <Input
+                                  onChange={(e) =>
+                                    handleBillingAddressChange(
+                                      "state",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="State/Province"
+                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                />
+                              </Form.Item>
 
-                          <div className="bg-blue-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-700">
-                              You will be redirected to a Maya checkout page to
-                              complete your payment securely.
-                            </p>
-                          </div>
+                              <Form.Item
+                                className="mb-0"
+                                label="Zip Code"
+                                name={["billingAddress", "zipCode"]}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Zip Code is required",
+                                  },
+                                ]}
+                              >
+                                <Input
+                                  onChange={(e) =>
+                                    handleBillingAddressChange(
+                                      "zipCode",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="Zip Code"
+                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                />
+                              </Form.Item>
+                            </Row>
 
-                          {/* implement logic to handle failed and cancelled scenarios */}
-                          <Row justify={"center"} className="flex-col">
-                            <Button
-                              loading={processingMaya}
-                              disabled={processingMaya}
-                              htmlType="submit"
-                              className="font-medium rounded-[10px] bg-[#36013F] hover:!bg-[#36013F] text-white hover:!text-white p-[20px]"
-                            >
-                              Proceed to Checkout
-                            </Button>
-                            <Text className="text-xs text-gray-500 text-center">
-                              You will not be charged yet.
-                            </Text>
-                          </Row>
-                        </Form>
-                      </div>
-                    </Row>
-                  )}
-                </>
-              )}
-            </div>
-          </Carousel>
-        </div>
-      </Drawer>
+                            <Divider className="my-4" />
+
+                            <div className="bg-blue-50 rounded-lg p-4">
+                              <p className="text-sm text-gray-700">
+                                You will be redirected to a Maya checkout page to
+                                complete your payment securely.
+                              </p>
+                            </div>
+
+                            {/* implement logic to handle failed and cancelled scenarios */}
+                            <Row justify={"center"} className="flex-col">
+                              <Button
+                                loading={processingMaya}
+                                disabled={processingMaya}
+                                htmlType="submit"
+                                className="font-medium rounded-[10px] bg-[#36013F] hover:!bg-[#36013F] text-white hover:!text-white p-[20px]"
+                              >
+                                Proceed to Checkout
+                              </Button>
+                              <Text className="text-xs text-gray-500 text-center">
+                                You will not be charged yet.
+                              </Text>
+                            </Row>
+                          </Form>
+                        </div>
+                      </Row>
+                    )}
+                  </>
+                )}
+              </div>
+            </Carousel>
+          </div>
+        </Drawer>
+      </>
     );
   }, [
     carouselSlide,
+    termsModalOpen,
+    isMobile,
     selectedPaymentMethod,
     isModalOpen,
     acceptsTerms,
@@ -1231,6 +1229,7 @@ export default function PackagesPage() {
     isSendingPending,
     previewImage,
     previewOpen,
+    paymentUploadSuccess
   ]);
 
 
