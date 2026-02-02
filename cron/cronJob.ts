@@ -1,3 +1,9 @@
+/**
+ * Local cron runner (e.g. npm run cron:test).
+ * On Vercel, crons do NOT use this file. Vercel invokes API routes on a schedule
+ * (see vercel.json): /api/send-class-reminders and /api/package-expiry-reminder.
+ * node-cron does not work on Vercel (serverless = no long-running process).
+ */
 import "dotenv/config";
 import cron from "node-cron";
 import dayjs from "dayjs";
@@ -5,8 +11,9 @@ import dayjs from "dayjs";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 import supabaseServer from "../app/api/supabase";
+import { MailtrapTransport } from "mailtrap";
 
-// --- Move your main logic here ---
+// --- Logic duplicated in API routes for Vercel; this file is for local runs only ---
 async function checkUpcomingClasses() {
   console.log("Running test: checking upcoming classes...");
 
@@ -48,14 +55,31 @@ async function checkUpcomingClasses() {
 
   console.log("classes within the next 24 hours:", bookings);
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_HOST,
-    port: Number(process.env.MAILTRAP_PORT) || 587,
-    auth: {
-      user: process.env.MAILTRAP_USERNAME,
-      pass: process.env.MAILTRAP_PASSWORD,
-    },
-  });
+  const apiToken =
+    process.env.MAILTRAP_TOKEN
+
+  if (!apiToken?.trim()) {
+    return NextResponse.json(
+      {
+        message:
+          "Mailtrap API token missing. Set MAILTRAP_TOKEN or MAILTRAP_API_KEY in .env. Get a token at https://mailtrap.io/api-tokens (Email Sending permission, domain verified).",
+      },
+      { status: 500 },
+    );
+  }
+
+  const transporter = nodemailer.createTransport(
+    MailtrapTransport({ token: apiToken }),
+  );
+
+  // const transporter = nodemailer.createTransport({
+  //   host: process.env.MAILTRAP_HOST,
+  //   port: Number(process.env.MAILTRAP_PORT) || 587,
+  //   auth: {
+  //     user: process.env.MAILTRAP_USERNAME,
+  //     pass: process.env.MAILTRAP_PASSWORD,
+  //   },
+  // });
 
   if (bookings?.length) {
     for (const booking of bookings) {
@@ -63,7 +87,7 @@ async function checkUpcomingClasses() {
       const user: any = booking.user_profiles;
 
       await transporter.sendMail({
-        from: '"8ClubLagree" <8clublagree@gmail.com>',
+        from: "8 Club Lagree <noreply@8clublagree.com>",
         to: user.email,
         subject: `Reminder: Your class is tomorrow!`,
         html: `
@@ -103,9 +127,8 @@ async function checkUpcomingClasses() {
         ).format("MMMM DD YYYY")}`}</span></br>
         It starts at <span style="color: red">${dayjs(
           classInfo.start_time,
-        ).format("hh:mm A")}</span> with <span style="color: red">${
-          classInfo.instructor_name
-        }</span>.
+        ).format("hh:mm A")}</span> with <span style="color: red">${classInfo.instructor_name
+          }</span>.
       </h2>
 
       <!-- Body Paragraph (your exact content) -->
@@ -184,15 +207,34 @@ async function checkExpiringPackages() {
   console.log("Packages:", packages);
   console.log("Packages length:", packages.length);
 
+
   // Email settings
-  const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_HOST,
-    port: Number(process.env.MAILTRAP_PORT) || 587,
-    auth: {
-      user: process.env.MAILTRAP_USERNAME,
-      pass: process.env.MAILTRAP_PASSWORD,
-    },
-  });
+
+  const apiToken =
+    process.env.MAILTRAP_TOKEN
+
+  if (!apiToken?.trim()) {
+    return NextResponse.json(
+      {
+        message:
+          "Mailtrap API token missing. Set MAILTRAP_TOKEN or MAILTRAP_API_KEY in .env. Get a token at https://mailtrap.io/api-tokens (Email Sending permission, domain verified).",
+      },
+      { status: 500 },
+    );
+  }
+
+  const transporter = nodemailer.createTransport(
+    MailtrapTransport({ token: apiToken }),
+  );
+
+  // const transporter = nodemailer.createTransport({
+  //   host: process.env.MAILTRAP_HOST,
+  //   port: Number(process.env.MAILTRAP_PORT) || 587,
+  //   auth: {
+  //     user: process.env.MAILTRAP_USERNAME,
+  //     pass: process.env.MAILTRAP_PASSWORD,
+  //   },
+  // });
 
   for (const pkg of packages) {
     const user: any = pkg.user_profiles;
@@ -200,7 +242,7 @@ async function checkExpiringPackages() {
     const expiry = dayjs(pkg.expiration_date).format("MMMM DD, YYYY");
 
     await transporter.sendMail({
-      from: '"8ClubLagree" <8clublagree@gmail.com>',
+      from: "8 Club Lagree <noreply@8clublagree.com>",
       to: user.email,
       subject: "Your package is expiring soon",
       html: `
@@ -238,8 +280,7 @@ async function checkExpiringPackages() {
         Just a quick reminder that your current package will expire on <span style="color: red">${expiry}</span>        
       </h2>
 
-      ${
-        currentCredits &&
+      ${currentCredits &&
         `<h2 style="
           margin:0 0 20px 0;
           font-size:18px;
@@ -249,7 +290,7 @@ async function checkExpiringPackages() {
         ">
           You have <span style="color: red">${currentCredits}</span> credits remaining from your package!
         </h2>`
-      }
+        }
 
       <!-- Body Paragraph (your exact content) -->
       <table
@@ -299,11 +340,11 @@ async function checkExpiringPackages() {
   return NextResponse.json({ success: true, count: packages.length });
 }
 
-// --- CRON: runs every hour at minute 0 ---
-cron.schedule("0 * * * *", checkUpcomingClasses);
+// Only used when running locally (e.g. npm run cron:test). On Vercel, schedule is in vercel.json.
+cron.schedule("0 */6 * * *", checkUpcomingClasses);
+cron.schedule("0 */6 * * *", checkExpiringPackages);
+// cron.schedule("* * * * *", checkUpcomingClasses); // every minute, for local testing
 
-// --- CRON: runs every minute for testing ---
-// cron.schedule("* * * * *", checkUpcomingClasses);
-
-// --- TEST MODE: run immediately when script starts ---
+// Run once on script start when using: npm run cron:test
 checkUpcomingClasses();
+checkExpiringPackages();

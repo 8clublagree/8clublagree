@@ -102,13 +102,11 @@ async function checkUpcomingClasses() {
         text-align:center;
       ">
         Your upcoming class is on <span style="color: red">${`${dayjs(
-          booking.class_date,
-        ).format("MMMM DD YYYY")}`}</span></br>
+        booking.class_date,
+      ).format("MMMM DD YYYY")}`}</span></br>
         It starts at <span style="color: red">${dayjs(
-          classInfo.start_time,
-        ).format("hh:mm A")}</span> with <span style="color: red">${
-          classInfo.instructor_name
-        }</span>.
+        classInfo.start_time,
+      ).format("hh:mm A")}</span>.
       </h2>
 
       <!-- Body Paragraph (your exact content) -->
@@ -151,8 +149,15 @@ async function checkUpcomingClasses() {
 // --- TEST MODE: run immediately when script starts ---
 // checkUpcomingClasses();
 
-export async function GET() {
-  // Optional: verify secret to secure endpoint
+export async function GET(request: Request) {
+  // Vercel sends CRON_SECRET in Authorization header; reject if set and missing/wrong
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
 
   try {
     await checkUpcomingClasses();

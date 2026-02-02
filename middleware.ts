@@ -33,6 +33,12 @@ export async function middleware(req: NextRequest) {
   if (pathname === "/api/signup") {
     return NextResponse.next();
   }
+  if (pathname === "/api/send-class-reminders") {
+    return NextResponse.next();
+  }
+  if (pathname === "/api/package-expiry-reminder") {
+    return NextResponse.next();
+  }
 
   if (pathname === "/api/maya/webhook") {
     return NextResponse.next();

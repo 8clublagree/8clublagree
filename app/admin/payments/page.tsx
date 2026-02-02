@@ -40,7 +40,7 @@ interface OrdersTableType {
   avatar_url?: string;
   uploaded_at?: string;
   payment_method?: string;
-  status?: "PENDING" | "SUCCESSFUL";
+  status?: "PENDING" | "SUCCESSFUL" | "MAYA CHECKOUT" | "FAILED" | "CANCELLED" | "EXPIRED";
   approved_at?: string;
   package_title?: string;
   package_price?: string;
@@ -182,13 +182,6 @@ const PaymentsPage = () => {
         },
       },
       {
-        title: "Reference ID",
-        dataIndex: "reference_id",
-        key: "reference_id",
-        ellipsis: true,
-        width: "12%",
-      },
-      {
         title: "Customer Name",
         key: "customer_name",
         ellipsis: true,
@@ -226,6 +219,13 @@ const PaymentsPage = () => {
         render: (value) => {
           return value !== undefined ? `${formatPrice(value)}` : "";
         },
+      },
+      {
+        title: "Reference ID",
+        dataIndex: "reference_id",
+        key: "reference_id",
+        ellipsis: true,
+        width: "12%",
       },
       {
         title: "Approved Date",
@@ -385,6 +385,7 @@ const PaymentsPage = () => {
   const RenderTable = useCallback(() => {
     return (
       <Table<OrdersTableType>
+        rowKey={(record) => record.id ?? record.key ?? record.reference_id ?? String(record.created_at)}
         loading={
           loading || updatingCredits || modifyingPackage || confirmingPayment
         }
@@ -441,7 +442,7 @@ const PaymentsPage = () => {
         onClose={handleClose}
         open={isReviewingPayment}
         width={isMobile ? "100%" : "30%"}
-        destroyOnClose={true}
+        destroyOnHidden={true}
         styles={{
           body: {
             paddingTop: 24,
@@ -487,12 +488,16 @@ const PaymentsPage = () => {
                 disabled={
                   confirmingPayment ||
                   loading ||
-                  selectedPayment.status === "SUCCESSFUL"
+                  selectedPayment.status === "SUCCESSFUL" ||
+                  selectedPayment.status === "MAYA CHECKOUT" ||
+                  selectedPayment.status === "FAILED" ||
+                  selectedPayment.status === "CANCELLED" ||
+                  selectedPayment.status === "EXPIRED"
                 }
                 onClick={() => handleOpenAdminConfirmModal()}
                 className={`${selectedPayment.status !== "SUCCESSFUL"
                   ? "hover:!bg-green-400 hover:!border-green-400 hover:!text-white bg-green-400"
-                  : "hover:!bg-green-200 hover:!border-green-200 hover:!text-white bg-green-200"
+                  : "hover:!bg-slate-200 hover:!border-slate-200 hover:!text-white bg-slate-200"
                   } h-[40px] rounded-[10px] text-white !border-none`}
               >
                 {selectedPayment.status === "SUCCESSFUL"

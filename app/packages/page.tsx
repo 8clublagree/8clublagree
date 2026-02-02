@@ -440,8 +440,9 @@ export default function PackagesPage() {
           failure: `${window.location.origin}/packages`,
           cancel: `${window.location.origin}/packages`,
         },
+        // Restrict to one-time payment only; exclude "Pay in installments"
         allowedPaymentMethods: ["CARD", "EWALLET", "QR_PH"],
-        disallowedPaymentMethods: ["INSTALLMENT"],
+        disallowedPaymentMethods: ["INSTALLMENT", "CARD_INSTALLMENT"],
         requestReferenceNumber: `${uuid}`,
 
         notificationUrl: `${process.env.SYSTEM_ORIGIN!!}/api/maya/webhook`,

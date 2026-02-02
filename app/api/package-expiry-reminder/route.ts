@@ -1,5 +1,4 @@
 import "dotenv/config";
-import cron from "node-cron";
 import dayjs from "dayjs";
 
 import nodemailer from "nodemailer";
@@ -102,8 +101,7 @@ async function checkExpiringPackages() {
         Just a quick reminder that your current package will expire on <span style="color: red">${expiry}</span>        
       </h2>
 
-      ${
-        currentCredits &&
+      ${currentCredits &&
         `<h2 style="
           margin:0 0 20px 0;
           font-size:18px;
@@ -113,7 +111,7 @@ async function checkExpiringPackages() {
         ">
           You have <span style="color: red">${currentCredits}</span> left from your package!
         </h2>`
-      }
+        }
 
       <!-- Body Paragraph (your exact content) -->
       <table
@@ -163,17 +161,15 @@ async function checkExpiringPackages() {
   return NextResponse.json({ success: true, count: packages.length });
 }
 
-// --- CRON: runs every hour at minute 0 ---
-// cron.schedule("0 * * * *", checkUpcomingClasses);
-
-// --- CRON: runs every minute for testing ---
-// cron.schedule("* * * * *", checkUpcomingClasses);
-
-// --- TEST MODE: run immediately when script starts ---
-// checkUpcomingClasses();
-
-export async function GET() {
-  // Optional: verify secret to secure endpoint
+export async function GET(request: Request) {
+  // Vercel sends CRON_SECRET in Authorization header; reject if set and missing/wrong
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
 
   try {
     await checkExpiringPackages();
