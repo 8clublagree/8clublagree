@@ -364,9 +364,9 @@ export default function About() {
           }}
           className="halyard font-[2rem]"
         >
-          Class Schedule
+          Today's Schedule
         </Title>
-        <Paragraph
+        {/* <Paragraph
           style={{
             textAlign: "center",
             color: "#666",
@@ -376,7 +376,7 @@ export default function About() {
           }}
         >
           Check out today&apos;s classes
-        </Paragraph>
+        </Paragraph> */}
         <Paragraph
           style={{
             textAlign: "center",
@@ -386,14 +386,14 @@ export default function About() {
             fontWeight: 300,
           }}
         >
-          Join our club <span className="text-red-400">for free</span> to join a
-          class, and view future schedules
+          Join our club <a href="/signup" className="!text-red-400">for free</a> to book a
+          class and view our future schedules
         </Paragraph>
 
         <div
           style={{
             background: "#fff",
-            paddingBlock: "32px",
+            // paddingBlock: "32px",
             borderRadius: "4px",
           }}
         >

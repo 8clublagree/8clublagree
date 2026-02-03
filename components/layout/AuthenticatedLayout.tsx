@@ -246,7 +246,7 @@ export default function AuthenticatedLayout({
         </Row> */}
       </Sider>
 
-      <Layout className="flex flex-col flex-1 min-h-0">
+      <Layout className="flex flex-col flex-1 min-h-screen">
         <Header className="!bg-[#800020] flex-shrink-0 border-b border-slate-200 !px-4 md:!px-6 flex items-center justify-between !h-16">
           <div className="flex items-center">
             <Button
@@ -277,94 +277,94 @@ export default function AuthenticatedLayout({
           </Dropdown>
         </Header>
 
-        <Content className="justify-between flex-1 min-h-0 overflow-auto pb-0 bg-slate-50">
-          <div className="py-[20px] px-4 max-w-7xl mx-auto">{children}</div>
+        <Content className="justify-between flex flex-col h-screen pb-0 bg-slate-50 overflow-auto">
+          <div className="py-[20px] px-4 w-full mx-auto">{children}</div>
 
-        </Content>
-        <footer className="flex-shrink-0 bg-[#800020] text-white px-3 sm:px-6 md:px-16 lg:px-24 py-5 sm:py-8">
-          <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:justify-between md:items-start gap-5 sm:gap-8 md:gap-16">
-            <div className="flex-1 flex flex-col items-center md:items-start">
-              <Title
-                level={3}
-                className="!text-white !mb-1 !mt-0 font-light tracking-[0.1em] text-center md:text-left !text-[1.35rem] sm:!text-2xl"
-              >
-                8CLUBLAGREE
-              </Title>
-              <Paragraph
-                className="!text-white"
-                style={{
-                  fontWeight: 300,
-                  fontSize: "0.95rem",
-                  lineHeight: "1.3rem",
-                  marginBottom: 0,
-                  marginTop: 0,
-                }}
-              >
-                Streetscape Mall Banilad, Maria Luisa Road
-                <br />
-                Cebu City, Cebu 6000
-              </Paragraph>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
-              <Title
-                level={5}
-                className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
-              >
-                Interested in the website?
-              </Title>
-              <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
-                <a
-                  href="https://julianchiongbian.vercel.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+          <footer className="flex-shrink-0 bg-[#800020] text-white px-3 sm:px-6 md:px-16 lg:px-24 py-5 sm:py-8">
+            <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:justify-between md:items-start gap-5 sm:gap-8 md:gap-16">
+              <div className="flex-1 flex flex-col items-center md:items-start">
+                <Title
+                  level={3}
+                  className="!text-white !mb-1 !mt-0 font-light tracking-[0.1em] text-center md:text-left !text-[1.35rem] sm:!text-2xl"
                 >
-                  Let's connect
-                </a>
-              </Paragraph>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
-              <Title
-                level={5}
-                className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
-              >
-                Contact Us
-              </Title>
-              <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
-                <a
-                  href="mailto:8clublagree@gmail.com"
-                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  8CLUBLAGREE
+                </Title>
+                <Paragraph
+                  className="!text-white"
+                  style={{
+                    fontWeight: 300,
+                    fontSize: "0.95rem",
+                    lineHeight: "1.3rem",
+                    marginBottom: 0,
+                    marginTop: 0,
+                  }}
                 >
-                  Email
-                </a>
-                <br />
-                <a
-                  href="https://www.instagram.com/8clublagree"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
-                >
-                  Instagram
-                </a>
-              </Paragraph>
-            </div>
-          </div>
-          <Paragraph
-            style={{
-              color: "white",
-              fontSize: "0.72rem",
-              fontWeight: 300,
-            }}
-            className="text-[0.72rem] sm:text-xs !mt-[30px] text-center"
-          >
-            © 2026 8ClubLagree. All rights reserved.
-          </Paragraph>
+                  Streetscape Mall Banilad, Maria Luisa Road
+                  <br />
+                  Cebu City, Cebu 6000
+                </Paragraph>
+              </div>
 
-          {/* <div className="max-w-[1200px] mx-auto border-t border-white/20 mt-5 sm:mt-8 pt-4 sm:pt-6 text-center">
+              <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
+                <Title
+                  level={5}
+                  className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
+                >
+                  Interested in the website?
+                </Title>
+                <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
+                  <a
+                    href="https://julianchiongbian.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  >
+                    Let's connect
+                  </a>
+                </Paragraph>
+              </div>
+
+              <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
+                <Title
+                  level={5}
+                  className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
+                >
+                  Contact Us
+                </Title>
+                <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
+                  <a
+                    href="mailto:8clublagree@gmail.com"
+                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  >
+                    Email
+                  </a>
+                  <br />
+                  <a
+                    href="https://www.instagram.com/8clublagree"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  >
+                    Instagram
+                  </a>
+                </Paragraph>
+              </div>
+            </div>
+            <Paragraph
+              style={{
+                color: "white",
+                fontSize: "0.72rem",
+                fontWeight: 300,
+              }}
+              className="text-[0.72rem] sm:text-xs !mt-[30px] text-center"
+            >
+              © 2026 8ClubLagree. All rights reserved.
+            </Paragraph>
+
+            {/* <div className="max-w-[1200px] mx-auto border-t border-white/20 mt-5 sm:mt-8 pt-4 sm:pt-6 text-center">
           </div> */}
-        </footer>
+          </footer>
+        </Content>
 
       </Layout>
 

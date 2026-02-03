@@ -884,6 +884,10 @@ export const usePackageManagement = () => {
     clientID?: string;
     findExpiry?: boolean | undefined;
   }) => {
+    const cacheKey = `packages:client:${clientID ?? "all"}:${String(findExpiry ?? false)}`;
+    const cached = getCached<unknown>(cacheKey, CACHE_TTL_MS.packages);
+    if (cached) return cached;
+
     setLoading(true);
 
     const response = await axiosApi.get("/package/fetch-client-packages", {
@@ -892,8 +896,12 @@ export const usePackageManagement = () => {
 
     const data = response.data?.data;
 
-    if (!data) return null;
+    if (!data) {
+      setLoading(false);
+      return null;
+    }
 
+    setCached(cacheKey, data, CACHE_TTL_MS.packages);
     setLoading(false);
     return data;
   };

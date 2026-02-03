@@ -125,7 +125,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
           </div>
         </header>
 
-        <Content className="justify-between flex-1 min-h-0 overflow-auto pb-0 bg-slate-50 py-[95px]">
+        <Content className="justify-between flex-1 min-h-0 overflow-auto pb-0 bg-slate-50 pb-[95px]">
           <div>{children}</div>
         </Content>
 
