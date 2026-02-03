@@ -573,7 +573,7 @@ const PaymentsPage = () => {
                   )
                   : "N/A"}
               </Descriptions.Item>
-              <Descriptions.Item label="Order ID">
+              <Descriptions.Item label="Reference ID">
                 {selectedPayment.reference_id || "N/A"}
               </Descriptions.Item>
             </Descriptions>
