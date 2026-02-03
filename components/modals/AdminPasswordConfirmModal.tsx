@@ -106,9 +106,9 @@ export function AdminPasswordConfirmModal({
       centered={centered}
       footer={
         <Row justify="end" gutter={8} className="gap-x-[10px]">
-          <Button onClick={handleCancel}>{cancelLabel}</Button>
+          <Button disabled={loading} onClick={handleCancel}>{cancelLabel}</Button>
           <Button
-
+            disabled={loading}
             loading={loading}
             onClick={handleSubmit}
             className={confirmButtonClassName}
