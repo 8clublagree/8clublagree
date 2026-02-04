@@ -172,35 +172,29 @@ export default function About() {
             What is Lagree?
           </Title>
 
-          <Paragraph className="text-[1.25rem] font-light mb-12 text-justify">
-            <span className="font-bold">
-              More than just a workout, Lagree is a method
-            </span>
-            —a full-body workout method that is{" "}
-            <span className="font-bold">
-              high-intensity, but low-impact,
-            </span>{" "}
-            Performed on the <span className="font-bold">Megaformer</span> This unique workout builds strength, muscle endurance, core
-            stability, cardiovascular fitness, balance, and flexibility through
-            <span className="font-bold">slow and controlled, resistance-based movement</span> that&apos;s <span className="font-bold">safe on the
-              joints.</span>
+          <Paragraph className="font-bold text-[1.25rem] mb-12 text-justify">
+            Lagree is more than just a workout — it’s a method built on intention, consistency, and progression.
           </Paragraph>
           <Paragraph className="text-[1.25rem] font-light mb-12 text-justify">
-            Each 45-minute class follows the
-            principle of{" "}
-            <span className="font-bold">progressive overload,</span> gradually
-            increasing resistance, time, or intensity so the body continuously
-            adapts and grows <span className="font-bold">stronger</span>, while supporting <span className="font-bold">fat loss, muscle tone,
-              metabolism, and mental toughness.</span>
+            At 8CLUB, we deliver a high-intensity, low-impact full-body workout on the Megaformer, guided by slow, intentional movement and carefully curated coaching. Every class emphasizes proper form, core engagement, and joint-safe resistance to build strength, endurance, balance, and stability — without unnecessary strain.
           </Paragraph>
+          <Paragraph className="text-[1.25rem] font-light mb-12 text-justify">
+            Each 45-minute session follows the principle of progressive overload, gradually increasing time under tension and resistance so your body adapts, grows stronger, and becomes more resilient over time. The result is sustainable strength, improved muscle tone, increased metabolism, and long-term performance — designed for consistency, longevity, and real results.
+          </Paragraph>
+          {/* <Paragraph className="font-bold text-[1.25rem] !mb-0 text-justify">
+            This is Lagree, refined.
+          </Paragraph>
+          <Paragraph className="font-bold text-[1.25rem] mb-12 text-justify">
+            This is 8CLUB.
+          </Paragraph> */}
 
           <Row wrap={false} className="flex-col !mt-[50px] justify-center items-center">
-            <Text className="text-[1.25rem] font-bold !m-0 text-justify">
-              Are you ready to shake, sweat, and sore?
-            </Text>
-            <Text className="text-[1.25rem] font-bold !m-0 text-justify">
-              JOIN THE 8CLUB
-            </Text>
+            <Paragraph className="halyard font-bold text-[1.25rem] !mb-0 text-justify">
+              This is Lagree, refined.
+            </Paragraph>
+            <Paragraph className="halyard font-bold text-[1.25rem] mb-12 text-justify">
+              This is 8CLUB.
+            </Paragraph>
           </Row>
         </div>
       </section>

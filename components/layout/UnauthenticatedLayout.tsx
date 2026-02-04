@@ -56,7 +56,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
             {/* Conditional Rendering */}
             {isMobile ? (
               <>
-                <Row wrap={false} className="gap-x-[5px]">
+                <Row wrap={false} className="halyard gap-x-[5px]">
                   <Button
                     type={"primary"}
                     className={`bg-[#800020] border-[#800020] text-white hover:!bg-[#800020] font-medium w-fit`}
@@ -84,7 +84,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
                   open={drawerVisible}
                   bodyStyle={{ padding: 0 }}
                 >
-                  <div className="flex flex-col p-4 gap-3">
+                  <div className="!halyard flex flex-col p-4 gap-3">
                     {menuItems.map((item) => (
                       <Button
                         key={item.label}
@@ -106,7 +106,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
               </>
             ) : (
               // Desktop Menu
-              <div className="flex items-center gap-2 sm:gap-4">
+              <div className="halyard flex items-center gap-2 sm:gap-4">
                 {menuItems.map((item) => (
                   <Button
                     key={item.label}
