@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     `);
 
     if (userId) {
-      query = query.eq("class_bookings.booker_id", userId);
+      query = query.eq("class_bookings.booker_id", userId).eq("offered_for_clients", true)
     }
 
     if (isInstructor && instructorId) {
@@ -73,7 +73,6 @@ export async function GET(req: NextRequest) {
         .toISOString();
 
       query = query
-        .eq("offered_for_clients", true)
         .gte("class_date", startOfSelectedUTC)
         .lte("class_date", endOfSelectedUTC);
 
