@@ -298,7 +298,7 @@ const AdminClientTable = ({
         title="Delete Client"
         description="To delete this client, please enter your administrator password."
         confirmLabel="Delete"
-        confirmButtonClassName="!bg-red-500 hover:!bg-red-500 !border-none"
+        confirmButtonClassName="!bg-red-500 !text-white hover:!text-white hover:!bg-red-500 !border-none"
       />
     </>
   );
