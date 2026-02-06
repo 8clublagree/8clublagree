@@ -116,6 +116,7 @@ export default function ClassManagementPage() {
           return {
             key: index,
             id: item.id,
+            offered_for_clients: item.offered_for_clients,
             instructor_id: item.instructor_id,
             class_name: item.class_name,
             instructor_name:
@@ -481,9 +482,8 @@ export default function ClassManagementPage() {
                   <Row
                     key={index}
                     wrap={false}
-                    className={`${
-                      attendees.length > 1 && "border-b"
-                    } py-3 justify-between`}
+                    className={`${attendees.length > 1 && "border-b"
+                      } py-3 justify-between`}
                   >
                     <List.Item.Meta
                       title={item.attendeeName}
@@ -608,13 +608,12 @@ export default function ClassManagementPage() {
                 type="primary"
                 icon={<HiOutlineSwitchHorizontal />}
                 onClick={handleOpenRebookModal}
-                className={`${
-                  !!allBookings?.length &&
+                className={`${!!allBookings?.length &&
                   !!classes?.length &&
                   classes?.length !== 1 &&
                   !cannotRebook &&
                   "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
-                } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                  } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
               >
                 Rebook Attendee
               </Button>
@@ -630,14 +629,13 @@ export default function ClassManagementPage() {
                   ).length
                 }
                 onClick={handleOpenBookingModal}
-                className={`${
-                  !!classes?.length &&
+                className={`${!!classes?.length &&
                   !!classes.filter((cls) =>
                     dayjs(cls.start_time).isAfter(dayjs()),
                   ).length
-                    ? "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
-                    : "!bg-slate-200 hover:!bg-slate-200"
-                } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                  ? "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                  : "!bg-slate-200 hover:!bg-slate-200"
+                  } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
               >
                 Manual Booking
               </Button>

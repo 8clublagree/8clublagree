@@ -73,6 +73,7 @@ export async function GET(req: NextRequest) {
         .toISOString();
 
       query = query
+        .eq("offered_for_clients", true)
         .gte("class_date", startOfSelectedUTC)
         .lte("class_date", endOfSelectedUTC);
 

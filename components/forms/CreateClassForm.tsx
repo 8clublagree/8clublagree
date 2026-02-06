@@ -10,6 +10,7 @@ import {
   Col,
   Input,
   Typography,
+  Checkbox,
 } from "antd";
 import {
   UserOutlined,
@@ -43,12 +44,15 @@ export default function CreateClassForm({
 }: CreateClassFormProps) {
   const [form] = Form.useForm();
   const [instructors, setInstructors] = useState<any>([]);
+  const [isOffered, setIsOffered] = useState<boolean>(false);
   const { searchInstructors, loading: fetchingInstructors } = useSearchUser();
 
   useEffect(() => {
     handleSearchInstructors();
     if (initialValues) {
       const totalSlots = (initialValues.slots as string).split("/")[1].trim();
+
+      setIsOffered((initialValues as any).offered_for_clients ?? false);
       form.setFieldsValue({
         class_name:
           initialValues.class_name === null
@@ -71,6 +75,7 @@ export default function CreateClassForm({
       });
     } else {
       form.resetFields();
+      setIsOffered(false);
     }
   }, [initialValues]);
 
@@ -118,6 +123,7 @@ export default function CreateClassForm({
     const formattedValues = {
       ...values,
       ...(!isEdit && { taken_slots: 0 }),
+      offered_for_clients: isOffered,
       class_name: values.class_name,
       available_slots: values.slots,
       instructor_name: values.instructor_name,
@@ -238,6 +244,21 @@ export default function CreateClassForm({
               }}
             />
           </Form.Item>
+        </Col>
+
+        <Col xs={24} sm={12}>
+          <Row wrap={false} className="flex flex-col justify-center h-full">
+            <Checkbox
+              defaultChecked={isOffered}
+              checked={isOffered}
+              onChange={(e) => {
+                form.setFieldValue("offered_for_clients", undefined);
+                setIsOffered(e.target.checked);
+              }}
+            >
+              Make available to clients
+            </Checkbox>
+          </Row>
         </Col>
       </Row>
 
