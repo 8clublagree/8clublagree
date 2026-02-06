@@ -24,6 +24,7 @@ import { CurrentPackageProps, supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
 import { useManageImage } from "@/lib/api";
+import { omit } from "lodash";
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -125,7 +126,7 @@ export default function InstructorAuthenticatedLayout({
 
       dispatch(
         setUser({
-          ...profile,
+          ...omit(profile, ['user_type']),
           avatar_url: signedUrl,
           currentPackage: activePackage,
           credits: activePackage ? latestCredit.credits : 0,

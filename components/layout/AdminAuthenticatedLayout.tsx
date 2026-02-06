@@ -31,6 +31,7 @@ import {
   useManageCredits,
   usePackageManagement,
 } from "@/lib/api";
+import { omit } from "lodash";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -108,7 +109,7 @@ export default function AuthenticatedLayout({
         router.push("/instructor/assigned-schedules");
         return;
       }
-      dispatch(setUser(profile));
+      dispatch(setUser({ ...omit(profile, ['user_type']) }));
     }
   };
 

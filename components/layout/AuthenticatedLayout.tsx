@@ -33,6 +33,7 @@ import {
 } from "@/lib/api";
 import Image from "next/image";
 import axiosApi from "@/lib/axiosConfig";
+import { omit } from "lodash";
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title, Paragraph } = Typography;
@@ -119,11 +120,11 @@ export default function AuthenticatedLayout({
         return;
       }
 
-      // CONTINUE INTEGRATING MANUAL PAYMENTS UI SCENARIOS
+
 
       dispatch(
         setUser({
-          ...profile,
+          ...omit(profile, ['user_type']),
           pendingPurchases: payments,
           avatar_url: signedUrl,
           currentPackage: activePackage,
