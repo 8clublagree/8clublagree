@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { SearchOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
 import {
   Button,
@@ -202,6 +202,20 @@ const AdminBookingTable = ({
   const columns = useMemo<TableColumnsType<CreateClassProps>>(
     () => [
       {
+        title: () => <Row justify={'center'}><Text>Available to Clients</Text></Row>,
+        dataIndex: "offered_for_clients",
+        key: "offered_for_clients",
+        width: isMobile ? undefined : 110,
+        render: (value) => {
+          return (
+            <Row justify={'center'}>
+              {value === true ? <CheckOutlined size={20} className="font-[700] text-green-500" /> : <CloseOutlined size={20} className="font-[700] text-red-500" />}
+
+            </Row>
+          )
+        },
+      },
+      {
         title: "Class Name",
         dataIndex: "class_name",
         key: "class_name",
@@ -220,10 +234,10 @@ const AdminBookingTable = ({
               <Text>{record.instructor_name}</Text>
               {(record.instructor_id === null ||
                 record.deactivated === true) && (
-                <Tag key={record.id} color={"red"}>
-                  Need to replace
-                </Tag>
-              )}
+                  <Tag key={record.id} color={"red"}>
+                    Need to replace
+                  </Tag>
+                )}
             </Row>
           );
         },
@@ -270,8 +284,8 @@ const AdminBookingTable = ({
           const tooltipTitle = !canDelete
             ? "Cannot delete past classes"
             : takenSlots > 0
-            ? "Class still has attendees. All attendees must cancel or be re-booked to a same day class before class deletion."
-            : undefined;
+              ? "Class still has attendees. All attendees must cancel or be re-booked to a same day class before class deletion."
+              : undefined;
 
           return (
             <Row wrap={false} className="justify-center cursor-pointer gap-3">
