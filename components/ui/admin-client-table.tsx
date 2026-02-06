@@ -1,33 +1,26 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnsType, TableColumnType } from "antd";
-import {
-  Button,
-  Input,
-  Row,
-  Space,
-  Table,
-  Modal,
-  Typography,
-  Image,
-} from "antd";
+import { Button, Input, Row, Space, Table, Image } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
 import { UserProps } from "@/lib/props";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { UserIcon } from "lucide-react";
 import { FaHistory } from "react-icons/fa";
-import { useClassManagement, useDeleteUser } from "@/lib/api";
+import { useDeleteUser, useManagePassword } from "@/lib/api";
+import { AdminPasswordConfirmModal } from "@/components/modals/AdminPasswordConfirmModal";
+import { useAppSelector } from "@/lib/hooks";
 
 type DataIndex = keyof UserProps;
-const { Text } = Typography;
 
 interface AdminClientsTableProps {
   data: UserProps[];
   loading?: boolean;
   onEdit: (record: UserProps) => void;
-  deleteUser: (id: string) => void;
+  deleteUser: (id: string) => void | Promise<void>;
   viewBookingHistory: (event: UserProps) => void;
+  refetch?: () => void | Promise<void>;
 }
 
 const AdminClientTable = ({
@@ -36,8 +29,11 @@ const AdminClientTable = ({
   loading = false,
   deleteUser,
   viewBookingHistory,
+  refetch,
 }: AdminClientsTableProps) => {
   const searchInput = useRef<InputRef>(null);
+  const user = useAppSelector((state) => state.auth.user);
+  const { validatePassword } = useManagePassword();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [isMobile, setIsMobile] = useState(false);
@@ -89,16 +85,27 @@ const AdminClientTable = ({
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleAdminConfirmSubmit = async (password: string) => {
+    const adminEmail = user?.email;
+    if (!adminEmail) {
+      throw new Error("Unable to verify: no admin email.");
+    }
+    const valid = await validatePassword({
+      email: adminEmail,
+      currentPassword: password,
+    });
+    if (!valid) {
+      throw new Error("Wrong password.");
+    }
     if (selectedRecordToDelete) {
-      deleteUser(selectedRecordToDelete.id as string);
+      await deleteUser(selectedRecordToDelete.id as string);
+      await refetch?.();
     }
     setIsDeleteModalOpen(false);
     setSelectedRecordToDelete(null);
   };
 
   const handleCancelDelete = () => {
-    console.log("Cancelled delete");
     setIsDeleteModalOpen(false);
     setSelectedRecordToDelete(null);
   };
@@ -283,23 +290,16 @@ const AdminClientTable = ({
         className="admin-client-table"
       />
 
-      <Modal
-        title="Delete Client"
+      <AdminPasswordConfirmModal
         open={isDeleteModalOpen}
-        onOk={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        okText="Delete"
-        okType="danger"
-        cancelText="Cancel"
-        width={isMobile ? "90%" : 430}
-      >
-        <Row className="py-[20px]">
-          <Text>Are you sure you want to delete this user?</Text>
-          {/* <Text>
-            Once deleted, data attached to this user will be gone too.
-          </Text> */}
-        </Row>
-      </Modal>
+        onConfirm={handleAdminConfirmSubmit}
+        compact={isMobile}
+        title="Delete Client"
+        description="To delete this client, please enter your administrator password."
+        confirmLabel="Delete"
+        confirmButtonClassName="!bg-red-500 hover:!bg-red-500 !border-none"
+      />
     </>
   );
 };

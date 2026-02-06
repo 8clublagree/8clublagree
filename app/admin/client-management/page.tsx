@@ -241,7 +241,6 @@ export default function ClientManagementPage() {
   const handleDeleteUser = async (id: string) => {
     try {
       await deleteUser({ id: id });
-      handleSearchClients();
       showMessage({ type: "success", content: "Successfully deleted client!" });
     } catch (error) {
       showMessage({ type: "error", content: "Error deleting client" });
@@ -277,6 +276,7 @@ export default function ClientManagementPage() {
                   onEdit={handleEdit}
                   deleteUser={handleDeleteUser}
                   viewBookingHistory={handleViewBookingHistory}
+                  refetch={handleSearchClients}
                 />
               </div>
             </>
