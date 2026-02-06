@@ -89,11 +89,7 @@ export const packagePendingPurchase = ({
   };
 };
 
-export const packagePendingPurchaseAdmin = ({
-  packageTitle,
-}: {
-  packageTitle?: string;
-}) => {
+export const packagePendingPurchaseAdmin = () => {
   return {
     subject: "New Manual Payment Request",
     body: `

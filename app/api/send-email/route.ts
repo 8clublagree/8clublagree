@@ -51,13 +51,12 @@ export async function POST(req: NextRequest) {
 
     if (emailType === "package_pending_purchase") {
       template = EMAIL_TEMPLATE[emailType];
+      const adminTemplate = EMAIL_TEMPLATE['package_pending_purchase_admin'];
       const { subject: templateSubject, body: templateBody } = template({
         packageTitle,
       });
 
-      const { subject: adminSubject, body: adminBody } = template({
-        packageTitle: 'package_pending_purchase_admin',
-      });
+      const { subject: adminSubject, body: adminBody } = adminTemplate();
 
       adminEmail = transport.sendMail({
         from: "8 Club Lagree <noreply@8clublagree.com>",

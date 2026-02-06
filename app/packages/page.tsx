@@ -1283,9 +1283,7 @@ export default function PackagesPage() {
       )}
 
       <div className="space-y-6">
-        {/* <Button onClick={async () => await handleSendConfirmationEmail()}>
-          Test email
-        </Button> */}
+
         <Row gutter={[16, 24]} className="w-full">
           {packages &&
             packages.map((item, index) => {
