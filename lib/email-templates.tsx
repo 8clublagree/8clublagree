@@ -90,6 +90,63 @@ export const packagePendingPurchase = ({
   };
 };
 
+export const packagePendingPurchaseAdmin = ({
+  packageTitle,
+}: {
+  packageTitle?: string;
+}) => {
+  return {
+    subject: "New Manual Payment Request",
+    body: `
+    <div style="width:100%; background:#f4f4f4; padding:40px 0;">
+  <div style="
+    max-width:480px;
+    margin:0 auto;
+    background:#ffffff;
+    padding:32px;
+    border-radius:10px;
+    border:1px solid #e6e6e6;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    color:#333333;
+  ">
+
+    <div style="width: 100%; margin-bottom: 30px;">
+      <img 
+        src="https://lagree-booking-system.vercel.app/images/main-logo.png"
+        margin-bottom:20px;"
+        alt="main-logo" 
+        width="120"
+        style="display:block; margin: auto;" />
+    </div>
+
+    <!-- Admin Notification -->
+    <h2 style="
+      margin:0 0 20px 0;
+      font-size:20px;
+      font-weight:600;
+      color:#36013F;
+      text-align:center;
+    ">
+      You have received a new payment request.
+    </h2>
+
+    <!-- Body Paragraph (your exact content) -->
+    <p style="
+      font-size:16px;
+      line-height:1.6;
+      color:#333;
+      margin:0 0 10px 0;
+      text-align: center;
+      margin-bottom: 10px;
+    ">
+      Please review the client's payment request as soon as possible to see if it is valid.
+    </p> 
+  </div>
+</div>
+`,
+  };
+};
+
 export const packagePurchase = ({
   packageTitle,
 }: {
@@ -252,4 +309,5 @@ export const EMAIL_TEMPLATE: any = {
   package_pending_purchase: packagePendingPurchase,
   class_booking_confirmation: classBookingConfirmation,
   password_reset_otp: passwordResetOtp,
+  package_pending_purchase_admin: packagePendingPurchaseAdmin,
 };

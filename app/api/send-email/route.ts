@@ -23,6 +23,14 @@ export async function POST(req: NextRequest) {
       time,
       className,
     } = request;
+    let recipients: string[] = [to];
+    const apiToken =
+      process.env.MAILTRAP_TOKEN!!
+    const transport = nodemailer.createTransport(
+      MailtrapTransport({ token: apiToken }),
+    );
+    let adminEmail: any = null
+    let emailPromises: any = []
 
     if (!emailType) {
       return NextResponse.json(
@@ -46,6 +54,17 @@ export async function POST(req: NextRequest) {
       const { subject: templateSubject, body: templateBody } = template({
         packageTitle,
       });
+
+      const { subject: adminSubject, body: adminBody } = template({
+        packageTitle: 'package_pending_purchase_admin',
+      });
+
+      adminEmail = transport.sendMail({
+        from: "8 Club Lagree <noreply@8clublagree.com>",
+        to: ['8clublagree@gmail.com'],
+        subject: adminSubject,
+        html: adminBody,
+      })
 
       subject = templateSubject;
       body = templateBody;
@@ -89,17 +108,6 @@ export async function POST(req: NextRequest) {
      */
     // ==========================================
 
-    /**
-     * REAL EMAILS: Mailtrap Email Sending API (or SMTP fallback)
-     * API token: https://mailtrap.io/api-tokens — use a token with Email Sending
-     * permission and Domain Admin for your sending domain. Verify domain first.
-     */
-
-    const recipients = [to];
-
-
-    const apiToken =
-      process.env.MAILTRAP_TOKEN
 
     if (!apiToken?.trim()) {
       return NextResponse.json(
@@ -112,16 +120,23 @@ export async function POST(req: NextRequest) {
     }
 
     let info;
+
+    if (adminEmail !== null) {
+      emailPromises.push(adminEmail)
+    }
+
     try {
-      const transport = nodemailer.createTransport(
-        MailtrapTransport({ token: apiToken }),
-      );
-      info = await transport.sendMail({
-        from: "8 Club Lagree <noreply@8clublagree.com>",
-        to: recipients,
-        subject,
-        html: body,
-      });
+      emailPromises.push(
+        transport.sendMail({
+          from: "8 Club Lagree <noreply@8clublagree.com>",
+          to: recipients,
+          subject,
+          html: body,
+        })
+      )
+
+      info = await Promise.all(emailPromises)
+
     } catch (sendError: any) {
       const isUnauthorized =
         sendError?.message?.includes("Unauthorized") ||

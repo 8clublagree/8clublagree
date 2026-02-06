@@ -563,7 +563,7 @@ export default function PackagesPage() {
       reader.onerror = (error) => reject(error);
     });
 
-  const handleUpload = async (file: any) => {
+  const handleManualUploadProof = async (file: any) => {
     setIsSendingPending(true);
     try {
       if (user && !!file.length) {
@@ -642,14 +642,30 @@ export default function PackagesPage() {
   };
 
   const handleSubmit = async () => {
-    setUploadingPayment(true);
-    const status = await handleUpload(file);
+    try {
 
-    setPaymentUploadSuccess(status === 200);
-    setUploadingPayment(false);
-    setIsSendingPending(false);
+      setUploadingPayment(true);
+      const status = await handleManualUploadProof(file);
 
-    window.location.reload();
+
+      setPaymentUploadSuccess(status === 200);
+      setUploadingPayment(false);
+      setIsSendingPending(false);
+
+      showMessage({
+        type: "success",
+        content: "Proof uploaded successfully",
+      });
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    } catch (err: any) {
+      setIsSendingPending(false);
+      console.error(err);
+      showMessage({ type: "error", content: "Failed to upload image." });
+    }
+
   };
 
 
