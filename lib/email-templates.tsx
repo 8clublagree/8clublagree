@@ -69,7 +69,6 @@ export const packagePendingPurchase = ({
       margin:0 0 10px 0;
       text-align: justify;
     ">
-      Your purchase of ${packageTitle} is now pending.<br/>
       We ask for your patience as we review your proof of payment as soon as we can.
       Once confirmed, you will receive another email that successfully confirms your transaction.
     </p> 
