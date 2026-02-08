@@ -16,7 +16,6 @@ export async function GET(req: NextRequest) {
       instructorId,
     } = data;
 
-    console.log('data', data);
 
     const formattedSelectedDate = dayjs(selectedDate);
 
@@ -52,17 +51,17 @@ export async function GET(req: NextRequest) {
     `);
 
     if (userId) {
-      console.log('1')
+
       query = query.eq("class_bookings.booker_id", userId).eq("offered_for_clients", true)
     }
 
     if (isInstructor && instructorId) {
-      console.log('2')
+
       query = query.eq("instructor_id", instructorId);
     }
 
     if (selectedDate === undefined && startDate && endDate) {
-      console.log('3')
+
       const startOfSelectedUTC = dayjs(startDate)
         .startOf("day")
         .toISOString();
@@ -76,7 +75,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (selectedDate !== undefined) {
-      console.log('4')
+
       const startOfSelectedUTC = formattedSelectedDate
         .startOf("day")
         .toISOString();
@@ -95,7 +94,7 @@ export async function GET(req: NextRequest) {
         !isInstructor &&
         formattedSelectedDate.isSame(today, "day")
       ) {
-        console.log('5')
+
         query = query.gte("start_time", nowISO);
       }
     }
