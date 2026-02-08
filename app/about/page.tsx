@@ -176,10 +176,10 @@ export default function About() {
             Lagree is more than just a workout — it’s a method built on intention, consistency, and progression.
           </Paragraph>
           <Paragraph className="text-[1.25rem] font-light mb-12 text-justify">
-            At 8CLUB, we deliver a high-intensity, low-impact full-body workout on the Megaformer, guided by slow, intentional movement and carefully curated coaching. Every class emphasizes proper form, core engagement, and joint-safe resistance to build strength, endurance, balance, and stability — without unnecessary strain.
+            At 8CLUB, we deliver a high-intensity, low-impact full-body workout on the Lagree Megaformer, guided by slow, controlled movement and carefully curated coaching. Every class emphasizes proper form, core engagement, and joint-safe resistance to build strength, muscle endurance, core stability, cardiovascular fitness, balance, and flexibility — without unnecessary strain.
           </Paragraph>
           <Paragraph className="text-[1.25rem] font-light mb-12 text-justify">
-            Each 45-minute session follows the principle of progressive overload, gradually increasing time under tension and resistance so your body adapts, grows stronger, and becomes more resilient over time. The result is sustainable strength, improved muscle tone, increased metabolism, and long-term performance — designed for consistency, longevity, and real results.
+            Each 45-minute session follows the principle of progressive overload, gradually increasing time under tension, resistance, or intensity so your body adapts, grows stronger, and becomes more resilient over time. The result is sustainable strength, improved muscle tone, increased metabolism and fat loss, and long-term performance — designed for consistency, longevity, and effective results.
           </Paragraph>
           {/* <Paragraph className="font-bold text-[1.25rem] !mb-0 text-justify">
             This is Lagree, refined.
@@ -190,10 +190,10 @@ export default function About() {
 
           <Row wrap={false} className="flex-col !mt-[50px] justify-center items-center">
             <Paragraph className="halyard font-bold text-[1.25rem] !mb-0 text-justify">
-              This is Lagree, refined.
+              Are you ready to shake, sweat, and sore?
             </Paragraph>
             <Paragraph className="halyard font-bold text-[1.25rem] mb-12 text-justify">
-              This is 8CLUB.
+              JOIN THE 8CLUB
             </Paragraph>
           </Row>
         </div>
@@ -380,7 +380,7 @@ export default function About() {
             fontWeight: 300,
           }}
         >
-          Join our club <a href="/signup" className="!text-red-400">for free</a> to book a
+          Join our club <a href="/signup" className="!text-red-400 cursor-pointer">for free</a> to book a
           class and view our future schedules
         </Paragraph>
 
