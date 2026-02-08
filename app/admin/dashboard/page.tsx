@@ -51,50 +51,54 @@ export default function DashboardPage() {
     confirmedBookings: 0,
   });
   const { fetchClasses, loading } = useClassManagement();
-  const monday = useMemo(
-    () => dayjs().startOf("isoWeek").format("YYYY-MM-DD"),
-    []
-  );
-  const sunday = useMemo(
-    () => dayjs().endOf("isoWeek").format("YYYY-MM-DD"),
-    []
-  );
-  const weeklyLabelsWithDates = useMemo(
-    () =>
-      daysOfWeek.map((day, i) => {
-        const d = dayjs(monday).add(i, "day");
-        return `${day} ${d.format("(MMM D)")}`;
-      }),
-    [monday]
-  );
+  const monday =
+    dayjs().startOf("isoWeek").format("YYYY-MM-DD")
+
+
+  const sunday =
+    dayjs().endOf("isoWeek").format("YYYY-MM-DD")
+
+
+  const weeklyLabelsWithDates = () => {
+    const parsed = daysOfWeek.map((day, i) => {
+      const d = dayjs(monday).add(i, "day");
+      return `${day} ${d.format("(MMM D)")}`;
+    })
+
+    return parsed
+  }
+
+
   const [dashboardPeriod, setDashboardPeriod] = useState<"Daily" | "Weekly">(
     "Daily"
   );
 
   useEffect(() => {
-    handleFetchClasses();
-  }, [dashboardPeriod]);
+    handleFetchClasses({})
+  }, [])
 
-  const handleFetchClasses = async () => {
+  const handleFetchClasses = async ({ period = "Daily" }: { period?: "Daily" | "Weekly" }) => {
     let params: any = {};
 
-    if (dashboardPeriod === "Weekly") {
+    if (period === "Weekly") {
       params = {
-        startDate: dayjs(monday),
-        endDate: dayjs(sunday),
+        startDate: monday,
+        endDate: sunday,
+        isAdmin: true
       };
     } else {
       params = { selectedDate: dayjs(), isAdmin: true };
     }
 
     const data = await fetchClasses(params);
+
     if (data) {
       let mapped;
-      if (dashboardPeriod === "Weekly") {
+      if (period === "Weekly") {
         mapped = data?.map((item: any, index: number) => ({
           id: item.id,
           label: `Class with ${item.instructor_name}`,
-          day: dayjs(item.class_date).format("ddd"),
+          day: dayjs(item.class_date).format("ddd (MMM D)"),
           startTime: dayjs(item.start_time).format("HH:mm"),
           endTime: dayjs(item.end_time).format("HH:mm"),
           slots: `${item.taken_slots} / ${item.available_slots}`,
@@ -112,6 +116,7 @@ export default function DashboardPage() {
           0
         ),
       });
+
 
       setClasses(mapped);
     }
@@ -239,9 +244,11 @@ export default function DashboardPage() {
         </div>
       </div>
     );
-  }, [classes, dashboardPeriod]);
+  }, [classes, dashboardPeriod, loading]);
+
 
   const WeeklyScheduleChart = useCallback(() => {
+
     const dataPoints = classes?.map((ev) => ({
       x: ev.day,
       y: [timeToDecimal(ev.startTime), timeToDecimal(ev.endTime)],
@@ -251,7 +258,7 @@ export default function DashboardPage() {
     const backgroundColors = classes?.map((ev) => ev.color);
 
     const data = {
-      labels: weeklyLabelsWithDates,
+      labels: weeklyLabelsWithDates(),
       datasets: [
         {
           label: "Schedule",
@@ -309,7 +316,8 @@ export default function DashboardPage() {
       scales: {
         x: {
           type: "category",
-          labels: weeklyLabelsWithDates,
+          labels: weeklyLabelsWithDates(),
+          // labels: daysOfWeek,
           offset: true,
           grid: { display: false },
           ticks: { color: "#374151", font: { size: 13 } },
@@ -345,7 +353,8 @@ export default function DashboardPage() {
         </div>
       </div>
     );
-  }, [classes, dashboardPeriod]);
+  }, [classes, dashboardPeriod, loading])
+
 
   return (
     <AdminAuthenticatedLayout>
@@ -357,7 +366,11 @@ export default function DashboardPage() {
           <Segmented
             defaultValue={dashboardPeriod}
             options={["Daily", "Weekly"]}
-            onChange={(e) => setDashboardPeriod(e as "Daily" | "Weekly")}
+            onChange={(e) => {
+              const value = e as "Daily" | "Weekly"
+              setDashboardPeriod(value)
+              handleFetchClasses({ period: value })
+            }}
           />
         </Row>
 

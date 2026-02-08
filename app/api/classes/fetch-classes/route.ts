@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 export async function GET(req: NextRequest) {
   try {
     const data = Object.fromEntries(new URL(req.url).searchParams.entries());
+
     const {
       isAdmin,
       isInstructor,
@@ -14,6 +15,8 @@ export async function GET(req: NextRequest) {
       selectedDate,
       instructorId,
     } = data;
+
+    console.log('data', data);
 
     const formattedSelectedDate = dayjs(selectedDate);
 
@@ -49,27 +52,36 @@ export async function GET(req: NextRequest) {
     `);
 
     if (userId) {
+      console.log('1')
       query = query.eq("class_bookings.booker_id", userId).eq("offered_for_clients", true)
     }
 
     if (isInstructor && instructorId) {
+      console.log('2')
       query = query.eq("instructor_id", instructorId);
     }
 
-    if (startDate && endDate) {
+    if (selectedDate === undefined && startDate && endDate) {
+      console.log('3')
+      const startOfSelectedUTC = dayjs(startDate)
+        .startOf("day")
+        .toISOString();
+      const endOfSelectedUTC = dayjs(endDate)
+        .endOf("day")
+        .toISOString();
+
       query = query
-        .gte("class_date", dayjs(startDate).format("YYYY-MM-DD"))
-        .lte("class_date", dayjs(endDate).format("YYYY-MM-DD"));
+        .gte("class_date", startOfSelectedUTC)
+        .lte("class_date", endOfSelectedUTC);
     }
 
-    if (formattedSelectedDate) {
+    if (selectedDate !== undefined) {
+      console.log('4')
       const startOfSelectedUTC = formattedSelectedDate
         .startOf("day")
-        // .subtract(8, "hour")
         .toISOString();
       const endOfSelectedUTC = formattedSelectedDate
         .endOf("day")
-        // .subtract(8, "hour")
         .toISOString();
 
       query = query
@@ -83,6 +95,7 @@ export async function GET(req: NextRequest) {
         !isInstructor &&
         formattedSelectedDate.isSame(today, "day")
       ) {
+        console.log('5')
         query = query.gte("start_time", nowISO);
       }
     }
