@@ -414,6 +414,8 @@ const PaymentsPage = () => {
     updatingCredits,
     modifyingPackage,
     confirmingPayment,
+    isReviewingPayment,
+    adminConfirmModalOpen
   ]);
 
   const handleClose = () => {
@@ -424,7 +426,7 @@ const PaymentsPage = () => {
   return (
     <AdminAuthenticatedLayout>
       {contextHolder}
-      <Title level={3}>Payments Page</Title>
+
 
       <RenderTable />
 

@@ -273,6 +273,7 @@ const AdminBookingTable = ({
       {
         title: "Action",
         key: "action",
+        loading: loading,
         width: isMobile ? undefined : "10%",
         fixed: isMobile ? undefined : "right",
         render: (_, record) => {
@@ -315,7 +316,7 @@ const AdminBookingTable = ({
         },
       },
     ],
-    [isMobile, searchedColumn, searchText, data]
+    [isMobile, searchedColumn, searchText, data, loading]
   );
 
   return (

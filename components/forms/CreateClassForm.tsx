@@ -18,7 +18,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { CreateClassProps } from "@/lib/props";
 import { useSearchUser } from "@/lib/api";
 import omit from "lodash/omit";
@@ -45,7 +45,13 @@ export default function CreateClassForm({
   const [form] = Form.useForm();
   const [instructors, setInstructors] = useState<any>([]);
   const [isOffered, setIsOffered] = useState<boolean>(false);
+  const [loadingForm, setLoadingForm] = useState<boolean>(false);
   const { searchInstructors, loading: fetchingInstructors } = useSearchUser();
+
+
+  useEffect(() => {
+    setLoadingForm(fetchingInstructors);
+  }, [fetchingInstructors]);
 
   useEffect(() => {
     handleSearchInstructors();
@@ -84,11 +90,13 @@ export default function CreateClassForm({
 
     if (data) {
       const mapped = data.map((inst: any) => {
+        const instructorID = inst.instructors?.[0]?.id;
+
         return {
           key: inst.id,
-          value: inst.user_profiles.full_name,
-          label: inst.user_profiles.full_name,
-          id: inst.id,
+          value: inst.full_name,
+          label: inst.full_name,
+          id: instructorID,
         };
       });
 
@@ -157,6 +165,7 @@ export default function CreateClassForm({
             ]}
           >
             <Input
+              disabled={loadingForm}
               size="large"
               maxLength={20}
               showCount
@@ -177,6 +186,7 @@ export default function CreateClassForm({
             ]}
           >
             <Select
+              disabled={loadingForm}
               size="large"
               placeholder="Select an instructor"
               suffixIcon={<UserOutlined className="text-slate-400" />}
@@ -197,6 +207,7 @@ export default function CreateClassForm({
             ]}
           >
             <TimePicker.RangePicker
+              disabled={loadingForm}
               size="large"
               use12Hours
               minuteStep={15}
@@ -225,6 +236,7 @@ export default function CreateClassForm({
             ]}
           >
             <InputNumber
+              disabled={loadingForm}
               size="large"
               placeholder="Enter slots"
               prefix={<TeamOutlined className="text-slate-400" />}
@@ -249,6 +261,7 @@ export default function CreateClassForm({
         <Col xs={24} sm={12}>
           <Row wrap={false} className="flex flex-col justify-center h-full">
             <Checkbox
+              disabled={loadingForm}
               defaultChecked={isOffered}
               checked={isOffered}
               onChange={(e) => {
@@ -266,10 +279,11 @@ export default function CreateClassForm({
         <Row gutter={12} className="flex-row-reverse">
           <Col xs={12} sm={8}>
             <Button
+              disabled={loadingForm}
               type="primary"
               htmlType="submit"
               size="large"
-              loading={loading}
+              loading={loading || loadingForm}
               block
               className="bg-[#36013F] hover:!bg-[#36013F] !border-none"
             >
@@ -277,7 +291,7 @@ export default function CreateClassForm({
             </Button>
           </Col>
           <Col xs={12} sm={8}>
-            <Button size="large" onClick={onCancel} disabled={loading} block>
+            <Button size="large" onClick={onCancel} disabled={loadingForm} block>
               Cancel
             </Button>
           </Col>

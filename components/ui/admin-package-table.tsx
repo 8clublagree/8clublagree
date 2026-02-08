@@ -268,7 +268,7 @@ const AdminPackageTable = ({
         },
       },
     ],
-    [isMobile, searchedColumn, searchText, data]
+    [isMobile, searchedColumn, searchText, data, loading]
   );
 
   return (

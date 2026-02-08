@@ -147,12 +147,6 @@ export default function PackageManagementPage() {
       {contextHolder}
       <div className="space-y-6">
         <div>
-          <Title level={2} className="!mb-2">
-            Package Management
-          </Title>
-        </div>
-
-        <div>
           <Row className="mb-4 justify-end">
             <Button
               type="primary"

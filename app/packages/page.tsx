@@ -668,8 +668,6 @@ export default function PackagesPage() {
 
   };
 
-
-
   const renderCheckoutDrawer = useMemo(() => {
     return (
       <>
@@ -1270,8 +1268,6 @@ export default function PackagesPage() {
     paymentUploadSuccess
   ]);
 
-
-
   return (
     <AuthenticatedLayout>
       {contextHolder}
@@ -1282,108 +1278,110 @@ export default function PackagesPage() {
         </Row>
       )}
 
-      <div className="space-y-6">
+      {!packageLoading && (
+        <div className="space-y-6">
 
-        <Row gutter={[16, 24]} className="w-full">
-          {packages &&
-            packages.map((item, index) => {
-              const showToolTip = user?.currentPackage && user?.credits !== 0;
-              const disablePurchase =
-                (user?.currentPackage !== null &&
-                  user?.currentPackage !== undefined) &&
-                user?.credits !== 0;
+          <Row gutter={[16, 24]} className="w-full">
+            {packages &&
+              packages.map((item, index) => {
+                const showToolTip = user?.currentPackage && user?.credits !== 0;
+                const disablePurchase =
+                  (user?.currentPackage !== null &&
+                    user?.currentPackage !== undefined) &&
+                  user?.credits !== 0;
 
-              return (
-                <Col
-                  key={index}
-                  xs={24}
-                  sm={12}
-                  md={12}
-                  lg={8}
-                  xl={6}
-                  className="flex justify-center"
-                >
-                  <Card
-                    title={
-                      <span className="halyard font-semibold text-2xl sm:text-3xl xl:text-4xl tracking-tight">
-                        {item.packageCredits
-                          ? `${item.packageCredits}`
-                          : "Unlimited"}
-                      </span>
-                    }
-                    styles={{
-                      title: {
-                        textAlign: "center",
-                        marginInline: "auto",
-                      },
-                      header: {
-                        backgroundColor: "#0a0a0a",
-                        color: "white",
-                        textAlign: "center",
-                        minHeight: 100,
-                        paddingBlock: "20px",
-                        borderBottom: "none",
-                      },
-                      body: {
-                        padding: "20px 20px 24px",
-                        display: "flex",
-                        flexDirection: "column",
-                        minHeight: 220,
-                      },
-                    }}
-                    className="w-full max-w-[380px] border border-slate-200/80 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-0.5"
+                return (
+                  <Col
+                    key={index}
+                    xs={24}
+                    sm={12}
+                    md={12}
+                    lg={8}
+                    xl={6}
+                    className="flex justify-center"
                   >
-                    <div className="flex flex-col flex-1 justify-between gap-4">
-                      <div className="space-y-1.5">
-                        <p className="halyard font-bold text-lg sm:text-xl text-slate-800 leading-tight">
-                          {item.title}
-                        </p>
-                        <p className="text-slate-600 text-sm sm:text-base font-light">
+                    <Card
+                      title={
+                        <span className="halyard font-semibold text-2xl sm:text-3xl xl:text-4xl tracking-tight">
                           {item.packageCredits
-                            ? `${item.packageCredits} sessions`
-                            : "Unlimited Sessions"}
-                        </p>
-                        <p className="text-slate-600 text-sm sm:text-base font-light">
-                          Valid for{" "}
-                          <span className="font-semibold text-slate-800">
-                            {item.validityPeriod}
-                          </span>{" "}
-                          days
-                        </p>
-                        <p className="text-slate-800 text-base sm:text-lg font-medium pt-1">
-                          PHP {formatPrice(item.price)}
-                        </p>
-                      </div>
+                            ? `${item.packageCredits}`
+                            : "Unlimited"}
+                        </span>
+                      }
+                      styles={{
+                        title: {
+                          textAlign: "center",
+                          marginInline: "auto",
+                        },
+                        header: {
+                          backgroundColor: "#0a0a0a",
+                          color: "white",
+                          textAlign: "center",
+                          minHeight: 100,
+                          paddingBlock: "20px",
+                          borderBottom: "none",
+                        },
+                        body: {
+                          padding: "20px 20px 24px",
+                          display: "flex",
+                          flexDirection: "column",
+                          minHeight: 220,
+                        },
+                      }}
+                      className="w-full max-w-[380px] border border-slate-200/80 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-0.5"
+                    >
+                      <div className="flex flex-col flex-1 justify-between gap-4">
+                        <div className="space-y-1.5">
+                          <p className="halyard font-bold text-lg sm:text-xl text-slate-800 leading-tight">
+                            {item.title}
+                          </p>
+                          <p className="text-slate-600 text-sm sm:text-base font-light">
+                            {item.packageCredits
+                              ? `${item.packageCredits} sessions`
+                              : "Unlimited Sessions"}
+                          </p>
+                          <p className="text-slate-600 text-sm sm:text-base font-light">
+                            Valid for{" "}
+                            <span className="font-semibold text-slate-800">
+                              {item.validityPeriod}
+                            </span>{" "}
+                            days
+                          </p>
+                          <p className="text-slate-800 text-base sm:text-lg font-medium pt-1">
+                            PHP {formatPrice(item.price)}
+                          </p>
+                        </div>
 
-                      <Tooltip
-                        title={showToolTip && "You still have an active package"}
-                      >
-                        <Button
-                          disabled={disablePurchase}
-                          onClick={() => handleOpenModal(item)}
-                          className={`w-full h-11 rounded-xl font-medium text-base shadow-sm transition-all duration-200 ${!disablePurchase
-                            ? "!bg-[#800020] !border-[#800020] hover:!bg-[#800020] hover:!text-[white] text-[white] hover:scale-[1.02] active:scale-[0.99]"
-                            : "!bg-slate-200 !border-slate-200 !text-slate-500 hover:!bg-slate-200"
-                            }`}
+                        <Tooltip
+                          title={showToolTip && "You still have an active package"}
                         >
-                          Purchase
-                        </Button>
-                      </Tooltip>
-                    </div>
-                  </Card>
-                </Col>
-              );
-            })}
-        </Row>
-        {packages && packages.length === 0 && (
-          <Card className="shadow-sm">
-            <div className="text-center py-12 text-slate-500">
-              <CalendarOutlined className="text-4xl mb-4" />
-              <p>No packages are being offered at this time.</p>
-            </div>
-          </Card>
-        )}
-      </div>
+                          <Button
+                            disabled={disablePurchase}
+                            onClick={() => handleOpenModal(item)}
+                            className={`w-full h-11 rounded-xl font-medium text-base shadow-sm transition-all duration-200 ${!disablePurchase
+                              ? "!bg-[#800020] !border-[#800020] hover:!bg-[#800020] hover:!text-[white] text-[white] hover:scale-[1.02] active:scale-[0.99]"
+                              : "!bg-slate-200 !border-slate-200 !text-slate-500 hover:!bg-slate-200"
+                              }`}
+                          >
+                            Purchase
+                          </Button>
+                        </Tooltip>
+                      </div>
+                    </Card>
+                  </Col>
+                );
+              })}
+          </Row>
+          {packages && packages.length === 0 && (
+            <Card className="shadow-sm">
+              <div className="text-center py-12 text-slate-500">
+                <CalendarOutlined className="text-4xl mb-4" />
+                <p>No packages are being offered at this time.</p>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
 
       {renderCheckoutDrawer}
 

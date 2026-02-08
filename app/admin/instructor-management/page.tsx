@@ -16,7 +16,7 @@ import {
   Tag,
   Spin,
 } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { ControlOutlined, PlusOutlined } from "@ant-design/icons";
 import { useEffect, useMemo, useState } from "react";
 import CreateInstructorForm from "@/components/forms/CreateInstructorForm";
 import { IoIosSearch } from "react-icons/io";
@@ -41,6 +41,7 @@ export default function InstructorManagementPage() {
   const [accountCreationForm] = Form.useForm();
   const [changePasswordForm] = Form.useForm();
   const [instructors, setInstructors] = useState<any[] | null>([]);
+  const [isProcessingData, setIsProcessingData] = useState<boolean>(false);
   const [input, setInput] = useState<string>("");
   const { debouncedValue } = useDebounce(input, 1000);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,24 +98,26 @@ export default function InstructorManagementPage() {
   }, [profileTab]);
 
   const handleSearchInstructors = async () => {
+    setIsProcessingData(true);
     const data = await searchInstructors({ name: debouncedValue });
+
     try {
       if (data) {
         const usersWithSignedUrls = await Promise.all(
           data.map(async (record: any) => {
             let signedUrl: string | null | undefined = undefined;
             const certification: any = CERTIFICATIONS.find(
-              (x) => x.value === record.certification,
+              (x) => x.value === record?.instructors?.[0]?.certification,
             );
+
             const instructor = {
               ...record,
-              ...record.user_profiles,
-              first_name: record?.user_profiles?.first_name,
-              last_name: record?.user_profiles?.last_name,
-              full_name: record?.user_profiles?.full_name,
-              avatar_path: record?.user_profiles?.avatar_path,
-              deactivated: record?.user_profiles?.deactivated,
-              certification: certification.label,
+              first_name: record?.first_name,
+              last_name: record?.last_name,
+              full_name: record?.full_name,
+              avatar_path: record?.avatar_path,
+              deactivated: record?.deactivated,
+              certification: certification.label ?? '',
             };
 
             // generate signed URL valid for 1 hour (3600s)
@@ -130,11 +133,17 @@ export default function InstructorManagementPage() {
           }),
         );
 
+
+
         setInstructors(usersWithSignedUrls);
       }
+
+      setIsProcessingData(false);
     } catch (error) {
+      setIsProcessingData(false);
       console.log("error: ", error);
     }
+    setIsProcessingData(false);
   };
 
   const handleOpenModal = () => {
@@ -427,146 +436,144 @@ export default function InstructorManagementPage() {
     },
   ];
 
-  const renderSpinner = useMemo(() => {
-    return <Spin spinning={true} />;
-  }, []);
-
   return (
     <AdminAuthenticatedLayout>
       {contextHolder}
       <div className="space-y-6">
-        <Row wrap={false} className="flex flex-col gap-y-[15px]">
-          <Row className="items-center justify-between">
-            <Title level={2} className="!mb-0">
-              Instructor Management
-            </Title>
-
-            <Button
-              type="primary"
-              onClick={handleOpenModal}
-              icon={<PlusOutlined />}
-              className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
-            >
-              New Instructor
-            </Button>
+        {loadingInstructor || isProcessingData && (
+          <Row justify="center">
+            <Spin spinning={true} />
           </Row>
 
-          <Input
-            className="max-w-[300px]"
-            placeholder="Search instructors"
-            prefix={<IoIosSearch />}
-            onChange={(e) => setInput(e.target.value)}
-          />
-        </Row>
-
-        {fetchingInstructors && (
-          <Row wrap={false} justify="center">
-            {renderSpinner}
-          </Row>
         )}
-        {!fetchingInstructors && (
-          <Row gutter={[16, 16]}>
-            {instructors &&
-              instructors.map((data, idx) => {
-                return (
-                  <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
-                    <Card
-                      onClick={() => handleEdit(data)}
-                      hoverable
-                      cover={
-                        <div
-                          style={{
-                            height: 200, // same height as an image cover
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: "#f5f5f5", // optional: placeholder background
-                          }}
-                        >
-                          {data?.avatar_url === undefined && (
-                            <User style={{ fontSize: 64, color: "#999" }} />
-                          )}
-                          {data?.avatar_url && (
-                            <img
-                              className="rounded-t-lg"
-                              src={data.avatar_url}
-                              alt={data.full_name}
+
+        {!loadingInstructor && !isProcessingData &&
+          <>
+            <Row wrap={false} className="flex gap-y-[15px] items-center justify-between">
+              <Button
+                type="primary"
+                onClick={handleOpenModal}
+                icon={<PlusOutlined />}
+                className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+              >
+                New Instructor
+              </Button>
+
+              <Input
+                className="max-w-[300px]"
+                placeholder="Search instructors"
+                prefix={<IoIosSearch />}
+                onChange={(e) => setInput(e.target.value)}
+              />
+            </Row>
+
+            {!loadingInstructor && !isProcessingData && !fetchingInstructors && (
+              <Row gutter={[16, 16]}>
+                {instructors &&
+                  instructors.map((data, idx) => {
+                    return (
+                      <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
+                        <Card
+                          onClick={() => handleEdit(data)}
+                          hoverable
+                          cover={
+                            <div
                               style={{
-                                objectFit: "cover",
-                                height: 200,
-                                width: "100%",
+                                height: 200, // same height as an image cover
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                backgroundColor: "#f5f5f5", // optional: placeholder background
                               }}
-                            />
-                          )}
-                        </div>
-                      }
-                    >
-                      <Card.Meta
-                        title={
-                          <Row className="gap-[5px]">
-                            <Text>{data.first_name}</Text>
-                            {data?.deactivated === true && (
-                              <Tag color="red">Deactivated</Tag>
-                            )}
-                          </Row>
-                        }
-                        description={data.certification}
-                      />
-                      {/* {data?.deactivated === true && (
+                            >
+                              {data?.avatar_url === undefined && (
+                                <User style={{ fontSize: 64, color: "#999" }} />
+                              )}
+                              {data?.avatar_url && (
+                                <img
+                                  className="rounded-t-lg"
+                                  src={data.avatar_url}
+                                  alt={data.full_name}
+                                  style={{
+                                    objectFit: "cover",
+                                    height: 200,
+                                    width: "100%",
+                                  }}
+                                />
+                              )}
+                            </div>
+                          }
+                        >
+                          <Card.Meta
+                            title={
+                              <Row className="gap-[5px]">
+                                <Text>{data.first_name}</Text>
+                                {data?.deactivated === true && (
+                                  <Tag color="red">Deactivated</Tag>
+                                )}
+                              </Row>
+                            }
+                            description={data.certification}
+                          />
+                          {/* {data?.deactivated === true && (
                     <Tag color="red">Deactivated</Tag>
                   )} */}
-                    </Card>
-                  </Col>
-                );
-              })}
+                        </Card>
+                      </Col>
+                    );
+                  })}
 
-            {!instructors?.length && (
-              <Row className="w-full flex justify-center">
-                <Text>No instructors by that name</Text>
+                {!instructors?.length && (
+                  <Row className="w-full flex justify-center">
+                    <Text>No instructors by that name</Text>
+                  </Row>
+                )}
               </Row>
             )}
-          </Row>
-        )}
+          </>
+        }
       </div>
 
-      {isMobile ? (
-        <Drawer
-          placement="right"
-          onClose={handleCloseModal}
-          open={isModalOpen}
-          width={"100%"}
-          styles={{
-            body: { paddingTop: 24 },
-          }}
-        >
-          <Tabs
-            activeKey={profileTab}
-            defaultValue={profileTab}
-            onTabClick={(e) =>
-              setProfileTab(e as "account-creation" | "change-password")
-            }
-            items={formTabs}
-          />
-        </Drawer>
-      ) : (
-        <Modal
-          open={isModalOpen}
-          onCancel={handleCloseModal}
-          footer={null}
-          width={600}
-          maskClosable={false}
-          destroyOnHidden={true}
-        >
-          <Tabs
-            activeKey={profileTab}
-            defaultValue={profileTab}
-            onTabClick={(e) =>
-              setProfileTab(e as "account-creation" | "change-password")
-            }
-            items={formTabs}
-          />
-        </Modal>
-      )}
-    </AdminAuthenticatedLayout>
+      {
+        isMobile ? (
+          <Drawer
+            placement="right"
+            onClose={handleCloseModal}
+            open={isModalOpen}
+            width={"100%"}
+            styles={{
+              body: { paddingTop: 24 },
+            }}
+          >
+            <Tabs
+              activeKey={profileTab}
+              defaultValue={profileTab}
+              onTabClick={(e) =>
+                setProfileTab(e as "account-creation" | "change-password")
+              }
+              items={formTabs}
+            />
+          </Drawer>
+        ) : (
+          <Modal
+            open={isModalOpen}
+            onCancel={handleCloseModal}
+            footer={null}
+            width={600}
+            maskClosable={false}
+            destroyOnHidden={true}
+          >
+            <Tabs
+              activeKey={profileTab}
+              defaultValue={profileTab}
+              onTabClick={(e) =>
+                setProfileTab(e as "account-creation" | "change-password")
+              }
+              items={formTabs}
+            />
+          </Modal>
+        )
+      }
+    </AdminAuthenticatedLayout >
   );
 }

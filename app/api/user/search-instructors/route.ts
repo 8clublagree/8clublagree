@@ -6,13 +6,13 @@ export async function GET(req: NextRequest) {
     const data = Object.fromEntries(new URL(req.url).searchParams.entries());
     const name = data.name;
 
-    let query = supabaseServer.from("instructors").select(`
+    let query = supabaseServer.from("user_profiles").select(`
       *,
-      user_profiles (*)
-      `);
+      instructors (*)
+      `).eq("user_type", "instructor");
 
     if (!!name?.length) {
-      query = query.ilike("full_name", `%${name}%`);
+      query = query.ilike("full_name", `%${name}%`)
     }
 
     const { data: instructors, error } = await query;
