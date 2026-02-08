@@ -400,7 +400,7 @@ export default function About() {
             size="small"
             scroll={{ x: 1000 }}
             style={{ fontWeight: 300 }}
-            locale={{ emptyText: "No classes have been schedules for today" }}
+            locale={{ emptyText: "No classes have been scheduled for today" }}
           />
         </div>
       </section>
