@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Row, Col, Statistic, Typography, Segmented, Button } from "antd";
+import { Card, Row, Col, Statistic, Typography, Segmented, Button, Spin } from "antd";
 import { CalendarOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
+  const [isProcessingData, setIsProcessingData] = useState<boolean>(false);
   const [classes, setClasses] = useState<any[]>([]);
   const [dashboardKPI, setDashboardKPI] = useState<any>({
     totalClasses: 0,
@@ -78,48 +79,56 @@ export default function DashboardPage() {
   }, [])
 
   const handleFetchClasses = async ({ period = "Daily" }: { period?: "Daily" | "Weekly" }) => {
-    let params: any = {};
+    setIsProcessingData(true)
+    try {
 
-    if (period === "Weekly") {
-      params = {
-        startDate: monday,
-        endDate: sunday,
-        isAdmin: true
-      };
-    } else {
-      params = { selectedDate: dayjs(), isAdmin: true };
-    }
+      let params: any = {};
 
-    const data = await fetchClasses(params);
-
-    if (data) {
-      let mapped;
       if (period === "Weekly") {
-        mapped = data?.map((item: any, index: number) => ({
-          id: item.id,
-          label: `Class with ${item.instructor_name}`,
-          day: dayjs(item.class_date).format("ddd (MMM D)"),
-          startTime: dayjs(item.start_time).format("HH:mm"),
-          endTime: dayjs(item.end_time).format("HH:mm"),
-          slots: `${item.taken_slots} / ${item.available_slots}`,
-          color: ganttColors[index],
-          classDate: item.class_date,
-        }));
+        params = {
+          startDate: monday,
+          endDate: sunday,
+          isAdmin: true
+        };
       } else {
-        mapped = formatClassesForChart(data);
+        params = { selectedDate: dayjs(), isAdmin: true };
       }
 
-      setDashboardKPI({
-        totalClasses: mapped.length,
-        confirmedBookings: data.reduce(
-          (acc: number, curr: any) => acc + curr.class_bookings.length,
-          0
-        ),
-      });
+      const data = await fetchClasses(params);
+
+      if (data) {
+        let mapped;
+        if (period === "Weekly") {
+          mapped = data?.map((item: any, index: number) => ({
+            id: item.id,
+            label: `Class with ${item.instructor_name}`,
+            day: dayjs(item.class_date).format("ddd (MMM D)"),
+            startTime: dayjs(item.start_time).format("HH:mm"),
+            endTime: dayjs(item.end_time).format("HH:mm"),
+            slots: `${item.taken_slots} / ${item.available_slots}`,
+            color: ganttColors[index],
+            classDate: item.class_date,
+          }));
+        } else {
+          mapped = formatClassesForChart(data);
+        }
+
+        setDashboardKPI({
+          totalClasses: mapped.length,
+          confirmedBookings: data.reduce(
+            (acc: number, curr: any) => acc + curr.class_bookings.length,
+            0
+          ),
+        });
 
 
-      setClasses(mapped);
+        setClasses(mapped);
+      }
+      setIsProcessingData(false)
+    } catch (error) {
+      setIsProcessingData(false)
     }
+    setIsProcessingData(false)
   };
 
   const formatDecimalHour = (decimal: number) => {
@@ -374,6 +383,7 @@ export default function DashboardPage() {
           />
         </Row>
 
+
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Card className="shadow-sm hover:shadow-md transition-shadow">
@@ -386,6 +396,7 @@ export default function DashboardPage() {
                 value={dashboardKPI.totalClasses}
                 prefix={<CalendarOutlined className="text-blue-600" />}
                 valueStyle={{ color: "#1e293b" }}
+                loading={isProcessingData}
               />
             </Card>
           </Col>
@@ -396,23 +407,32 @@ export default function DashboardPage() {
                 value={dashboardKPI.confirmedBookings}
                 prefix={<CheckCircleOutlined className="text-green-600" />}
                 valueStyle={{ color: "#1e293b" }}
+                loading={isProcessingData}
               />
             </Card>
           </Col>
         </Row>
 
-        <Card
-          className="shadow-sm hover:shadow-md transition-shadow"
-          title={
-            dashboardPeriod === "Daily"
-              ? "Today's Schedule"
-              : "This Week's Schedule"
-          }
-          styles={{ header: { border: "none" }, body: { padding: 0 } }}
-        >
-          {dashboardPeriod === "Daily" && <DailyGanttChart />}
-          {dashboardPeriod === "Weekly" && <WeeklyScheduleChart />}
-        </Card>
+        {isProcessingData &&
+          <Row wrap={false} className="justify-center">
+            <Spin spinning={true} />
+          </Row>
+        }
+
+        {!isProcessingData &&
+          <Card
+            className="shadow-sm hover:shadow-md transition-shadow"
+            title={
+              dashboardPeriod === "Daily"
+                ? "Today's Schedule"
+                : "This Week's Schedule"
+            }
+            styles={{ header: { border: "none" }, body: { padding: 0 } }}
+          >
+            {dashboardPeriod === "Daily" && <DailyGanttChart />}
+            {dashboardPeriod === "Weekly" && <WeeklyScheduleChart />}
+          </Card>
+        }
       </div>
     </AdminAuthenticatedLayout>
   );
