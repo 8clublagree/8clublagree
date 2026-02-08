@@ -440,98 +440,100 @@ export default function InstructorManagementPage() {
     <AdminAuthenticatedLayout>
       {contextHolder}
       <div className="space-y-6">
-        {loadingInstructor || isProcessingData && (
-          <Row justify="center">
-            <Spin spinning={true} />
+
+
+        {/* {!loadingInstructor && !isProcessingData && */}
+        <>
+          <Row wrap={false} className="flex gap-y-[15px] items-center justify-between">
+            <Button
+              type="primary"
+              onClick={handleOpenModal}
+              icon={<PlusOutlined />}
+              className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
+            >
+              New Instructor
+            </Button>
+
+            <Input
+
+              className="max-w-[300px]"
+              placeholder="Search instructors"
+              prefix={<IoIosSearch />}
+              onChange={(e) => setInput(e.target.value)}
+            />
           </Row>
 
-        )}
-
-        {!loadingInstructor && !isProcessingData &&
-          <>
-            <Row wrap={false} className="flex gap-y-[15px] items-center justify-between">
-              <Button
-                type="primary"
-                onClick={handleOpenModal}
-                icon={<PlusOutlined />}
-                className="!bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]"
-              >
-                New Instructor
-              </Button>
-
-              <Input
-                className="max-w-[300px]"
-                placeholder="Search instructors"
-                prefix={<IoIosSearch />}
-                onChange={(e) => setInput(e.target.value)}
-              />
+          {loadingInstructor || isProcessingData && (
+            <Row justify="center">
+              <Spin spinning={true} />
             </Row>
 
-            {!loadingInstructor && !isProcessingData && !fetchingInstructors && (
-              <Row gutter={[16, 16]}>
-                {instructors &&
-                  instructors.map((data, idx) => {
-                    return (
-                      <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
-                        <Card
-                          onClick={() => handleEdit(data)}
-                          hoverable
-                          cover={
-                            <div
-                              style={{
-                                height: 200, // same height as an image cover
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: "#f5f5f5", // optional: placeholder background
-                              }}
-                            >
-                              {data?.avatar_url === undefined && (
-                                <User style={{ fontSize: 64, color: "#999" }} />
+          )}
+          {!loadingInstructor && !isProcessingData && !fetchingInstructors && (
+            <Row gutter={[16, 16]}>
+              {instructors &&
+                instructors.map((data, idx) => {
+                  return (
+                    <Col key={idx} xs={24} sm={12} md={8} lg={6} xl={6} xxl={6}>
+                      <Card
+                        onClick={() => handleEdit(data)}
+                        hoverable
+                        cover={
+                          <div
+                            style={{
+                              height: 200, // same height as an image cover
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: "#f5f5f5", // optional: placeholder background
+                            }}
+                          >
+                            {data?.avatar_url === undefined && (
+                              <User style={{ fontSize: 64, color: "#999" }} />
+                            )}
+                            {data?.avatar_url && (
+                              <img
+                                className="rounded-t-lg"
+                                src={data.avatar_url}
+                                alt={data.full_name}
+                                style={{
+                                  objectFit: "cover",
+                                  height: 200,
+                                  width: "100%",
+                                }}
+                              />
+                            )}
+                          </div>
+                        }
+                      >
+                        <Card.Meta
+                          title={
+                            <Row className="gap-[5px]">
+                              <Text>{data.first_name}</Text>
+                              {data?.deactivated === true && (
+                                <Tag color="red">Deactivated</Tag>
                               )}
-                              {data?.avatar_url && (
-                                <img
-                                  className="rounded-t-lg"
-                                  src={data.avatar_url}
-                                  alt={data.full_name}
-                                  style={{
-                                    objectFit: "cover",
-                                    height: 200,
-                                    width: "100%",
-                                  }}
-                                />
-                              )}
-                            </div>
+                            </Row>
                           }
-                        >
-                          <Card.Meta
-                            title={
-                              <Row className="gap-[5px]">
-                                <Text>{data.first_name}</Text>
-                                {data?.deactivated === true && (
-                                  <Tag color="red">Deactivated</Tag>
-                                )}
-                              </Row>
-                            }
-                            description={data.certification}
-                          />
-                          {/* {data?.deactivated === true && (
+                          description={data.certification}
+                        />
+                        {/* {data?.deactivated === true && (
                     <Tag color="red">Deactivated</Tag>
                   )} */}
-                        </Card>
-                      </Col>
-                    );
-                  })}
+                      </Card>
+                    </Col>
+                  );
+                })}
 
-                {!instructors?.length && (
-                  <Row className="w-full flex justify-center">
-                    <Text>No instructors by that name</Text>
-                  </Row>
-                )}
-              </Row>
-            )}
-          </>
-        }
+              {!instructors?.length && (
+                <Row className="w-full flex justify-center">
+                  <Text>No instructors by that name</Text>
+                </Row>
+              )}
+            </Row>
+          )}
+        </>
+        {/* } */}
       </div>
 
       {
