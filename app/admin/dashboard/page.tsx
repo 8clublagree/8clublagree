@@ -59,6 +59,14 @@ export default function DashboardPage() {
     () => dayjs().endOf("isoWeek").format("YYYY-MM-DD"),
     []
   );
+  const weeklyLabelsWithDates = useMemo(
+    () =>
+      daysOfWeek.map((day, i) => {
+        const d = dayjs(monday).add(i, "day");
+        return `${day} ${d.format("(MMM D)")}`;
+      }),
+    [monday]
+  );
   const [dashboardPeriod, setDashboardPeriod] = useState<"Daily" | "Weekly">(
     "Daily"
   );
@@ -231,7 +239,7 @@ export default function DashboardPage() {
         </div>
       </div>
     );
-  }, [classes]);
+  }, [classes, dashboardPeriod]);
 
   const WeeklyScheduleChart = useCallback(() => {
     const dataPoints = classes?.map((ev) => ({
@@ -243,7 +251,7 @@ export default function DashboardPage() {
     const backgroundColors = classes?.map((ev) => ev.color);
 
     const data = {
-      labels: daysOfWeek,
+      labels: weeklyLabelsWithDates,
       datasets: [
         {
           label: "Schedule",
@@ -301,7 +309,7 @@ export default function DashboardPage() {
       scales: {
         x: {
           type: "category",
-          labels: daysOfWeek,
+          labels: weeklyLabelsWithDates,
           offset: true,
           grid: { display: false },
           ticks: { color: "#374151", font: { size: 13 } },
@@ -337,7 +345,7 @@ export default function DashboardPage() {
         </div>
       </div>
     );
-  }, [classes]);
+  }, [classes, dashboardPeriod]);
 
   return (
     <AdminAuthenticatedLayout>
