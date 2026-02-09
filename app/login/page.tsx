@@ -9,10 +9,13 @@ import Link from "next/link";
 import { useAppMessage } from "@/components/ui/message-popup";
 import UnauthenticatedLayout from "@/components/layout/UnauthenticatedLayout";
 import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { logout } from "@/lib/features/authSlice";
 
 const { Title, Text } = Typography;
 
 export default function LoginPage() {
+  const dispatch = useDispatch();
   const router = useRouter();
   const { showMessage, contextHolder } = useAppMessage();
   const [loading, setLoading] = useState(false);
@@ -29,9 +32,17 @@ export default function LoginPage() {
 
       const { data: profile } = await supabase
         .from("user_profiles")
-        .select("user_type")
+        .select("user_type, deleted_at")
         .eq("id", data.user.id)
         .maybeSingle();
+
+      if (profile?.deleted_at) {
+        showMessage({ type: "error", content: "Email or password is incorrect" });
+        await supabase.auth.signOut();
+        dispatch(logout());
+        router.push("/login");
+        return;
+      }
 
       showMessage({ type: "success", content: "Login successful!" });
 
