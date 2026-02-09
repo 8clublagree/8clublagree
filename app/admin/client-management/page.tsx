@@ -36,7 +36,8 @@ export default function ClientManagementPage() {
   const { updateUser, loading: updating } = useUpdateUser();
   const { showMessage, contextHolder } = useAppMessage();
   const [historyTab, setHistoryTab] = useState<
-    "Bookings" | "Purchases" | "Payments"
+    // "Bookings" | "Purchases" | "Payments"
+    "Bookings" | "Purchases"
   >("Bookings");
   const { deleteUser } = useDeleteUser();
   const { fetchImage } = useManageImage();
@@ -349,8 +350,10 @@ export default function ClientManagementPage() {
       >
         <Segmented
           value={historyTab}
-          options={["Bookings", "Purchases", "Payments"]}
-          onChange={(e: "Bookings" | "Purchases" | "Payments") =>
+          options={["Bookings", "Purchases"]}
+          // options={["Bookings", "Purchases", "Payments"]}
+          // onChange={(e: "Bookings" | "Purchases" | "Payments") =>
+          onChange={(e: "Bookings" | "Purchases") =>
             setHistoryTab(e)
           }
           block
