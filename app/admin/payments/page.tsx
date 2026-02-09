@@ -284,23 +284,25 @@ const PaymentsPage = () => {
     if (!valid) {
       throw new Error("Wrong password.");
     }
+
     await handleUpdatePaymentStatus("SUCCESSFUL");
   };
 
   const handleUpdatePaymentStatus = async (status: string) => {
     setIsConfirmingPayment(true);
     try {
-      const response = await updatePaymentStatus({
-        status,
-        id: selectedPayment?.id as string,
-        approved_at: dayjs().toISOString(),
-      });
+
 
       // save credits to manual payment info
 
       // this saves purchase order info into the client packages table
 
-      await Promise.all([
+      const response = await Promise.all([
+        updatePaymentStatus({
+          status,
+          id: selectedPayment?.id as string,
+          approved_at: dayjs().toISOString(),
+        }),
         handlePurchasePackage(),
         handleUpdateUserCredits({
           userID: selectedPayment!.user_profiles.id,
@@ -311,7 +313,7 @@ const PaymentsPage = () => {
 
       setIsReviewingPayment(false);
 
-      if (response?.data) await handleFetchOrders();
+      if (response) await handleFetchOrders();
 
       showMessage({
         type: "success",
@@ -428,7 +430,27 @@ const PaymentsPage = () => {
       {contextHolder}
 
 
-      <RenderTable />
+      <Table<OrdersTableType>
+        rowKey={(record) => record.id ?? record.key ?? record.reference_id ?? String(record.created_at)}
+        loading={
+          loading || updatingCredits || modifyingPackage || confirmingPayment
+        }
+        scroll={{ x: true }}
+        columns={columns}
+        dataSource={payments}
+        locale={{
+          emptyText: <Empty description="No payments have been made yet" />,
+        }}
+        size={isMobile ? "small" : "middle"}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          pageSizeOptions: ["10", "20", "50"],
+          responsive: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} items`,
+        }}
+      />
 
       <Drawer
         keyboard={false}

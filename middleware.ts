@@ -36,6 +36,9 @@ export async function middleware(req: NextRequest) {
   if (pathname === "/api/reset-password-with-token") {
     return NextResponse.next();
   }
+  if (pathname === "/api/admin/revoke-all-sessions") {
+    return NextResponse.next();
+  }
 
   const authHeader = headers.get("authorization");
 
