@@ -21,37 +21,37 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 // Client GET cache (TTL) — fewer duplicate API calls, lower server/DB load
-const CACHE_TTL_MS = { about: 60_000, packages: 30_000, classes: 15_000 };
-const getCache = new Map<string, { data: unknown; expires: number }>();
-function getCached<T>(key: string, ttlMs: number): T | null {
-  const entry = getCache.get(key);
-  if (!entry || Date.now() >= entry.expires) return null;
-  return entry.data as T;
-}
-function setCached(key: string, data: unknown, ttlMs: number): void {
-  getCache.set(key, { data, expires: Date.now() + ttlMs });
-}
+// const CACHE_TTL_MS = { about: 60_000, packages: 30_000, classes: 15_000 };
+// const getCache = new Map<string, { data: unknown; expires: number }>();
+// function getCached<T>(key: string, ttlMs: number): T | null {
+//   const entry = getCache.get(key);
+//   if (!entry || Date.now() >= entry.expires) return null;
+//   return entry.data as T;
+// }
+// function setCached(key: string, data: unknown, ttlMs: number): void {
+//   getCache.set(key, { data, expires: Date.now() + ttlMs });
+// }
 // Invalidate cache by prefix after mutations so UI doesn't show stale data
-function invalidateGetCache(prefix: string): void {
-  Array.from(getCache.keys()).forEach((key) => {
-    if (key.startsWith(prefix)) getCache.delete(key);
-  });
-}
+// function invalidateGetCache(prefix: string): void {
+//   Array.from(getCache.keys()).forEach((key) => {
+//     if (key.startsWith(prefix)) getCache.delete(key);
+//   });
+// }
 
 export const useAboutPageData = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchPageData = async () => {
-    const cacheKey = "about";
-    const cached = getCached<{ classesRes: unknown; trainersRes: unknown; schedulesRes: unknown } | null>(cacheKey, CACHE_TTL_MS.about);
-    if (cached) return cached;
+    // const cacheKey = "about";
+    // const cached = getCached<{ classesRes: unknown; trainersRes: unknown; schedulesRes: unknown } | null>(cacheKey, CACHE_TTL_MS.about);
+    // if (cached) return cached;
     try {
       setLoading(true);
       const response = await axiosApi.get(`/about`, { params: { type: "about" } });
       const { classesRes, trainersRes, schedulesRes } = response.data.data;
       if (classesRes.error || trainersRes.error || schedulesRes.error) return null;
       const result = { classesRes, trainersRes, schedulesRes };
-      setCached(cacheKey, result, CACHE_TTL_MS.about);
+      // setCached(cacheKey, result, CACHE_TTL_MS.about);
       return result;
     } catch (error) {
       console.error(error);
@@ -509,7 +509,7 @@ export const useClassManagement = () => {
       const response = await axiosApi.put("/classes/mark-attendance", { bookingID, status });
       const data = response?.data?.data;
       if (!data) return null;
-      invalidateGetCache("classes:");
+      // invalidateGetCache("classes:");
       return data;
     } catch (error) {
       console.error(error);
@@ -539,7 +539,7 @@ export const useClassManagement = () => {
       });
       const data = response?.data?.data;
       if (!data) return null;
-      invalidateGetCache("classes:");
+      // invalidateGetCache("classes:");
       return data;
     } catch (error) {
       console.error(error);
@@ -581,9 +581,7 @@ export const useClassManagement = () => {
     endDate?: Dayjs;
     selectedDate?: Dayjs;
   }) => {
-    const cacheKey = `classes:${isAdmin}:${isInstructor}:${userId ?? ""}:${startDate ?? ""}:${endDate ?? ""}:${selectedDate ?? ""}:${instructorId ?? ""}`;
-    const cached = getCached<unknown>(cacheKey, CACHE_TTL_MS.classes);
-    if (cached) return cached;
+
     try {
       setLoading(true);
       const response = await axiosApi.get("/classes/fetch-classes", {
@@ -591,7 +589,6 @@ export const useClassManagement = () => {
       });
       const data = response?.data?.data;
       if (!data) return null;
-      setCached(cacheKey, data, CACHE_TTL_MS.classes);
       return data;
     } catch (error) {
       console.error(error);
@@ -607,7 +604,7 @@ export const useClassManagement = () => {
       const response = await axiosApi.post("/classes/create-class", { values });
       const data = response?.data?.data;
       if (!data) return null;
-      invalidateGetCache("classes:");
+      // invalidateGetCache("classes:");
       return data;
     } catch (error) {
       console.error(error);
@@ -629,7 +626,7 @@ export const useClassManagement = () => {
       const response = await axiosApi.put("/classes/update-class", { id, values });
       const data = response?.data?.data;
       if (!data) return null;
-      invalidateGetCache("classes:");
+      // invalidateGetCache("classes:");
       return data;
     } catch (error) {
       console.error(error);
@@ -661,7 +658,7 @@ export const useClassManagement = () => {
 
       const data = response.data.data;
       if (data === null) return null;
-      invalidateGetCache("classes:");
+      // invalidateGetCache("classes:");
       return data;
     } catch (error) {
       console.error(error);
@@ -677,7 +674,7 @@ export const useClassManagement = () => {
       const response = await axiosApi.post("/classes/delete-class", { id });
       const data = response.data?.data;
       if (data === null) return null;
-      invalidateGetCache("classes:");
+      // invalidateGetCache("classes:");
       return data;
     } catch (error) {
       console.error(error);
@@ -714,7 +711,7 @@ export const useClassManagement = () => {
       });
       const data = response.data?.data;
       if (data === null) return null;
-      invalidateGetCache("classes:");
+      // invalidateGetCache("classes:");
       return data;
     } catch (error) {
       console.error(error);
@@ -747,7 +744,7 @@ export const usePackageManagement = () => {
       const response = await axiosApi.post("/package/create-package", { values });
       const data = response.data?.data;
       if (!data) return null;
-      invalidateGetCache("packages:");
+      // invalidateGetCache("packages:");
       return data;
     } catch (error) {
       console.error(error);
@@ -762,15 +759,15 @@ export const usePackageManagement = () => {
   }: {
     isAdmin: boolean | undefined;
   }) => {
-    const cacheKey = `packages:${String(isAdmin)}`;
-    const cached = getCached<unknown>(cacheKey, CACHE_TTL_MS.packages);
-    if (cached) return cached;
+    // const cacheKey = `packages:${String(isAdmin)}`;
+    // const cached = getCached<unknown>(cacheKey, CACHE_TTL_MS.packages);
+    // if (cached) return cached;
     try {
       setLoading(true);
       const response = await axiosApi.get("/package/fetch-packages", { params: { isAdmin } });
       const data = response.data?.data;
       if (!data) return null;
-      setCached(cacheKey, data, CACHE_TTL_MS.packages);
+      // setCached(cacheKey, data, CACHE_TTL_MS.packages);
       return data;
     } catch (error) {
       console.error(error);
@@ -792,7 +789,7 @@ export const usePackageManagement = () => {
       const response = await axiosApi.put("/package/update-package", { id, values });
       const data = response.data?.data;
       if (!data) return null;
-      invalidateGetCache("packages:");
+      // invalidateGetCache("packages:");
       return data;
     } catch (error) {
       console.error(error);
@@ -808,7 +805,7 @@ export const usePackageManagement = () => {
       const response = await axiosApi.post("/package/delete-package", { id });
       const data = response.data?.data;
       if (!data) return null;
-      invalidateGetCache("packages:");
+      // invalidateGetCache("packages:");
       return data;
     } catch (error) {
       console.error(error);
@@ -840,7 +837,7 @@ export const usePackageManagement = () => {
       });
       const data = response.data?.data;
       if (!data) return null;
-      invalidateGetCache("packages:");
+      // invalidateGetCache("packages:");
       return data;
     } catch (error) {
       console.error(error);
@@ -867,7 +864,7 @@ export const usePackageManagement = () => {
       const response = await axiosApi.put("/package/update-client-package", { clientPackageID, values });
       const data = response.data?.data;
       if (!data) return null;
-      invalidateGetCache("packages:");
+      // invalidateGetCache("packages:");
       return data;
     } catch (error) {
       console.error(error);
@@ -884,11 +881,11 @@ export const usePackageManagement = () => {
     clientID?: string;
     findExpiry?: boolean | undefined;
   }) => {
-    const cacheKey = `packages:client:${clientID ?? "all"}:${String(findExpiry ?? false)}`;
-    const cached = getCached<unknown>(cacheKey, CACHE_TTL_MS.packages);
-    if (cached) return cached;
+    // const cacheKey = `packages:client:${clientID ?? "all"}:${String(findExpiry ?? false)}`;
+    // const cached = getCached<unknown>(cacheKey, CACHE_TTL_MS.packages);
+    // if (cached) return cached;
 
-    setLoading(true);
+    // setLoading(true);
 
     const response = await axiosApi.get("/package/fetch-client-packages", {
       params: { clientID, findExpiry },
@@ -901,7 +898,7 @@ export const usePackageManagement = () => {
       return null;
     }
 
-    setCached(cacheKey, data, CACHE_TTL_MS.packages);
+    // setCached(cacheKey, data, CACHE_TTL_MS.packages);
     setLoading(false);
     return data;
   };
