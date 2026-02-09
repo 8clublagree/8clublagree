@@ -169,15 +169,14 @@ export default function BookingsPage() {
     try {
       setIsSubmitting(true);
       if (user) {
-        let promises: any[] = [];
+        await bookClass({
+          classDate: dayjs(selectedDate).toISOString(),
+          classId: selectedRecord.id,
+          bookerId: user?.id as string,
+          isWalkIn: false,
+        });
 
-        promises = [
-          bookClass({
-            classDate: dayjs(selectedDate).toISOString(),
-            classId: selectedRecord.id,
-            bookerId: user?.id as string,
-            isWalkIn: false,
-          }),
+        const promises: Promise<unknown>[] = [
           updateClass({
             id: selectedRecord.id,
             values: {
@@ -194,7 +193,6 @@ export default function BookingsPage() {
               values: { credits: updatedCredits },
             }),
           );
-
           dispatch(setUser({ ...user, credits: updatedCredits }));
         }
 

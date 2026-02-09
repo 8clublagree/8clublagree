@@ -14,6 +14,20 @@ export async function POST(req: Request) {
       walkInClientContactNumber,
     } = await req.json();
 
+    const { data: classData, error: classError } = await supabaseServer
+      .from("classes")
+      .select("*")
+      .eq("id", classId)
+      .single();
+
+    if (classError) {
+      return NextResponse.json({ error: classError.message }, { status: 400 });
+    }
+
+    if (classData?.taken_slots >= classData?.available_slots) {
+      return NextResponse.json({ error: "Class is full" }, { status: 400 });
+    }
+
     const { data, error } = await supabaseServer
       .from("class_bookings")
       .insert({
