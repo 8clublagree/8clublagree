@@ -44,7 +44,7 @@ const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
                 </Text>
               </Row>
             )}
-            {dayjs(booking.classDate).isAfter(dayjs(), "day") && (
+            {dayjs(booking.classDate).isSameOrAfter(dayjs(), "day") && (
               <Row>
                 <Text
                   strong
