@@ -5,22 +5,22 @@ export const config = {
 };
 
 // In-memory token validation cache (short TTL) to reduce Supabase /auth/v1/user calls
-const TOKEN_CACHE_TTL_MS = 60_000; // 1 min
-const tokenCache = new Map<string, number>();
+// const TOKEN_CACHE_TTL_MS = 60_000; // 1 min
+// const tokenCache = new Map<string, number>();
 
-function isTokenCachedValid(token: string): boolean {
-  const expires = tokenCache.get(token);
-  if (expires == null) return false;
-  if (Date.now() >= expires) {
-    tokenCache.delete(token);
-    return false;
-  }
-  return true;
-}
+// function isTokenCachedValid(token: string): boolean {
+//   const expires = tokenCache.get(token);
+//   if (expires == null) return false;
+//   if (Date.now() >= expires) {
+//     tokenCache.delete(token);
+//     return false;
+//   }
+//   return true;
+// }
 
-function setTokenCached(token: string): void {
-  tokenCache.set(token, Date.now() + TOKEN_CACHE_TTL_MS);
-}
+// function setTokenCached(token: string): void {
+//   tokenCache.set(token, Date.now() + TOKEN_CACHE_TTL_MS);
+// }
 
 
 
@@ -82,21 +82,21 @@ export async function middleware(req: NextRequest) {
   const token = authHeader.slice(7); // "Bearer ".length — avoid replace allocation
 
   // Use cache to avoid Supabase call on every request (cost + latency)
-  if (!isTokenCachedValid(token)) {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL!!}/auth/v1/user`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        },
+  // if (!isTokenCachedValid(token)) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL!!}/auth/v1/user`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       },
-    );
-    if (!res.ok) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-    setTokenCached(token);
+    },
+  );
+  if (!res.ok) {
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
+  // setTokenCached(token);
+  // }
 
   return NextResponse.next();
 }
