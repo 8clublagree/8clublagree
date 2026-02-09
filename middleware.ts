@@ -4,26 +4,6 @@ export const config = {
   matcher: ["/api/:path*"],
 };
 
-// In-memory token validation cache (short TTL) to reduce Supabase /auth/v1/user calls
-// const TOKEN_CACHE_TTL_MS = 60_000; // 1 min
-// const tokenCache = new Map<string, number>();
-
-// function isTokenCachedValid(token: string): boolean {
-//   const expires = tokenCache.get(token);
-//   if (expires == null) return false;
-//   if (Date.now() >= expires) {
-//     tokenCache.delete(token);
-//     return false;
-//   }
-//   return true;
-// }
-
-// function setTokenCached(token: string): void {
-//   tokenCache.set(token, Date.now() + TOKEN_CACHE_TTL_MS);
-// }
-
-
-
 export async function middleware(req: NextRequest) {
   const { headers, nextUrl } = req;
   const origin = req.nextUrl.origin;
@@ -79,12 +59,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized Token" }, { status: 401 });
   }
 
-  const token = authHeader.slice(7); // "Bearer ".length — avoid replace allocation
-
-  // Use cache to avoid Supabase call on every request (cost + latency)
-  // if (!isTokenCachedValid(token)) {
+  const token = authHeader.slice(7);
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL!!}/auth/v1/user`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/auth/v1/user`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -95,8 +72,6 @@ export async function middleware(req: NextRequest) {
   if (!res.ok) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
-  // setTokenCached(token);
-  // }
 
   return NextResponse.next();
 }
