@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 const { Text } = Typography;
 
 const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
+
   return (
     <>
       <Col className="flex flex-col gap-y-[10px] cursor-pointer">
@@ -32,16 +33,27 @@ const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
                 </Text>
               </Row>
             </Col>
-            <Row>
-              <Text
-                strong
-                className={`text-[${
-                  attendanceStatus?.[booking.attendance]?.color
-                }]`}
-              >
-                {attendanceStatus?.[booking.attendance]?.status ?? "No Show"}
-              </Text>
-            </Row>
+            {!dayjs(booking.classDate).isAfter(dayjs(), "day") && (
+              <Row>
+                <Text
+                  strong
+                  className={`text-[${attendanceStatus?.[booking.attendance]?.color
+                    }]`}
+                >
+                  {attendanceStatus?.[booking.attendance]?.status ?? "No Show"}
+                </Text>
+              </Row>
+            )}
+            {dayjs(booking.classDate).isAfter(dayjs(), "day") && (
+              <Row>
+                <Text
+                  strong
+                  className={`text-slate-400`}
+                >
+                  Upcoming
+                </Text>
+              </Row>
+            )}
           </Row>
         ))}
       </Col>
