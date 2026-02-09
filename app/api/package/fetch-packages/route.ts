@@ -18,10 +18,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    const res = NextResponse.json({ data: packages });
+    // const res = 
+    return NextResponse.json({ data: packages });
     // Cache catalog; 60s revalidate (packages change infrequently)
-    res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
-    return res;
+    // res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+    // return res;
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }

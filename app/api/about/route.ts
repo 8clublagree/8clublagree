@@ -88,7 +88,9 @@ export async function GET() {
       ),
     ]);
 
-    const res = NextResponse.json({
+    // const res = 
+
+    return NextResponse.json({
       data: {
         classesRes,
         trainersRes: { data: trainers },
@@ -96,8 +98,8 @@ export async function GET() {
       },
     });
     // CDN/client cache; 60s revalidate to limit server/DB load
-    res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
-    return res;
+    // res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+    // return res;
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
