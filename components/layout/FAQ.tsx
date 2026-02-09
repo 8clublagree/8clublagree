@@ -23,7 +23,10 @@ const FAQ = () => {
       >
         <Text strong className="halyard text-[16px]" underline>How is Lagree Fitness different from Pilates?</Text>
         <Paragraph>
-          Lagree and Pilates are fundamentally different in purpose, benefits, and equipment.
+          While Lagree and Pilates may look similar, they serve different purposes. Pilates focuses on rehabilitation, alignment, flexibility, and core control at a low intensity. Lagree, on the other hand, is a high-intensity, low-impact, full-body workout designed to build muscular strength, endurance, cardiovascular fitness, and mental toughness.
+        </Paragraph>
+        <Paragraph>
+          Lagree uses slow, controlled movements with minimal rest to keep muscles under constant tension, maximizing results. Pilates typically involves smaller, faster movements with a lighter intensity. Although the Megaformer was inspired by the Pilates reformer, it is specifically engineered to support the Lagree method and its performance-driven goals.
         </Paragraph>
         <Text strong className="halyard text-[16px]" underline>How do I purchase sessions?</Text>
         <Paragraph>
