@@ -1,4 +1,11 @@
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
+
+const supabaseJwks = createRemoteJWKSet(
+  new URL(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/auth/v1/.well-known/jwks.json`,
+  ),
+);
 
 export const config = {
   matcher: ["/api/:path*"],
@@ -63,18 +70,33 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = authHeader.slice(7);
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/auth/v1/user`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      },
-    },
-  );
-  if (!res.ok) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
 
-  return NextResponse.next();
+  // Prefer local JWT verification via JWKS (no network call per request; works with asymmetric signing keys).
+  // Falls back to Auth server when project still uses legacy JWT secret only (JWKS empty).
+  try {
+    await jwtVerify(token, supabaseJwks);
+    return NextResponse.next();
+  } catch {
+    // JWKS verification failed (e.g. legacy project, invalid/expired token). Fall back to Auth server.
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/auth/v1/user`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          },
+        },
+      );
+      if (!res.ok) {
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
+      return NextResponse.next();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid token" },
+        { status: 401 },
+      );
+    }
+  }
 }
