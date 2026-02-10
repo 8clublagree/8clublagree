@@ -7,33 +7,12 @@ const axiosApi = axios.create({
   timeout: 30_000, // Fail fast; avoid hanging requests (cost + UX)
 });
 
-// Session cache — fewer Supabase getSession() calls per request
-const SESSION_CACHE_TTL_MS = 45_000;
-let sessionCache: { token: string; expires: number } | null = null;
-
-/** Set token for the next request(s). Use after signUp() so the first API call uses the new session. */
-export function setSessionToken(accessToken: string): void {
-  sessionCache = {
-    token: accessToken,
-    expires: Date.now() + SESSION_CACHE_TTL_MS,
-  };
-}
-
 axiosApi.interceptors.request.use(
   async (config) => {
-    const now = Date.now();
-    if (sessionCache && sessionCache.expires > now) {
-      config.headers.Authorization = `Bearer ${sessionCache.token}`;
-      return config;
-    }
     const {
       data: { session },
     } = await supabase.auth.getSession();
     if (session?.access_token) {
-      sessionCache = {
-        token: session.access_token,
-        expires: now + SESSION_CACHE_TTL_MS,
-      };
       config.headers.Authorization = `Bearer ${session.access_token}`;
     }
     return config;

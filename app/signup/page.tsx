@@ -90,7 +90,7 @@ export default function SignupPage() {
                 return;
             }
 
-            setSessionToken(sessionData.session.access_token);
+            // setSessionToken(sessionData.session.access_token);
 
             showMessage({
                 type: "success",
