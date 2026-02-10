@@ -471,16 +471,14 @@ export default function BookingsPage() {
                 <Row wrap={false} className="items-center gap-2 mb-[10px]">
                   <Calendar size={18} />
                   <Title level={5} className="!m-0 p-0">
-                    {`${dayjs(selectedDate).format("MMMM")} ${dayjs(
-                      selectedDate,
-                    ).format("D")}, ${dayjs(selectedDate).format("YYYY")}`}
+                    {`${dayjs(selectedDate).format("MMMM D YYYY")}`}
                   </Title>
                 </Row>
                 <Row wrap={false} className="items-center gap-2 mb-[10px]">
                   <Clock size={18} />
                   <Title level={5} className="!m-0">
                     <span className="text-red-400">
-                      {dayjs(selectedRecord?.date).format("dddd")}
+                      {dayjs(selectedRecord?.class_date).format("dddd")}
                     </span>{" "}
                     at{" "}
                     <span className="text-red-400">
