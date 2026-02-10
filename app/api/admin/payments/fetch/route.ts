@@ -1,29 +1,41 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import supabaseServer from "../../../supabase"; // must use service_role key
 
-export async function GET() {
+const SELECT_QUERY = `
+  *,
+  user_profiles (
+    id,
+    full_name,
+    email,
+    user_credits (
+      credits
+    ),
+    client_packages (
+      id,
+      status
+    )
+  )
+`;
+
+export async function GET(request: NextRequest) {
   try {
-    const { data: payments, error: paymentsError } = await supabaseServer
+    const page = Math.max(
+      1,
+      parseInt(request.nextUrl.searchParams.get("page") ?? "1", 10),
+    );
+    const pageSize = Math.min(
+      100,
+      Math.max(1, parseInt(request.nextUrl.searchParams.get("pageSize") ?? "10", 10)),
+    );
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data: payments, error: paymentsError, count } = await supabaseServer
       .from("orders")
-      .select(
-        `
-          *,
-          user_profiles (
-            id,
-            full_name,
-            email,
-            user_credits (
-              credits
-            ),
-            client_packages (
-              id,
-              status
-            )
-          )
-        `,
-      )
+      .select(SELECT_QUERY, { count: "exact" })
       .eq("user_profiles.client_packages.status", "active")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
     if (paymentsError) {
       return NextResponse.json(
@@ -48,14 +60,17 @@ export async function GET() {
         return {
           ...item,
           avatar_url: url,
-          currentActivePackage: item?.user_profiles?.client_packages[0],
+          currentActivePackage: item?.user_profiles?.client_packages?.[0] ?? null,
           userCredits: item?.user_profiles?.user_credits?.[0]?.credits ?? null,
         };
       }),
     );
 
 
-    return NextResponse.json({ payments: parsed });
+    return NextResponse.json({
+      payments: parsed,
+      total: count ?? parsed.length,
+    });
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }

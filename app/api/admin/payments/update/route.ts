@@ -7,7 +7,7 @@ export async function PUT(req: Request) {
 
     const { data, error } = await supabaseServer
       .from("orders")
-      .update(values)
+      .update({ status: values.status, approved_at: values.approved_at ?? null })
       .eq("id", id)
       .select();
 

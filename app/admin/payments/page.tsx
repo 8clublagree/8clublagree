@@ -59,6 +59,8 @@ const PaymentsPage = () => {
     useManageOrders();
   const { showMessage, contextHolder } = useAppMessage();
   const [payments, setPayments] = useState<OrdersTableType[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [selectedPayment, setSelectedPayment] =
     useState<OrdersTableType | null>(null);
   const [isReviewingPayment, setIsReviewingPayment] = useState<boolean>(false);
@@ -260,10 +262,14 @@ const PaymentsPage = () => {
     setIsReviewingPayment(true);
   };
 
-  const handleFetchOrders = async () => {
+  const handleFetchOrders = async (page?: number, pageSize?: number) => {
+    const p = page ?? pagination.current;
+    const ps = pageSize ?? pagination.pageSize;
     try {
-      const response = await fetchCustomerPayments();
-      setPayments(response?.data.payments);
+      const response = await fetchCustomerPayments(p, ps);
+      setPayments(response?.data?.payments ?? []);
+      setTotal(response?.data?.total ?? 0);
+      setPagination((prev) => ({ ...prev, current: p, pageSize: ps }));
     } catch (error) {
       showMessage({ type: "error", content: "Error fetching orders" });
       console.log(error);
@@ -379,42 +385,6 @@ const PaymentsPage = () => {
     }
   };
 
-  const RenderTable = useCallback(() => {
-    return (
-      <Table<OrdersTableType>
-        rowKey={(record) => record.id ?? record.key ?? record.reference_id ?? String(record.created_at)}
-        loading={
-          loading || updatingCredits || modifyingPackage || confirmingPayment
-        }
-        scroll={{ x: true }}
-        columns={columns}
-        dataSource={payments}
-        locale={{
-          emptyText: <Empty description="No payments have been made yet" />,
-        }}
-        size={isMobile ? "small" : "middle"}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          pageSizeOptions: ["10", "20", "50"],
-          responsive: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} items`,
-        }}
-      />
-    );
-  }, [
-    payments,
-    columns,
-    isMobile,
-    loading,
-    updatingCredits,
-    modifyingPackage,
-    confirmingPayment,
-    isReviewingPayment,
-    adminConfirmModalOpen
-  ]);
-
   const handleClose = () => {
     setIsReviewingPayment(false);
     setSelectedPayment(null);
@@ -438,12 +408,23 @@ const PaymentsPage = () => {
         }}
         size={isMobile ? "small" : "middle"}
         pagination={{
-          defaultPageSize: 10,
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total,
           showSizeChanger: true,
-          pageSizeOptions: ["10", "20", "50"],
+          pageSizeOptions: [5, 10, 20, 50],
+          showTotal: (t, range) =>
+            `${range[0]}-${range[1]} of ${t} items`,
           responsive: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} items`,
+          hideOnSinglePage: false,
+          onChange: (page, pageSize) => {
+            setPagination((prev) => ({
+              ...prev,
+              current: page,
+              pageSize: pageSize ?? prev.pageSize,
+            }));
+            handleFetchOrders(page, pageSize ?? pagination.pageSize);
+          },
         }}
       />
 

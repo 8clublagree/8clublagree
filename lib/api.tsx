@@ -1032,11 +1032,13 @@ export const useManageOrders = () => {
     setLoading(false);
   };
 
-  const fetchCustomerPayments = async () => {
+  const fetchCustomerPayments = async (page = 1, pageSize = 10) => {
     try {
       setLoading(true);
 
-      const response = await axiosApi.get("/admin/payments/fetch");
+      const response = await axiosApi.get("/admin/payments/fetch", {
+        params: { page, pageSize },
+      });
 
       if (response && !response.data) return null;
 
