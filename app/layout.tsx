@@ -6,7 +6,12 @@ import { AntdProvider } from "@/components/providers/AntdProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = { title: "8 Club Lagree" };
+export const metadata: Metadata = {
+  title: "8 Club Lagree",
+  icons: {
+    icon: "/images/main-8-logo-white.png",
+  },
+};
 
 export default function RootLayout({
   children,
