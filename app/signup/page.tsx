@@ -24,7 +24,6 @@ import Link from "next/link";
 import { MdContactEmergency } from "react-icons/md";
 import { useSearchUser } from "@/lib/api";
 import axiosApi from "@/lib/axiosConfig";
-import { setSessionToken } from "@/lib/axiosConfig";
 import useDebounce from "@/hooks/use-debounce";
 import { useAppMessage } from "@/components/ui/message-popup";
 import UnauthenticatedLayout from "@/components/layout/UnauthenticatedLayout";
