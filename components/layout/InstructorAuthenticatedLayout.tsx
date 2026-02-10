@@ -51,7 +51,7 @@ export default function InstructorAuthenticatedLayout({
         if (event === "SIGNED_OUT") {
           dispatch(logoutAction());
           router.push("/login");
-        } else if (session && user === null) {
+        } else if (session) {
           checkUser();
         }
       })();

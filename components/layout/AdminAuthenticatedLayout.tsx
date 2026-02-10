@@ -62,7 +62,7 @@ export default function AuthenticatedLayout({
         if (event === "SIGNED_OUT") {
           dispatch(logoutAction());
           router.push("/login");
-        } else if (user === null) {
+        } else if (session) {
           checkUser();
         }
       })();
