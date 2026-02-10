@@ -86,32 +86,18 @@ export default function BookingsPage() {
   }, [selectedDate, user?.id]);
 
   const handleFetchClasses = async () => {
-    const data = await fetchClasses({
-      userId: user?.id,
-      selectedDate: selectedDate as Dayjs,
-    });
+    try {
 
-    if (data) {
-      const mapped = await Promise.all(
-        data.map(async (lagreeClass: any) => {
-          let imageURL: any = null;
-          // if (!user.avatar_path) return user; // skip if no avatar
+      const data = await fetchClasses({
+        userId: user?.id,
+        selectedDate: selectedDate as Dayjs,
+      });
 
-          if (!lagreeClass.instructors) return null;
-
-          if (lagreeClass.instructors.user_profiles.avatar_path) {
-            // generate signed URL valid for 1 hour (3600s)
-            const signedURL = await fetchImage({
-              avatarPath: lagreeClass.instructors.user_profiles.avatar_path,
-            });
-
-            imageURL = signedURL;
-          }
-
+      if (data) {
+        const parsed = data.map((lagreeClass: any) => {
           return {
             ...lagreeClass,
             key: lagreeClass.id,
-            avatar_url: imageURL,
             instructor_id: lagreeClass.instructor_id,
             class_name: lagreeClass.class_name,
             instructor_name: lagreeClass.instructor_name,
@@ -121,11 +107,41 @@ export default function BookingsPage() {
             taken_slots: lagreeClass.taken_slots,
             slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
           };
-        }),
-      );
+        })
 
-      const filtered = mapped.filter((item) => item !== null);
-      setClasses(filtered);
+        try {
+
+          const mapped = await Promise.all(
+            parsed.map(async (lagreeClass: any) => {
+              let imageURL: any = null;
+
+              if (!lagreeClass.instructors) return null;
+
+              if (lagreeClass.instructors.user_profiles.avatar_path) {
+
+                const signedURL = await fetchImage({
+                  avatarPath: lagreeClass.instructors.user_profiles.avatar_path,
+                });
+
+                imageURL = signedURL;
+              }
+
+              return {
+                ...lagreeClass,
+                avatar_url: imageURL,
+              };
+            }),
+          );
+
+          const filtered = mapped.filter((item) => item !== null);
+          setClasses(filtered);
+        } catch (error) {
+          setClasses(parsed);
+          console.error(error);
+        }
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
