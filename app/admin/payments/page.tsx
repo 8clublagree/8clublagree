@@ -292,11 +292,6 @@ const PaymentsPage = () => {
     setIsConfirmingPayment(true);
     try {
 
-
-      // save credits to manual payment info
-
-      // this saves purchase order info into the client packages table
-
       const response = await Promise.all([
         updatePaymentStatus({
           status,
@@ -311,7 +306,7 @@ const PaymentsPage = () => {
         handleSendConfirmationEmail(),
       ]);
 
-      setIsReviewingPayment(false);
+      // setIsReviewingPayment(false);
 
       if (response) await handleFetchOrders();
 
