@@ -52,13 +52,24 @@ export async function POST(req: Request) {
           walk_in_client_contact_number: walkInClientContactNumber,
         }),
       })
-      .select();
+      .single();
+
+    const { data: updateClassData, error: updateClassError } = await supabaseServer
+      .from("classes")
+      .update({
+        taken_slots: classData?.taken_slots + 1,
+      })
+      .eq("id", classId)
+      .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+    if (updateClassError) {
+      return NextResponse.json({ error: updateClassError.message }, { status: 400 });
+    }
 
-    return NextResponse.json({ data: data });
+    return NextResponse.json({ data: { updateClassData, classBookingData: data } });
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }

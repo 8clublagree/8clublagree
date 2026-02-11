@@ -192,27 +192,30 @@ export default function BookingsPage() {
           isWalkIn: false,
         });
 
-        const promises: Promise<unknown>[] = [
-          updateClass({
-            id: selectedRecord.id,
-            values: {
-              taken_slots: selectedRecord.taken_slots + 1,
-            },
-          }),
-        ];
+        // const promises: Promise<unknown>[] = [
+        //   updateClass({
+        //     id: selectedRecord.id,
+        //     values: {
+        //       taken_slots: selectedRecord.taken_slots + 1,
+        //     },
+        //   }),
+        // ];
+
+        let promises: Promise<unknown>[] = [];
 
         if (user?.credits != null) {
           const updatedCredits = user.credits - 1;
-          promises.push(
+          promises = [
             updateUserCredits({
               userID: user.id as string,
               values: { credits: updatedCredits },
             }),
-          );
+          ]
           dispatch(setUser({ ...user, credits: updatedCredits }));
+
+          await Promise.all([...promises, handleSendConfirmationEmail()]);
         }
 
-        await Promise.all([...promises, handleSendConfirmationEmail()]);
 
         setIsSubmitting(false);
         handleCloseModal();
