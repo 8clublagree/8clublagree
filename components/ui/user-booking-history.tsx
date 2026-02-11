@@ -1,13 +1,16 @@
 import { attendanceStatus } from "@/lib/utils";
 import { Col, Row, Typography } from "antd";
 import dayjs from "dayjs";
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+
+dayjs.extend(isSameOrAfter)
 
 const { Text } = Typography;
 
 const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
 
   return (
-    <>
+    <div>
       <Col className="flex flex-col gap-y-[10px] cursor-pointer">
         {bookingHistory.map((booking: any, index: number) => (
           <Row
@@ -63,7 +66,7 @@ const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
           <Text strong>No booking history</Text>
         </Row>
       )}
-    </>
+    </div>
   );
 };
 
