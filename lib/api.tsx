@@ -339,7 +339,8 @@ export const useManageImage = () => {
   }) => {
     let signedUrl: any;
 
-    if (avatarPath === null) return null;
+    if (avatarPath === null || avatarPath === undefined || !avatarPath.length) return null;
+
 
     const { data, error: urlError } = await supabase.storage
       .from(bucket)
