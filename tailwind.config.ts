@@ -78,10 +78,15 @@ const config: Config = {
             height: '0',
           },
         },
+        'loading-shade': {
+          '0%, 100%': { color: 'rgb(148 163 184)' },
+          '50%': { color: 'rgb(71 85 105)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'loading-shade': 'loading-shade 1.5s ease-in-out infinite',
       },
       fontFamily: {
         halyard: ['"Halyard Display"', 'sans-serif'],

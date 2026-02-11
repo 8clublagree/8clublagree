@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { Spin } from "antd";
 
 export default function Home() {
   const router = useRouter();
@@ -27,8 +28,18 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-slate-600">Loading...</p>
+        <div className="flex justify-center">
+          <img
+            src="/images/main-8-logo.png"
+            alt="Logo"
+            width={100}
+            height={100}
+          />
+        </div>
+        <div className="flex flex-row gap-x-[20px]">
+          <p className="mt-4 text-slate-600 animate-loading-shade">Warming Up</p>
+          <Spin spinning={true} />
+        </div>
       </div>
     </div>
   );
