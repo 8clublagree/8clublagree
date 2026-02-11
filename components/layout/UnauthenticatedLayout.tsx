@@ -28,7 +28,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
   const menuItems = [
     { label: "Home", href: "/about", primary: false },
     { label: "Login", href: "/login", primary: false },
-    { label: "JOIN THE 8CLUB", href: "/signup", primary: true },
+    { label: "Book Now", href: "/signup", primary: true },
   ];
   return (
     <div className="h-[100vh]">
@@ -65,7 +65,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
                       setDrawerVisible(false);
                     }}
                   >
-                    JOIN THE 8CLUB
+                    Book Now
                   </Button>
                   {/* Hamburger Icon */}
                   <Button
