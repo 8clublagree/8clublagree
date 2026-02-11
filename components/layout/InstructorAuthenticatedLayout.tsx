@@ -180,7 +180,7 @@ export default function InstructorAuthenticatedLayout({
           </Text>
           <Button
             onClick={handleLogout}
-            className={`mt-[20px] bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
+            className={`mt-[20px] bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03]`}
           >
             Logout
           </Button>
@@ -194,9 +194,9 @@ export default function InstructorAuthenticatedLayout({
             className="!bg-white border-r border-slate-200 hidden lg:block"
             width={240}
           >
-            <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#36013F]">
+            <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#800020]">
               <Text className="text-xl font-semibold text-slate-200">
-                8 Club Lagree
+                8ClubLagree Instructor
               </Text>
             </div>
             <Menu
@@ -206,12 +206,12 @@ export default function InstructorAuthenticatedLayout({
               className="border-r-0 pt-4"
             />
             <Text className="text-xl font-semibold text-slate-200 lg:hidden">
-              LagreeStudio
+              8ClubLagree Instructor
             </Text>
           </Sider>
 
           <Layout>
-            <Header className="!bg-[#36013F] border-b border-slate-200 !px-4 md:!px-6 flex items-center justify-between !h-16">
+            <Header className="!bg-[#800020] border-b border-slate-200 !px-4 md:!px-6 flex items-center justify-between !h-16">
               <div className="flex items-center">
                 <Button
                   type="text"

@@ -193,9 +193,9 @@ export default function AuthenticatedLayout({
         className="!bg-white border-r border-slate-200 hidden lg:block"
         width={240}
       >
-        <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#36013F]">
+        <div className="h-16 flex items-center justify-center border-b border-slate-200 bg-[#800020]">
           <Text className="text-xl font-semibold text-slate-200">
-            8 Club Lagree Admin
+            8ClubLagree Admin
           </Text>
         </div>
         <Menu
@@ -207,7 +207,7 @@ export default function AuthenticatedLayout({
       </Sider>
 
       <Layout>
-        <Header className="!bg-[#36013F] border-b border-slate-200 !px-4 md:!px-6 flex items-center justify-between !h-16">
+        <Header className="!bg-[#800020] border-b border-slate-200 !px-4 md:!px-6 flex items-center justify-between !h-16">
           <div className="flex items-center">
             <Button
               type="text"
@@ -216,7 +216,7 @@ export default function AuthenticatedLayout({
               className="lg:hidden mr-2"
             />
             <Text className="text-xl font-semibold text-slate-200 lg:hidden">
-              LagreeStudio
+              8ClubLagree Admin
             </Text>
           </div>
 
