@@ -54,17 +54,19 @@ export async function POST(req: Request) {
       })
       .single();
 
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     const { data: updateClassData, error: updateClassError } = await supabaseServer
       .from("classes")
       .update({
-        taken_slots: classData?.taken_slots + 1,
+        taken_slots: (classData?.taken_slots || 0) + 1,
       })
       .eq("id", classId)
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+
     if (updateClassError) {
       return NextResponse.json({ error: updateClassError.message }, { status: 400 });
     }
