@@ -267,9 +267,13 @@ const PaymentsPage = () => {
     const ps = pageSize ?? pagination.pageSize;
     try {
       const response = await fetchCustomerPayments(p, ps);
-      setPayments(response?.data?.payments ?? []);
-      setTotal(response?.data?.total ?? 0);
-      setPagination((prev) => ({ ...prev, current: p, pageSize: ps }));
+      // Only clear list on success with a valid response; avoid clearing on
+      // network/API errors so the user doesn’t see an empty table incorrectly.
+      if (response?.data) {
+        setPayments(response.data.payments ?? []);
+        setTotal(response.data.total ?? 0);
+        setPagination((prev) => ({ ...prev, current: p, pageSize: ps }));
+      }
     } catch (error) {
       showMessage({ type: "error", content: "Error fetching orders" });
       console.log(error);
@@ -314,7 +318,10 @@ const PaymentsPage = () => {
 
       // setIsReviewingPayment(false);
 
-      if (response) await handleFetchOrders();
+      // Refetch from page 1: confirming can set package to "expired", so the
+      // API filter (user has active package) may exclude this order and leave
+      // the current page empty if we don’t reset.
+      if (response) await handleFetchOrders(1, pagination.pageSize);
 
       showMessage({
         type: "success",
@@ -417,13 +424,13 @@ const PaymentsPage = () => {
             `${range[0]}-${range[1]} of ${t} items`,
           responsive: true,
           hideOnSinglePage: false,
-          onChange: (page, pageSize) => {
+          onChange: async (page, pageSize) => {
             setPagination((prev) => ({
               ...prev,
               current: page,
               pageSize: pageSize ?? prev.pageSize,
             }));
-            handleFetchOrders(page, pageSize ?? pagination.pageSize);
+            await handleFetchOrders(page, pageSize ?? pagination.pageSize);
           },
         }}
       />

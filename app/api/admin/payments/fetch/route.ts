@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const mapped = payments.map((item) => {
+    const list = payments ?? [];
+    const mapped = list.map((item) => {
       return {
         ...item,
         currentActivePackage: item?.user_profiles?.client_packages?.[0] ?? null,
