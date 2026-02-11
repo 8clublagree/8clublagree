@@ -10,6 +10,7 @@ import {
   Typography,
   Button,
   Drawer,
+  Modal,
 } from "antd";
 import {
   HomeOutlined,
@@ -18,6 +19,7 @@ import {
   LogoutOutlined,
   MenuOutlined,
   CreditCardOutlined,
+  MailOutlined,
 } from "@ant-design/icons";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
@@ -52,6 +54,7 @@ export default function AuthenticatedLayout({
   const { fetchImage } = useManageImage();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   useEffect(() => {
     const {
@@ -195,7 +198,11 @@ export default function AuthenticatedLayout({
         <Link href="/user-terms-and-conditions">Terms and Conditions</Link>
       ),
     },
-
+    {
+      key: "9",
+      icon: <MailOutlined />,
+      label: "Contact Us",
+    },
   ];
 
   const userMenuItems = [
@@ -235,6 +242,11 @@ export default function AuthenticatedLayout({
             selectedKeys={[getSelectedKey()]}
             items={menuItems}
             className="border-r-0 pt-4 halyard text-[16px]"
+            onClick={({ key }) => {
+              if (key === "9") {
+                setContactModalOpen(true);
+              }
+            }}
           />
           <Text className="halyard text-xl font-semibold text-slate-200 lg:hidden">
             8ClubLagree
@@ -281,90 +293,7 @@ export default function AuthenticatedLayout({
         <Content className="justify-between flex flex-col h-screen pb-0 bg-slate-50 overflow-auto">
           <div className="py-[20px] px-4 w-full mx-auto">{children}</div>
 
-          <footer className="flex-shrink-0 bg-[#800020] text-white px-3 sm:px-6 md:px-16 lg:px-24 py-5 sm:py-8">
-            <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:justify-between md:items-start gap-5 sm:gap-8 md:gap-16">
-              <div className="flex-1 flex flex-col items-center md:items-start">
-                <Title
-                  level={3}
-                  className="!text-white !mb-1 !mt-0 font-light tracking-[0.1em] text-center md:text-left !text-[1.35rem] sm:!text-2xl"
-                >
-                  8CLUBLAGREE
-                </Title>
-                <Paragraph
-                  className="!text-white"
-                  style={{
-                    fontWeight: 300,
-                    fontSize: "0.95rem",
-                    lineHeight: "1.3rem",
-                    marginBottom: 0,
-                    marginTop: 0,
-                  }}
-                >
-                  Streetscape Mall Banilad, Maria Luisa Road
-                  <br />
-                  Cebu City, Cebu 6000
-                </Paragraph>
-              </div>
 
-              <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
-                <Title
-                  level={5}
-                  className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
-                >
-                  Interested in the website?
-                </Title>
-                <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
-                  <a
-                    href="https://julianchiongbian.vercel.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
-                  >
-                    Let's connect
-                  </a>
-                </Paragraph>
-              </div>
-
-              <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
-                <Title
-                  level={5}
-                  className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
-                >
-                  Contact Us
-                </Title>
-                <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
-                  <a
-                    href="mailto:8clublagree@gmail.com"
-                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
-                  >
-                    Email
-                  </a>
-                  <br />
-                  <a
-                    href="https://www.instagram.com/8clublagree"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
-                  >
-                    Instagram
-                  </a>
-                </Paragraph>
-              </div>
-            </div>
-            <Paragraph
-              style={{
-                color: "white",
-                fontSize: "0.72rem",
-                fontWeight: 300,
-              }}
-              className="text-[0.72rem] sm:text-xs !mt-[30px] text-center"
-            >
-              © 2026 8ClubLagree. All rights reserved.
-            </Paragraph>
-
-            {/* <div className="max-w-[1200px] mx-auto border-t border-white/20 mt-5 sm:mt-8 pt-4 sm:pt-6 text-center">
-          </div> */}
-          </footer>
         </Content>
 
       </Layout>
@@ -392,9 +321,82 @@ export default function AuthenticatedLayout({
           selectedKeys={[getSelectedKey()]}
           items={menuItems}
           className="border-r-0"
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={({ key }) => {
+            if (key === "9") {
+              setContactModalOpen(true);
+            }
+            setMobileMenuOpen(false);
+          }}
         />
       </Drawer>
+
+      <Modal
+        styles={{ header: { fontSize: '18px' } }}
+        title="Contact Us"
+        open={contactModalOpen}
+        onCancel={() => setContactModalOpen(false)}
+        footer={null}
+        className="halyard"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 w-full">
+          <div>
+            <Title level={5} className="!mb-1 font-normal uppercase tracking-wide text-xs text-slate-500">
+              Email
+            </Title>
+            <Paragraph className="!mb-0 !mt-0">
+              <a
+                href="mailto:8clublagree@gmail.com"
+                className="!text-[#800020] hover:underline inline-flex items-center gap-1.5"
+              >
+                <span aria-hidden>✉️</span>
+                8clublagree@gmail.com
+              </a>
+            </Paragraph>
+          </div>
+          <div>
+            <Title level={5} className="!mb-1 font-normal uppercase tracking-wide text-xs text-slate-500">
+              Instagram
+            </Title>
+            <Paragraph className="!mb-0 !mt-0">
+              <a
+                href="https://www.instagram.com/8clublagree"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="!text-[#800020] hover:underline inline-flex items-center gap-1.5"
+              >
+                <span aria-hidden>📷</span>
+                @8clublagree
+              </a>
+            </Paragraph>
+          </div>
+          <div>
+            <Title level={5} className="!mb-1 font-normal uppercase tracking-wide text-xs text-slate-500">
+              Interested in the website?
+            </Title>
+            <Paragraph className="!mb-0 !mt-0">
+              <a
+                href="https://julianchiongbian.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="!text-[#800020] hover:underline inline-flex items-center gap-1.5"
+              >
+                <span aria-hidden>🔗</span>
+                Let&apos;s connect
+              </a>
+            </Paragraph>
+          </div>
+          <div>
+            <Title level={5} className="!mb-1 font-normal uppercase tracking-wide text-xs text-slate-500">
+              Location
+            </Title>
+            <Paragraph className="!mb-0 !mt-0 text-slate-700">
+              Streetscape Mall Banilad, Maria Luisa Road
+              <br />
+              Cebu City, Cebu 6000
+            </Paragraph>
+          </div>
+        </div>
+      </Modal>
     </Layout>
   );
 }
