@@ -57,6 +57,8 @@ export default function AuthenticatedLayout({
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
   useEffect(() => {
+    checkUser();
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
