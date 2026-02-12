@@ -36,7 +36,7 @@ export default function Home() {
             height={100}
           />
         </div>
-        <div className="flex flex-row gap-x-[20px]">
+        <div className="flex flex-col gap-x-[20px]">
           <p className="mt-4 text-slate-600 animate-loading-shade">Warming Up</p>
           <Spin spinning={true} />
         </div>

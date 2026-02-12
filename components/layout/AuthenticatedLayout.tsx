@@ -327,12 +327,12 @@ export default function AuthenticatedLayout({
 
         {user === null &&
           <Row
-            className="justify-center items-center bg-black/60 !h-full !w-full"
+            className="justify-center items-center bg-black/30 !h-full !w-full"
           >
             <Row
               justify="center"
               align="middle"
-              className="flex-col gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
+              className="flex-col gap-y-[5px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
             >
 
               <div className="flex justify-center">
@@ -343,7 +343,11 @@ export default function AuthenticatedLayout({
                   height={70}
                 />
               </div>
-              <p className="text-slate-600 animate-loading-shade">Warming Up</p>
+              <Row wrap={false} className="flex-col">
+
+                <p className="text-slate-600 animate-loading-shade mb-[15px]">Warming Up</p>
+                <Spin spinning={true} />
+              </Row>
 
             </Row>
           </Row>
