@@ -55,8 +55,12 @@ interface OrdersTableType {
 
 const PaymentsPage = () => {
   const [confirmingPayment, setIsConfirmingPayment] = useState<boolean>(false);
-  const { fetchCustomerPayments, loading, updatePaymentStatus } =
-    useManageOrders();
+  const {
+    fetchCustomerPayments,
+    loading,
+    updatePaymentStatus,
+    handleViewPayment: fetchPayment,
+  } = useManageOrders();
   const { showMessage, contextHolder } = useAppMessage();
   const [payments, setPayments] = useState<OrdersTableType[]>([]);
   const [total, setTotal] = useState(0);
@@ -257,9 +261,16 @@ const PaymentsPage = () => {
     [isMobile, payments],
   );
 
-  const handleViewPayment = (record: OrdersTableType) => {
-    setSelectedPayment(record);
-    setIsReviewingPayment(true);
+  const handleViewPayment = async (record: OrdersTableType) => {
+    const id = record?.id;
+    if (!id) return;
+    const payment = await fetchPayment({ id });
+    if (payment) {
+      setSelectedPayment(payment);
+      setIsReviewingPayment(true);
+    } else {
+      showMessage({ type: "error", content: "Failed to load payment details" });
+    }
   };
 
   const handleFetchOrders = async (page?: number, pageSize?: number) => {
@@ -402,8 +413,6 @@ const PaymentsPage = () => {
   return (
     <AdminAuthenticatedLayout>
       {contextHolder}
-
-
       <Table<OrdersTableType>
         rowKey={(record) => record.id ?? record.key ?? record.reference_id ?? String(record.created_at)}
         loading={
