@@ -21,6 +21,11 @@ interface AdminClientsTableProps {
   deleteUser: (id: string) => void | Promise<void>;
   viewBookingHistory: (event: UserProps) => void;
   refetch?: () => void | Promise<void>;
+  /** Server-side pagination */
+  total?: number;
+  currentPage?: number;
+  pageSize?: number;
+  onPaginationChange?: (page: number, pageSize: number) => void;
 }
 
 const AdminClientTable = ({
@@ -30,6 +35,10 @@ const AdminClientTable = ({
   deleteUser,
   viewBookingHistory,
   refetch,
+  total,
+  currentPage = 1,
+  pageSize: controlledPageSize = 10,
+  onPaginationChange,
 }: AdminClientsTableProps) => {
   const searchInput = useRef<InputRef>(null);
   const user = useAppSelector((state) => state.auth.user);
@@ -278,14 +287,29 @@ const AdminClientTable = ({
         columns={columns}
         dataSource={data}
         scroll={{ x: isMobile ? 600 : undefined }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          pageSizeOptions: ["10", "20", "50"],
-          responsive: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} items`,
-        }}
+        pagination={
+          total !== undefined && onPaginationChange
+            ? {
+              current: currentPage,
+              pageSize: controlledPageSize,
+              total,
+              showSizeChanger: true,
+              pageSizeOptions: ["10", "20", "50"],
+              responsive: true,
+              showTotal: (t, range) =>
+                `${range[0]}-${range[1]} of ${t} items`,
+              onChange: (page, pageSize) =>
+                onPaginationChange(page, pageSize ?? controlledPageSize),
+            }
+            : {
+              defaultPageSize: 10,
+              showSizeChanger: true,
+              pageSizeOptions: ["10", "20", "50"],
+              responsive: true,
+              showTotal: (t, range) =>
+                `${range[0]}-${range[1]} of ${t} items`,
+            }
+        }
         size={isMobile ? "small" : "middle"}
         className="admin-client-table"
       />

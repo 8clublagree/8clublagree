@@ -29,10 +29,14 @@ export default function ClientManagementPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isProcessingData, setIsProcessingData] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
   const [clients, setClients] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { updateUserCredits } = useManageCredits();
-  const { searchClients, loading } = useSearchUser();
+  const { fetchClients, loading } = useSearchUser();
   const { updateUser, loading: updating } = useUpdateUser();
   const { showMessage, contextHolder } = useAppMessage();
   const [historyTab, setHistoryTab] = useState<
@@ -68,13 +72,18 @@ export default function ClientManagementPage() {
     };
   }, []);
 
-  const handleSearchClients = async () => {
-    const data = await searchClients({});
+  const handleSearchClients = async (
+    opts?: { page?: number; pageSize?: number },
+  ) => {
+    const page = opts?.page ?? currentPage;
+    const size = opts?.pageSize ?? pageSize;
+    const result = await fetchClients({ page, pageSize: size });
 
     try {
-      if (data) {
+      if (result?.data) {
+        setIsProcessingData(true)
         const mapped = await Promise.all(
-          data.map(async (user: any) => {
+          result.data.map(async (user: any) => {
             let mappedClientPackages: any[] = [];
             let classBookings: any[] = [];
             let signedUrl: string | undefined = "";
@@ -163,14 +172,20 @@ export default function ClientManagementPage() {
         );
 
         setClients(mapped);
+        setTotal(result.total);
+        if (opts?.page !== undefined) setCurrentPage(opts.page);
+        if (opts?.pageSize !== undefined) setPageSize(opts.pageSize);
+        setIsProcessingData(false)
       }
     } catch (error) {
       showMessage({
         type: "error",
         content: "Please try refreshing the website",
       });
+      setIsProcessingData(false)
       console.log("error: ", error);
     }
+    setIsProcessingData(false)
   };
 
   const handleCloseModal = () => {
@@ -252,36 +267,24 @@ export default function ClientManagementPage() {
     <AdminAuthenticatedLayout>
       {contextHolder}
       <div className="space-y-6">
-        <div>
-          <Row className="flex flex-col gap-y-[15px]">
-            <Title level={2} className="!mb-0">
-              Client Management
-            </Title>
-          </Row>
-        </div>
+
 
         <div className="w-full">
-          {loading ? (
-            <div className="flex justify-center w-full">
-              <Spin
-                indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
-                size="large"
-              />
-            </div>
-          ) : (
-            <>
-              <div className="w-full">
-                <AdminClientTable
-                  loading={loading}
-                  data={[...clients]}
-                  onEdit={handleEdit}
-                  deleteUser={handleDeleteUser}
-                  viewBookingHistory={handleViewBookingHistory}
-                  refetch={handleSearchClients}
-                />
-              </div>
-            </>
-          )}
+
+          <AdminClientTable
+            loading={loading || isProcessingData}
+            data={[...clients]}
+            onEdit={handleEdit}
+            deleteUser={handleDeleteUser}
+            viewBookingHistory={handleViewBookingHistory}
+            refetch={() => handleSearchClients()}
+            total={total}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPaginationChange={(page, size) =>
+              handleSearchClients({ page, pageSize: size })
+            }
+          />
         </div>
       </div>
 

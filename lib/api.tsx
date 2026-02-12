@@ -111,6 +111,31 @@ export const useSearchUser = () => {
     }
   };
 
+  const fetchClients = async ({
+    name,
+    page = 1,
+    pageSize = 10,
+  }: {
+    name?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<{ data: any[]; total: number } | null> => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.get(`/user/fetch-clients`, {
+        params: { name, page, pageSize },
+      });
+      const data = response?.data?.data ?? null;
+      const total = response?.data?.total ?? 0;
+      if (data === null) return null;
+      return { data, total };
+    } catch {
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const searchInstructors = async ({ name }: { name?: string }) => {
     try {
       setLoading(true);
@@ -123,7 +148,7 @@ export const useSearchUser = () => {
     }
   };
 
-  return { validateEmail, searchClients, searchInstructors, loading };
+  return { validateEmail, fetchClients, searchClients, searchInstructors, loading };
 };
 
 export const useManagePassword = () => {
