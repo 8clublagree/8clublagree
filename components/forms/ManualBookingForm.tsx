@@ -95,6 +95,7 @@ export default function ManualBookingForm({
     const clients = await searchClients({ name: debouncedValue });
     const mapped = clients?.map((client: any) => {
       const credits = client.user_credits?.[0]?.credits;
+      const active = client?.client_packages?.find((item: any) => item.status === "active");
       return {
         key: client.id,
         id: client.id,
@@ -102,14 +103,12 @@ export default function ManualBookingForm({
         firstName: client.first_name,
         lastName: client.last_name,
         fullName: `${client.first_name} ${client.last_name}`,
-        value: `${client.first_name} ${client.last_name} ${
-          credits === 0
-            ? "(No Credits Available)"
-            : `(${
-                credits === null ? "Unlimited" : `${credits}`
-              } credits available)`
-        }`,
-        disabled: credits === 0,
+        value: `${client.first_name} ${client.last_name} ${credits === 0 || (credits === null && !active)
+          ? "(No Credits Available)"
+          : `(${credits === null && active ? "Unlimited" : `${credits}`
+          } credits available)`
+          }`,
+        disabled: credits === 0 || (credits === null && !active),
         credits: credits,
       };
     });
@@ -426,9 +425,8 @@ export default function ManualBookingForm({
                 disabled={selectedExistingClient === null}
                 loading={loading}
                 block
-                className={`${
-                  selectedExistingClient && "bg-[#36013F] hover:!bg-[#36013F]"
-                } !border-none`}
+                className={`${selectedExistingClient && "bg-[#36013F] hover:!bg-[#36013F]"
+                  } !border-none`}
               >
                 Book
               </Button>
