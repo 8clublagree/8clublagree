@@ -1051,17 +1051,47 @@ export const useManageOrders = () => {
     id,
     approved_at,
     status,
+    userID,
+    credits,
+    clientPackageID,
+
+    packageID,
+    paymentMethod,
+    packageName,
+    validityPeriod,
+    packageCredits,
+    userCredits
   }: {
     id: string;
     status: string;
     approved_at: string;
+
+    userID: string;
+    credits: number;
+    clientPackageID: string;
+
+    packageID: string;
+    paymentMethod: string;
+    packageName: string;
+    validityPeriod: number;
+    packageCredits: number;
+    userCredits: number;
   }) => {
     try {
       setLoading(true);
 
-      const response = await axiosApi.patch("/admin/payments/update", {
+      const response = await axiosApi.put("/admin/payments/confirm-status", {
         id,
         values: { status, approved_at },
+        userID,
+        credits,
+        clientPackageID,
+        userCredits,
+        packageID,
+        paymentMethod,
+        packageName,
+        validityPeriod,
+        packageCredits,
       });
 
       if (!response.data) return null;

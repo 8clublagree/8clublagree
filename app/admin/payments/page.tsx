@@ -356,13 +356,34 @@ const PaymentsPage = () => {
     setIsConfirmingPayment(true);
     let paymentStatusResponse = null
     try {
-      paymentStatusResponse = await updatePaymentStatus({
-        status,
-        id: selectedPayment?.id as string,
-        approved_at: dayjs().toISOString(),
-      })
+      if (selectedPayment) {
+        paymentStatusResponse = await updatePaymentStatus({
+          status,
+          id: selectedPayment?.id as string,
+          approved_at: dayjs().toISOString(),
 
-      paymentStatusResponse = await supabase.from('orders').update({ status: 'SUCCESSFUL', approved_at: dayjs().toISOString() }).eq('id', selectedPayment?.id as string).select();
+          userID: selectedPayment!.user_profiles.id,
+          credits: selectedPayment!.package_credits as number,
+          clientPackageID: selectedPayment!.currentActivePackage?.id as string,
+          userCredits: selectedPayment!.userCredits as number,
+          packageID: selectedPayment!.package_id as string,
+          paymentMethod: selectedPayment!.payment_method as string,
+          packageName: selectedPayment!.package_title as string,
+          validityPeriod: Number(selectedPayment!.package_validity_period),
+          packageCredits: selectedPayment!.package_credits as number,
+        })
+      } else {
+        showMessage({
+          type: "error",
+          content: "Please try again.",
+        });
+        setIsReviewingPayment(false);
+        setIsConfirmingPayment(false);
+
+        return
+      }
+
+      // paymentStatusResponse = await supabase.from('orders').update({ status: 'SUCCESSFUL', approved_at: dayjs().toISOString() }).eq('id', selectedPayment?.id as string).select();
 
     } catch (error) {
       showMessage({
@@ -371,18 +392,13 @@ const PaymentsPage = () => {
       });
       setIsReviewingPayment(false);
       setIsConfirmingPayment(false);
+
+      return
     }
 
     if (paymentStatusResponse?.data) {
       try {
-        await Promise.all([
-          handlePurchasePackage(),
-          handleUpdateUserCredits({
-            userID: selectedPayment!.user_profiles.id,
-            credits: selectedPayment!.package_credits as number,
-          }),
-          handleSendConfirmationEmail(),
-        ]);
+        await Promise.all([handleSendConfirmationEmail()]);
 
         if (paymentStatusResponse.data) await handleFetchOrders(1, pagination.pageSize);
 
@@ -397,7 +413,7 @@ const PaymentsPage = () => {
           type: "error",
           content: "An error has occurred",
         });
-        console.error(error);
+
         setIsReviewingPayment(false);
         setIsConfirmingPayment(false);
       }
