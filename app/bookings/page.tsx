@@ -92,8 +92,8 @@ export default function BookingsPage() {
         userId: user?.id,
         selectedDate: selectedDate as Dayjs,
       });
-
-      if (data) {
+      // console.log('data: ', data)
+      if (!!data.length) {
         const parsed = data.map((lagreeClass: any) => {
           return {
             ...lagreeClass,
