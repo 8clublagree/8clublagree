@@ -117,7 +117,7 @@ export default function InstructorManagementPage() {
               full_name: record?.full_name,
               avatar_path: record?.avatar_path,
               deactivated: record?.deactivated,
-              certification: certification.label ?? '',
+              certification: certification?.label ?? '',
             };
 
             // generate signed URL valid for 1 hour (3600s)
