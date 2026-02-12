@@ -42,11 +42,13 @@ export default function BookingsPage() {
   const user = useAppSelector((state) => state.auth.user);
 
   const { updateUserCredits } = useManageCredits();
+
   const { showMessage, contextHolder } = useAppMessage();
   const { fetchClasses, updateClass, bookClass, loading } =
     useClassManagement();
 
   const [isMobile, setIsMobile] = useState(false);
+  const [isProcessingData, setIsProcessingData] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [classes, setClasses] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,6 +96,7 @@ export default function BookingsPage() {
       });
       // console.log('data: ', data)
       if (!!data.length) {
+        setIsProcessingData(true)
         const parsed = data.map((lagreeClass: any) => {
           return {
             ...lagreeClass,
@@ -135,14 +138,18 @@ export default function BookingsPage() {
 
           const filtered = mapped.filter((item) => item !== null);
           setClasses(filtered);
+          setIsProcessingData(false)
         } catch (error) {
           setClasses(parsed);
+          setIsProcessingData(false)
           console.error(error);
         }
       }
     } catch (error) {
+      setIsProcessingData(false)
       console.error(error);
     }
+    setIsProcessingData(false)
   };
 
   const handleAcceptTermsChange = (e: any) => {
@@ -288,7 +295,7 @@ export default function BookingsPage() {
   const RenderClassList = useMemo(() => {
     return (
       <List
-        loading={loading}
+        loading={loading || isProcessingData || isSubmitting}
         itemLayout="horizontal"
         dataSource={classes}
         locale={{
@@ -351,7 +358,7 @@ export default function BookingsPage() {
         }}
       />
     );
-  }, [classes, loading, isMobile, isSubmitting, selectedDate]);
+  }, [classes, loading, isMobile, isSubmitting, selectedDate, isProcessingData]);
 
   return (
     <AuthenticatedLayout>
