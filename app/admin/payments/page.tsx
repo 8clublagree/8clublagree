@@ -316,7 +316,6 @@ const PaymentsPage = () => {
         handleSendConfirmationEmail(),
       ]);
 
-      // setIsReviewingPayment(false);
 
       // Refetch from page 1: confirming can set package to "expired", so the
       // API filter (user has active package) may exclude this order and leave
@@ -327,6 +326,7 @@ const PaymentsPage = () => {
         type: "success",
         content: "You have confirmed this transaction",
       });
+      setIsReviewingPayment(false);
       setIsConfirmingPayment(false);
     } catch (error) {
       showMessage({
@@ -334,8 +334,10 @@ const PaymentsPage = () => {
         content: "An error has occurred",
       });
       console.error(error);
+      setIsReviewingPayment(false);
       setIsConfirmingPayment(false);
     }
+    setIsReviewingPayment(false);
     setIsConfirmingPayment(false);
   };
 
