@@ -91,7 +91,7 @@ export default function DashboardPage() {
           isAdmin: true
         };
       } else {
-        params = { selectedDate: dayjs(), isAdmin: true };
+        params = { selectedDate: dayjs(), isAdmin: true, daily: true };
       }
 
       const data = await fetchClasses(params);
