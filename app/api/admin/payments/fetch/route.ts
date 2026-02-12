@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const { data: payments, error: paymentsError, count } = await supabaseServer
       .from("orders")
       .select(SELECT_QUERY, { count: "exact" })
-      .eq("user_profiles.client_packages.status", "active")
+      // .eq("user_profiles.client_packages.status", "active")
       .order("created_at", { ascending: false })
       .range(from, to);
 
@@ -46,9 +46,11 @@ export async function GET(request: NextRequest) {
 
     const list = payments ?? [];
     const mapped = list.map((item) => {
+
+      const active = item.user_profiles.client_packages.find((item: any) => item.status === "active");
       return {
         ...item,
-        currentActivePackage: item?.user_profiles?.client_packages?.[0] ?? null,
+        currentActivePackage: active ?? null,
         userCredits: item?.user_profiles?.user_credits?.[0]?.credits ?? null,
       };
     })
