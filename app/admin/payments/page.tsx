@@ -311,45 +311,52 @@ const PaymentsPage = () => {
 
   const handleUpdatePaymentStatus = async (status: string) => {
     setIsConfirmingPayment(true);
+    let paymentStatusResponse = null
     try {
+      paymentStatusResponse = await updatePaymentStatus({
+        status,
+        id: selectedPayment?.id as string,
+        approved_at: dayjs().toISOString(),
+      })
 
-      const response = await Promise.all([
-        updatePaymentStatus({
-          status,
-          id: selectedPayment?.id as string,
-          approved_at: dayjs().toISOString(),
-        }),
-        handlePurchasePackage(),
-        handleUpdateUserCredits({
-          userID: selectedPayment!.user_profiles.id,
-          credits: selectedPayment!.package_credits as number,
-        }),
-        handleSendConfirmationEmail(),
-      ]);
-
-
-      // Refetch from page 1: confirming can set package to "expired", so the
-      // API filter (user has active package) may exclude this order and leave
-      // the current page empty if we don’t reset.
-      if (response) await handleFetchOrders(1, pagination.pageSize);
-
-      showMessage({
-        type: "success",
-        content: "You have confirmed this transaction",
-      });
-      setIsReviewingPayment(false);
-      setIsConfirmingPayment(false);
     } catch (error) {
       showMessage({
         type: "error",
-        content: "An error has occurred",
+        content: "Error updating payment status",
       });
-      console.error(error);
       setIsReviewingPayment(false);
       setIsConfirmingPayment(false);
     }
-    setIsReviewingPayment(false);
-    setIsConfirmingPayment(false);
+
+    if (paymentStatusResponse) {
+      try {
+        const response = await Promise.all([
+          handlePurchasePackage(),
+          handleUpdateUserCredits({
+            userID: selectedPayment!.user_profiles.id,
+            credits: selectedPayment!.package_credits as number,
+          }),
+          handleSendConfirmationEmail(),
+        ]);
+
+        if (response) await handleFetchOrders(1, pagination.pageSize);
+
+        showMessage({
+          type: "success",
+          content: "You have confirmed this transaction",
+        });
+        setIsReviewingPayment(false);
+        setIsConfirmingPayment(false);
+      } catch (error) {
+        showMessage({
+          type: "error",
+          content: "An error has occurred",
+        });
+        console.error(error);
+        setIsReviewingPayment(false);
+        setIsConfirmingPayment(false);
+      }
+    }
   };
 
   const handleSendConfirmationEmail = async () => {
