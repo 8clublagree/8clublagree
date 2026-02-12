@@ -329,8 +329,8 @@ const AdminClientTable = ({
               responsive: true,
               showTotal: (t, range) =>
                 `${range[0]}-${range[1]} of ${t} items`,
-              // onChange: (page, pageSize) =>
-              //   onPaginationChange(page, pageSize ?? controlledPageSize),
+              onChange: (page, pageSize) =>
+                onPaginationChange(page, pageSize ?? controlledPageSize),
             }
             : {
               defaultPageSize: 10,
