@@ -95,7 +95,7 @@ export default function BookingsPage() {
         selectedDate: selectedDate as Dayjs,
       });
       // console.log('data: ', data)
-      if (!!data.length) {
+      if (data && !!data.length) {
         setIsProcessingData(true)
         const parsed = data.map((lagreeClass: any) => {
           return {
