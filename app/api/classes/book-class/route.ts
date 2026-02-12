@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     const { data: classData, error: classError } = await supabaseServer
       .from("classes")
-      .select("*")
+      .select(`*, class_bookings (id)`)
       .eq("id", classId)
       .single();
 
@@ -61,10 +61,10 @@ export async function POST(req: Request) {
     const { data: updateClassData, error: updateClassError } = await supabaseServer
       .from("classes")
       .update({
-        taken_slots: (classData?.taken_slots || 0) + 1,
+        taken_slots: (classData?.class_bookings?.length || 0) + 1,
       })
       .eq("id", classId)
-      .single();
+      .select();
 
 
     if (updateClassError) {
