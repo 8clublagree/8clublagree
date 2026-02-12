@@ -17,7 +17,9 @@ export async function GET(req: NextRequest) {
     } = data;
 
 
-    const formattedSelectedDate = dayjs(selectedDate);
+    const formattedSelectedDate = dayjs.isDayjs(selectedDate)
+      ? selectedDate
+      : dayjs(selectedDate);
 
     const nowISO = dayjs().toISOString();
     const today = dayjs().startOf("day");
