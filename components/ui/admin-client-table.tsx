@@ -319,14 +319,27 @@ const AdminClientTable = ({
         dataSource={data}
         scroll={{ x: isMobile ? 600 : undefined }}
         pagination={
-          {
-            defaultPageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "20", "50"],
-            responsive: true,
-            showTotal: (t, range) =>
-              `${range[0]}-${range[1]} of ${t} items`,
-          }
+          total !== undefined && onPaginationChange
+            ? {
+              current: currentPage,
+              pageSize: controlledPageSize,
+              total,
+              showSizeChanger: true,
+              pageSizeOptions: ["10", "20", "50"],
+              responsive: true,
+              showTotal: (t, range) =>
+                `${range[0]}-${range[1]} of ${t} items`,
+              // onChange: (page, pageSize) =>
+              //   onPaginationChange(page, pageSize ?? controlledPageSize),
+            }
+            : {
+              defaultPageSize: 10,
+              showSizeChanger: true,
+              pageSizeOptions: ["10", "20", "50"],
+              responsive: true,
+              showTotal: (t, range) =>
+                `${range[0]}-${range[1]} of ${t} items`,
+            }
         }
         size={isMobile ? "small" : "middle"}
         className="admin-client-table"
