@@ -12,6 +12,7 @@ import {
 import axiosApi from "@/lib/axiosConfig";
 import { setUser } from "@/lib/features/authSlice";
 import { useAppSelector } from "@/lib/hooks";
+import { supabase } from "@/lib/supabase";
 import { formatPrice } from "@/lib/utils";
 import {
   Drawer,
@@ -319,6 +320,8 @@ const PaymentsPage = () => {
         approved_at: dayjs().toISOString(),
       })
 
+      paymentStatusResponse = await supabase.from('orders').update({ status: 'SUCCESSFUL', approved_at: dayjs().toISOString() }).eq('id', selectedPayment?.id as string).select();
+
     } catch (error) {
       showMessage({
         type: "error",
@@ -328,7 +331,7 @@ const PaymentsPage = () => {
       setIsConfirmingPayment(false);
     }
 
-    if (paymentStatusResponse) {
+    if (paymentStatusResponse?.data) {
       try {
         await Promise.all([
           handlePurchasePackage(),
@@ -339,7 +342,7 @@ const PaymentsPage = () => {
           handleSendConfirmationEmail(),
         ]);
 
-        // if (response) await handleFetchOrders(1, pagination.pageSize);
+        if (paymentStatusResponse.data) await handleFetchOrders(1, pagination.pageSize);
 
         showMessage({
           type: "success",
