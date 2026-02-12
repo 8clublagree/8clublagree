@@ -289,29 +289,8 @@ export default function PackagesPage() {
 
   const handleNext = async () => {
     try {
-      //temporary behavior
-      // setIsSubmitting(true);
-      // await handlePurchasePackage();
-      // await handleUpdateUserCredits({
-      //   credits: selectedRecord.packageCredits,
-      // });
-      // await handleSendConfirmationEmail();
-      //temporary behavior
-
-      // temporarily commented out until payments is integrated
       setCarouselSlide(CAROUSEL_SLIDES.CHECKOUT);
       carouselRef.current.next();
-      // temporarily commented out until payments is integrated
-
-      //temporary behavior
-      // showMessage({
-      //   type: "success",
-      //   content: "Successfully purchased package!",
-      // });
-      // setIsModalOpen(false);
-      // setSelectedRecord(null);
-      // setIsSubmitting(false);
-      //temporary behavior
     } catch (error) {
       showMessage({ type: "error", content: "Failed to purchase package" });
     }
@@ -563,6 +542,32 @@ export default function PackagesPage() {
       reader.onerror = (error) => reject(error);
     });
 
+  const renderUploadProofLoader = useCallback(() => {
+    return (
+      <Row
+        justify="center"
+        align="middle"
+        className="fixed inset-0 z-[9999] bg-black/60 p-4"
+      >
+        <Row
+          justify="center"
+          align="middle"
+          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
+        >
+          <Row justify="center" align="middle">
+            <Text className="text-[red] font-semibold text-base text-center m-0 p-0">
+              Please do not exit or refresh the website
+            </Text>
+            <Text className="text-[#36013F] font-light text-base text-center">
+              Your proof is uploading
+            </Text>
+          </Row>
+          <Spin />
+        </Row>
+      </Row>
+    );
+  }, []);
+
   const handleManualUploadProof = async (file: any) => {
     setIsSendingPending(true);
     try {
@@ -577,36 +582,13 @@ export default function PackagesPage() {
         formData.append("fileName", fileName);
         formData.append("action", "upload-proof");
 
-        const uploadResponse = await axiosApi.post(
+        await axiosApi.post(
           "/orders/upload-screenshot",
           formData,
         );
-        // const uploadResponse = await fetch("/api/orders/upload-screenshot", {
-        //   method: "POST",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        //   body: JSON.stringify({
-        //     fileName,
-        //     originFileObj: file[0].originFileObj,
-        //     type: (file[0] as File).type,
-        //     action: "upload-proof",
-        //   }),
-        // });
-
-        // const { error: uploadError } = await supabase.storage
-        //   .from("payment-proof")
-        //   .upload(fileName, file[0].originFileObj as File, {
-        //     upsert: true, // overwrite if exists
-        //     contentType: (file[0] as File).type,
-        //   });
 
         const response = await axiosApi.post("/package/upload-proof", {
           values: {
-            // fileName,
-            // file: file[0],
-            // originFileObj: file[0].originFileObj,
-
             userID: user?.id,
             status: "PENDING",
             manualPaymentMethod: selectedPaymentMethod,
@@ -621,17 +603,9 @@ export default function PackagesPage() {
           },
         });
 
-        // const { error: uploadError } = await supabase.storage
-        //   .from("user-photos")
-        //   .upload(fileName, file[0].originFileObj as File, {
-        //     upsert: true, // overwrite if exists
-        //     contentType: (file[0] as File).type,
-        //   });
-
-        // if (uploadError) throw uploadError;
-
         await handleSendConfirmationEmail();
 
+        setIsSendingPending(false);
         return response.status;
       }
     } catch (err: any) {
@@ -639,6 +613,7 @@ export default function PackagesPage() {
       console.error(err);
       showMessage({ type: "error", content: "Failed to upload image." });
     }
+    setIsSendingPending(false);
   };
 
   const handleSubmit = async () => {
@@ -665,6 +640,7 @@ export default function PackagesPage() {
       console.error(err);
       showMessage({ type: "error", content: "Failed to upload image." });
     }
+    setIsSendingPending(false);
 
   };
 
@@ -1386,6 +1362,7 @@ export default function PackagesPage() {
       {renderCheckoutDrawer}
 
       {processingMaya && renderCheckoutLoader()}
+      {(isSendingPending || uploadingPayment) && renderUploadProofLoader()}
     </AuthenticatedLayout>
   );
 }
