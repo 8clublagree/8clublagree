@@ -58,9 +58,7 @@ export default function AuthenticatedLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
-  useEffect(() => {
-    console.log('user: ', user)
-  }, [user])
+
 
   useEffect(() => {
     checkUser();
