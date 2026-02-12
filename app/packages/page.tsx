@@ -634,7 +634,7 @@ export default function PackagesPage() {
 
       setTimeout(() => {
         window.location.reload();
-      }, 3000);
+      }, 7000);
     } catch (err: any) {
       setIsSendingPending(false);
       console.error(err);

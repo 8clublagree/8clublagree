@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import supabaseServer from "../../../supabase";
 import dayjs from "dayjs";
 
-export async function PUT(req: Request) {
+export async function PATCH(req: Request) {
   try {
     const { values, id } = await req.json();
 

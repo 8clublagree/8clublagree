@@ -1059,7 +1059,7 @@ export const useManageOrders = () => {
     try {
       setLoading(true);
 
-      const response = await axiosApi.put("/admin/payments/update", {
+      const response = await axiosApi.patch("/admin/payments/update", {
         id,
         values: { status, approved_at },
       });
