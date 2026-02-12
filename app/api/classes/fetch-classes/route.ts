@@ -82,23 +82,23 @@ export async function GET(req: NextRequest) {
       let endOfSelectedUTC;
 
 
-      if (isAdmin) {
-        startOfSelectedUTC = formattedSelectedDate
-          .startOf("day")
-          .subtract(8, "hour")
-          .toISOString();
-        endOfSelectedUTC = formattedSelectedDate
-          .endOf("day")
-          .subtract(8, "hour")
-          .toISOString();
-      } else {
-        startOfSelectedUTC = formattedSelectedDate
-          .startOf("day")
-          .toISOString();
-        endOfSelectedUTC = formattedSelectedDate
-          .endOf("day")
-          .toISOString();
-      }
+      // if (isAdmin) {
+      //   startOfSelectedUTC = formattedSelectedDate
+      //     .startOf("day")
+      //     .subtract(8, "hour")
+      //     .toISOString();
+      //   endOfSelectedUTC = formattedSelectedDate
+      //     .endOf("day")
+      //     .subtract(8, "hour")
+      //     .toISOString();
+      // } else {
+      startOfSelectedUTC = formattedSelectedDate
+        .startOf("day")
+        .toISOString();
+      endOfSelectedUTC = formattedSelectedDate
+        .endOf("day")
+        .toISOString();
+      // }
 
       query = query
         .gte("class_date", startOfSelectedUTC)
