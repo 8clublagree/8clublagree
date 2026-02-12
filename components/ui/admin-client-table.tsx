@@ -26,6 +26,10 @@ interface AdminClientsTableProps {
   currentPage?: number;
   pageSize?: number;
   onPaginationChange?: (page: number, pageSize: number) => void;
+  /** Server-side search - called when filter search is submitted */
+  onSearch?: (field: DataIndex, value: string) => void;
+  searchField?: DataIndex;
+  searchValue?: string;
 }
 
 const AdminClientTable = ({
@@ -39,7 +43,11 @@ const AdminClientTable = ({
   currentPage = 1,
   pageSize: controlledPageSize = 10,
   onPaginationChange,
+  onSearch,
+  searchField,
+  searchValue,
 }: AdminClientsTableProps) => {
+  const isServerSideSearch = !!onSearch;
   const searchInput = useRef<InputRef>(null);
   const user = useAppSelector((state) => state.auth.user);
   const { validatePassword } = useManagePassword();
@@ -77,15 +85,23 @@ const AdminClientTable = ({
     selectedKeys: string[],
     confirm: FilterDropdownProps["confirm"],
     dataIndex: DataIndex,
+    keepDropdownOpen?: boolean,
   ) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
+    const value = selectedKeys[0] ?? "";
+    setSearchText(value);
     setSearchedColumn(dataIndex);
+    if (isServerSideSearch && onSearch) {
+      onSearch(dataIndex, value);
+    }
+    keepDropdownOpen ? confirm?.({ closeDropdown: false }) : confirm?.();
   };
 
-  const handleReset = (clearFilters: () => void) => {
+  const handleReset = (clearFilters: () => void, dataIndex?: DataIndex) => {
     clearFilters();
     setSearchText("");
+    if (isServerSideSearch && onSearch && dataIndex) {
+      onSearch(dataIndex, "");
+    }
   };
 
   // replaced showDeleteConfirm to open our controlled Modal
@@ -121,96 +137,103 @@ const AdminClientTable = ({
 
   const getColumnSearchProps = (
     dataIndex: DataIndex,
-  ): TableColumnType<UserProps> => ({
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-      close,
-    }) => (
-      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) =>
-            setSelectedKeys(e.target.value ? [e.target.value] : [])
-          }
-          onPressEnter={() =>
-            handleSearch(selectedKeys as string[], confirm, dataIndex)
-          }
-          style={{ marginBottom: 8, display: "block" }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() =>
-              handleSearch(selectedKeys as string[], confirm, dataIndex)
+  ): TableColumnType<UserProps> => {
+    const base: TableColumnType<UserProps> = {
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+        close,
+      }) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            ref={searchInput}
+            placeholder={`Search ${dataIndex}`}
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
             }
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Reset
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              confirm({ closeDropdown: false });
-              setSearchText((selectedKeys as string[])[0]);
-              setSearchedColumn(dataIndex);
-            }}
-          >
-            Filter
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close();
-            }}
-          >
-            close
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered: boolean) => (
-      <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
-    ),
-    onFilter: (value, record) =>
-      record?.[dataIndex]
-        ?.toString()
-        ?.toLowerCase()
-        ?.includes((value as string).toLowerCase()) ?? false,
-    filterDropdownProps: {
-      onOpenChange(open) {
-        if (open) {
-          setTimeout(() => searchInput.current?.select(), 100);
-        }
-      },
-    },
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ""}
-        />
-      ) : (
-        text
+
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() =>
+                handleSearch(selectedKeys as string[], confirm, dataIndex)
+              }
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() =>
+                clearFilters && handleReset(clearFilters, dataIndex)
+              }
+              size="small"
+              style={{ width: 90 }}
+            >
+              Reset
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              onClick={() =>
+                handleSearch(selectedKeys as string[], confirm, dataIndex, true)
+              }
+            >
+              Filter
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                close();
+              }}
+            >
+              close
+            </Button>
+          </Space>
+        </div>
       ),
-  });
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
+      ),
+      ...(isServerSideSearch
+        ? {
+          filteredValue: searchField === dataIndex && searchValue ? [searchValue] : undefined,
+        }
+        : {
+          onFilter: (value, record) =>
+            record?.[dataIndex]
+              ?.toString()
+              ?.toLowerCase()
+              ?.includes((value as string).toLowerCase()) ?? false,
+        }),
+      filterDropdownProps: {
+        onOpenChange(open) {
+          if (open) {
+            setTimeout(() => searchInput.current?.select(), 100);
+          }
+        },
+      },
+      render: (text) =>
+        searchedColumn === dataIndex ? (
+          <Highlighter
+            highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+            searchWords={[searchText]}
+            autoEscape
+            textToHighlight={text ? text.toString() : ""}
+          />
+        ) : (
+          text
+        ),
+    };
+    return base;
+  };
 
   const columns = useMemo<TableColumnsType<UserProps>>(
     () => [
@@ -277,7 +300,15 @@ const AdminClientTable = ({
         ),
       },
     ],
-    [isMobile, searchedColumn, searchText, data],
+    [
+      isMobile,
+      searchedColumn,
+      searchText,
+      data,
+      isServerSideSearch,
+      searchField,
+      searchValue,
+    ],
   );
 
   return (
@@ -288,27 +319,14 @@ const AdminClientTable = ({
         dataSource={data}
         scroll={{ x: isMobile ? 600 : undefined }}
         pagination={
-          total !== undefined && onPaginationChange
-            ? {
-              current: currentPage,
-              pageSize: controlledPageSize,
-              total,
-              showSizeChanger: true,
-              pageSizeOptions: ["10", "20", "50"],
-              responsive: true,
-              showTotal: (t, range) =>
-                `${range[0]}-${range[1]} of ${t} items`,
-              onChange: (page, pageSize) =>
-                onPaginationChange(page, pageSize ?? controlledPageSize),
-            }
-            : {
-              defaultPageSize: 10,
-              showSizeChanger: true,
-              pageSizeOptions: ["10", "20", "50"],
-              responsive: true,
-              showTotal: (t, range) =>
-                `${range[0]}-${range[1]} of ${t} items`,
-            }
+          {
+            defaultPageSize: 10,
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "20", "50"],
+            responsive: true,
+            showTotal: (t, range) =>
+              `${range[0]}-${range[1]} of ${t} items`,
+          }
         }
         size={isMobile ? "small" : "middle"}
         className="admin-client-table"

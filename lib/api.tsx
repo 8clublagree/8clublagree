@@ -113,17 +113,21 @@ export const useSearchUser = () => {
 
   const fetchClients = async ({
     name,
+    email,
+    contact_number,
     page = 1,
     pageSize = 10,
   }: {
     name?: string;
+    email?: string;
+    contact_number?: string;
     page?: number;
     pageSize?: number;
   }): Promise<{ data: any[]; total: number } | null> => {
     try {
       setLoading(true);
       const response = await axiosApi.get(`/user/fetch-clients`, {
-        params: { name, page, pageSize },
+        params: { name, email, contact_number, page, pageSize },
       });
       const data = response?.data?.data ?? null;
       const total = response?.data?.total ?? 0;
@@ -1030,6 +1034,19 @@ export const useManageCredits = () => {
 export const useManageOrders = () => {
   const [loading, setLoading] = useState(false);
 
+  const handleViewPayment = async ({ id }: { id: string }) => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.get("/admin/payments/fetch-payment", { params: { id } });
+      setLoading(false);
+      return response?.data?.data ?? null;
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
+    setLoading(false);
+  };
+
   const updatePaymentStatus = async ({
     id,
     approved_at,
@@ -1077,5 +1094,5 @@ export const useManageOrders = () => {
     setLoading(false);
   };
 
-  return { loading, fetchCustomerPayments, updatePaymentStatus };
+  return { loading, handleViewPayment, fetchCustomerPayments, updatePaymentStatus };
 };

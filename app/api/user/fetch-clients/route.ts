@@ -5,6 +5,8 @@ export async function GET(req: NextRequest) {
   try {
     const data = Object.fromEntries(new URL(req.url).searchParams.entries());
     const name = data.name;
+    const email = data.email;
+    const contact_number = data.contact_number;
     const page = Math.max(1, parseInt(data.page ?? "1", 10) || 1);
     const pageSize = Math.min(
       100,
@@ -65,6 +67,12 @@ export async function GET(req: NextRequest) {
 
     if (!!name?.length) {
       query = query.ilike("full_name", `%${name}%`);
+    }
+    if (!!email?.length) {
+      query = query.ilike("email", `%${email}%`);
+    }
+    if (!!contact_number?.length) {
+      query = query.ilike("contact_number", `%${contact_number}%`);
     }
 
     const { data: clients, error, count } = await query;

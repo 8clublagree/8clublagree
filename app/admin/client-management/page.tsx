@@ -11,7 +11,7 @@ import {
   useSearchUser,
   useUpdateUser,
 } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import EditClientForm from "@/components/forms/EditClientForm";
 import { supabase } from "@/lib/supabase";
 import AdminClientTable from "@/components/ui/admin-client-table";
@@ -35,6 +35,11 @@ export default function ClientManagementPage() {
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [searchField, setSearchField] = useState<
+    "full_name" | "email" | "contact_number" | undefined
+  >(undefined);
+  const [searchValue, setSearchValue] = useState("");
+  const ignoreNextPaginationChangeRef = useRef(false);
   const { updateUserCredits } = useManageCredits();
   const { fetchClients, loading } = useSearchUser();
   const { updateUser, loading: updating } = useUpdateUser();
@@ -72,12 +77,28 @@ export default function ClientManagementPage() {
     };
   }, []);
 
-  const handleSearchClients = async (
-    opts?: { page?: number; pageSize?: number },
-  ) => {
+  const handleSearchClients = async (opts?: {
+    page?: number;
+    pageSize?: number;
+    searchField?: "full_name" | "email" | "contact_number";
+    searchValue?: string;
+  }) => {
     const page = opts?.page ?? currentPage;
     const size = opts?.pageSize ?? pageSize;
-    const result = await fetchClients({ page, pageSize: size });
+    const field = opts?.searchField ?? searchField;
+    const value = opts?.searchValue ?? searchValue;
+
+    const params: Record<string, string | number | undefined> = {
+      page,
+      pageSize: size,
+    };
+    if (field && value) {
+      if (field === "full_name") params.name = value;
+      else if (field === "email") params.email = value;
+      else if (field === "contact_number") params.contact_number = value;
+    }
+
+    const result = await fetchClients(params);
 
     try {
       if (result?.data) {
@@ -175,6 +196,9 @@ export default function ClientManagementPage() {
         setTotal(result.total);
         if (opts?.page !== undefined) setCurrentPage(opts.page);
         if (opts?.pageSize !== undefined) setPageSize(opts.pageSize);
+        if (opts?.searchField !== undefined) setSearchField(opts.searchField);
+        if (opts?.searchValue !== undefined)
+          setSearchValue(opts.searchValue);
         setIsProcessingData(false)
       }
     } catch (error) {
@@ -242,6 +266,7 @@ export default function ClientManagementPage() {
 
         setIsEditing(false);
         setSelectedRecord(null);
+        console.log('1')
         handleSearchClients();
 
         showMessage({
@@ -281,9 +306,27 @@ export default function ClientManagementPage() {
             total={total}
             currentPage={currentPage}
             pageSize={pageSize}
-            onPaginationChange={(page, size) =>
-              handleSearchClients({ page, pageSize: size })
-            }
+            onPaginationChange={(page, size) => {
+              if (ignoreNextPaginationChangeRef.current) {
+                ignoreNextPaginationChangeRef.current = false;
+                return;
+              }
+              handleSearchClients({ page, pageSize: size });
+            }}
+            onSearch={(field, value) => {
+              ignoreNextPaginationChangeRef.current = true;
+              const searchable = ["full_name", "email", "contact_number"];
+              const safeField = searchable.includes(field)
+                ? (field as "full_name" | "email" | "contact_number")
+                : undefined;
+              handleSearchClients({
+                page: 1,
+                searchField: value ? safeField : undefined,
+                searchValue: value,
+              });
+            }}
+            searchField={searchField}
+            searchValue={searchValue}
           />
         </div>
       </div>
