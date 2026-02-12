@@ -57,11 +57,11 @@ interface OrdersTableType {
 const PaymentsPage = () => {
   const [confirmingPayment, setIsConfirmingPayment] = useState<boolean>(false);
   const {
-    fetchCustomerPayments,
     loading,
     updatePaymentStatus,
     handleViewPayment: fetchPayment,
   } = useManageOrders();
+  const [loadingPayments, setLoadingPayments] = useState(false);
   const { showMessage, contextHolder } = useAppMessage();
   const [payments, setPayments] = useState<OrdersTableType[]>([]);
   const [total, setTotal] = useState(0);
@@ -276,19 +276,61 @@ const PaymentsPage = () => {
 
   const handleFetchOrders = async (page?: number, pageSize?: number) => {
     const p = page ?? pagination.current;
-    const ps = pageSize ?? pagination.pageSize;
+    const ps = Math.min(100, Math.max(1, pageSize ?? pagination.pageSize));
+    const from = (p - 1) * ps;
+    const to = from + ps - 1;
+
+    const SELECT_QUERY = `
+      *,
+      user_profiles (
+        id,
+        full_name,
+        email,
+        user_credits (
+          credits
+        ),
+        client_packages (
+          id,
+          status
+        )
+      )
+    `;
+
+    setLoadingPayments(true);
     try {
-      const response = await fetchCustomerPayments(p, ps);
-      // Only clear list on success with a valid response; avoid clearing on
-      // network/API errors so the user doesn’t see an empty table incorrectly.
-      if (response?.data) {
-        setPayments(response.data.payments ?? []);
-        setTotal(response.data.total ?? 0);
-        setPagination((prev) => ({ ...prev, current: p, pageSize: ps }));
+      const { data: payments, error: paymentsError, count } = await supabase
+        .from("orders")
+        .select(SELECT_QUERY, { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (paymentsError) {
+        showMessage({ type: "error", content: paymentsError.message });
+        return;
       }
+
+      const list = payments ?? [];
+      const mapped = list.map((item: any) => {
+        const profiles = item?.user_profiles;
+        const active =
+          profiles?.client_packages?.find?.(
+            (pkg: { status: string }) => pkg?.status === "active",
+          ) ?? null;
+        return {
+          ...item,
+          currentActivePackage: active ?? null,
+          userCredits: profiles?.user_credits?.[0]?.credits ?? null,
+        };
+      });
+
+      setPayments(mapped);
+      setTotal(count ?? mapped.length);
+      setPagination((prev) => ({ ...prev, current: p, pageSize: ps }));
     } catch (error) {
       showMessage({ type: "error", content: "Error fetching orders" });
-      console.log(error);
+      console.error(error);
+    } finally {
+      setLoadingPayments(false);
     }
   };
 
@@ -426,7 +468,11 @@ const PaymentsPage = () => {
       <Table<OrdersTableType>
         rowKey={(record) => record.id ?? record.key ?? record.reference_id ?? String(record.created_at)}
         loading={
-          loading || updatingCredits || modifyingPackage || confirmingPayment
+          loadingPayments ||
+          loading ||
+          updatingCredits ||
+          modifyingPackage ||
+          confirmingPayment
         }
         scroll={{ x: true }}
         columns={columns}

@@ -1075,24 +1075,5 @@ export const useManageOrders = () => {
     setLoading(false);
   };
 
-  const fetchCustomerPayments = async (page = 1, pageSize = 10) => {
-    try {
-      setLoading(true);
-
-      const response = await axiosApi.get("/admin/payments/fetch", {
-        params: { page, pageSize },
-      });
-
-      if (response && !response.data) return null;
-
-      setLoading(false);
-      return response;
-    } catch (error) {
-      setLoading(false);
-      console.error(error);
-    }
-    setLoading(false);
-  };
-
-  return { loading, handleViewPayment, fetchCustomerPayments, updatePaymentStatus };
+  return { loading, handleViewPayment, updatePaymentStatus };
 };
