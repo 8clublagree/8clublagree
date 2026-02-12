@@ -330,7 +330,7 @@ const PaymentsPage = () => {
 
     if (paymentStatusResponse) {
       try {
-        const response = await Promise.all([
+        await Promise.all([
           handlePurchasePackage(),
           handleUpdateUserCredits({
             userID: selectedPayment!.user_profiles.id,
@@ -339,7 +339,7 @@ const PaymentsPage = () => {
           handleSendConfirmationEmail(),
         ]);
 
-        if (response) await handleFetchOrders(1, pagination.pageSize);
+        // if (response) await handleFetchOrders(1, pagination.pageSize);
 
         showMessage({
           type: "success",
