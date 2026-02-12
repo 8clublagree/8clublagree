@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   Layout,
@@ -11,6 +11,8 @@ import {
   Button,
   Drawer,
   Modal,
+  Row,
+  Spin,
 } from "antd";
 import {
   HomeOutlined,
@@ -55,6 +57,10 @@ export default function AuthenticatedLayout({
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
+
+  useEffect(() => {
+    console.log('user: ', user)
+  }, [user])
 
   useEffect(() => {
     checkUser();
@@ -216,6 +222,25 @@ export default function AuthenticatedLayout({
     },
   ];
 
+  const renderUploadProofLoader = useCallback(() => {
+    return (
+      <Row
+        className="justify-center items-center bg-black/60 !h-full !w-full"
+      >
+        <Row
+          justify="center"
+          align="middle"
+          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
+        >
+          <div className="flex flex-row gap-x-[20px]">
+            <p className="mt-4 text-slate-600 animate-loading-shade">Warming Up</p>
+          </div>
+          <Spin spinning={true} />
+        </Row>
+      </Row>
+    );
+  }, [user]);
+
   return (
     <Layout className="h-screen min-h-screen flex !halyard">
       <Sider
@@ -292,11 +317,37 @@ export default function AuthenticatedLayout({
           </Dropdown>
         </Header>
 
-        <Content className="justify-between flex flex-col h-screen pb-0 bg-slate-50 overflow-auto">
-          <div className="py-[20px] px-4 w-full mx-auto">{children}</div>
+        {user !== null &&
+          <Content className="justify-between flex flex-col h-screen pb-0 bg-slate-50 overflow-auto">
+            <div className={`${user === null ? undefined : 'py-[20px] px-4'} w-full mx-auto`}>
+              {children}
+            </div>
+          </Content>
+        }
 
+        {user === null &&
+          <Row
+            className="justify-center items-center bg-black/60 !h-full !w-full"
+          >
+            <Row
+              justify="center"
+              align="middle"
+              className="flex-col gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
+            >
 
-        </Content>
+              <div className="flex justify-center">
+                <img
+                  src="/images/main-8-logo.png"
+                  alt="Logo"
+                  width={70}
+                  height={70}
+                />
+              </div>
+              <p className="text-slate-600 animate-loading-shade">Warming Up</p>
+
+            </Row>
+          </Row>
+        }
 
       </Layout>
 
