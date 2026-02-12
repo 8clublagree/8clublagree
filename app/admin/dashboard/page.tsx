@@ -106,7 +106,7 @@ export default function DashboardPage() {
             startTime: dayjs(item.start_time).format("HH:mm"),
             endTime: dayjs(item.end_time).format("HH:mm"),
             slots: `${item.taken_slots} / ${item.available_slots}`,
-            color: ganttColors[index],
+            color: Number(item.taken_slots) < 3 ? '#4DA6FF' : Number(item.taken_slots) >= 3 && Number(item.taken_slots) < 5 ? '#FF9A3C' : Number(item.taken_slots) >= 5 && Number(item.taken_slots) <= 6 ? '#FF0000' : '#4DA6FF',
             classDate: item.class_date,
           }));
         } else {
@@ -357,6 +357,21 @@ export default function DashboardPage() {
 
     return (
       <div style={{ width: "100%", height: 520, padding: 12 }}>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-2 px-[10px]">
+          {[
+            { color: "#4DA6FF", label: "< 3 slots taken" },
+            { color: "#FF9A3C", label: "3 – 5 slots taken" },
+            { color: "#FF0000", label: "5 – 6 slots taken" },
+          ].map(({ color, label }) => (
+            <div key={label} className="flex items-center gap-2">
+              <span
+                className="inline-block h-3 w-3 rounded-full shrink-0"
+                style={{ backgroundColor: color }}
+              />
+              <span className="halyard text-xs text-slate-500">{label}</span>
+            </div>
+          ))}
+        </div>
         <div style={{ height: 460 }}>
           <Bar data={data} options={options} />
         </div>
