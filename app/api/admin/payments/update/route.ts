@@ -12,7 +12,7 @@ export async function PUT(req: Request) {
       // .update({ status: values.status, approved_at: values.approved_at ?? null })
       .update({ status: 'SUCCESSFUL', approved_at: dayjs().toISOString() ?? null })
       .eq("id", id)
-      .single();
+      .select();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
