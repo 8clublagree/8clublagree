@@ -17,6 +17,9 @@ import { ImInfinite } from "react-icons/im";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import dayjs, { Dayjs } from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+
+dayjs.extend(isSameOrAfter);
 import { useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
@@ -97,20 +100,24 @@ export default function BookingsPage() {
       // console.log('data: ', data)
       if (data && !!data.length) {
         setIsProcessingData(true)
-        const parsed = data.map((lagreeClass: any) => {
-          return {
-            ...lagreeClass,
-            key: lagreeClass.id,
-            instructor_id: lagreeClass.instructor_id,
-            class_name: lagreeClass.class_name,
-            instructor_name: lagreeClass.instructor_name,
-            start_time: dayjs(lagreeClass.start_time),
-            end_time: dayjs(lagreeClass.end_time),
-            available_slots: lagreeClass.available_slots,
-            taken_slots: lagreeClass.taken_slots,
-            slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
-          };
-        })
+        const now = dayjs()
+        const parsed = data.reduce((acc: any[], lagreeClass: any) => {
+          if (dayjs(lagreeClass.start_time).isSameOrAfter(now)) {
+            acc.push({
+              ...lagreeClass,
+              key: lagreeClass.id,
+              instructor_id: lagreeClass.instructor_id,
+              class_name: lagreeClass.class_name,
+              instructor_name: lagreeClass.instructor_name,
+              start_time: dayjs(lagreeClass.start_time),
+              end_time: dayjs(lagreeClass.end_time),
+              available_slots: lagreeClass.available_slots,
+              taken_slots: lagreeClass.taken_slots,
+              slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
+            });
+          }
+          return acc;
+        }, [])
 
         try {
 
