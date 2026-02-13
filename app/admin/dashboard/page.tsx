@@ -444,8 +444,10 @@ export default function DashboardPage() {
             }
             styles={{ header: { border: "none" }, body: { padding: 0 } }}
           >
-            {dashboardPeriod === "Daily" && <DailyGanttChart />}
-            {dashboardPeriod === "Weekly" && <WeeklyScheduleChart />}
+            {/* {dashboardPeriod === "Daily" && <DailyGanttChart />} */}
+            {/* {dashboardPeriod === "Weekly" && */}
+            <WeeklyScheduleChart />
+            {/* } */}
           </Card>
         }
       </div>
