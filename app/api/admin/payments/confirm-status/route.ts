@@ -39,8 +39,8 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // 2. If user has 0 credits, expire old package and create new one
-    if (userCredits === 0) {
+    // 2. If user has 0 credits or had unlimited credits, expire old package and create new one
+    if (userCredits === 0 || userCredits === null) {
       const { error: clientPackageError } = await supabaseServer
         .from("client_packages")
         .update({ status: "expired", expiration_date: today.toISOString() })
