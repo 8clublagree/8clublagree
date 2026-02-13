@@ -5,15 +5,26 @@ export async function PUT(req: Request) {
   try {
     const { id, classID, takenSlots, userID, userCredits } = await req.json();
 
+    const { data: classData, error: classError } = await supabaseServer
+      .from("classes")
+      .select()
+      .eq("id", classID)
+      .single();
+
+    if (classError) {
+      return NextResponse.json({ error: classError.message }, { status: 400 });
+    }
+
     const { data, error } = await supabaseServer
       .from("class_bookings")
       .update({ attendance_status: "cancelled" })
       .eq("id", id)
       .select();
 
+
     const { error: updateClassError } = await supabaseServer
       .from("classes")
-      .update({ taken_slots: takenSlots - 1 })
+      .update({ taken_slots: Number(classData?.taken_slots) === 0 ? 0 : classData?.taken_slots - 1 })
       .eq("id", classID)
       .select();
 
