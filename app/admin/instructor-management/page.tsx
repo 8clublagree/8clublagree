@@ -201,17 +201,22 @@ export default function InstructorManagementPage() {
           });
         }
 
-        const { data } = await axiosApi.post("/update-user-email", {
-          id: selectedRecord.id,
-          email: credentials.email,
-        });
+        await axiosApi.post('/request-email-change', {
+          userId: selectedRecord.id,
+          email: credentials.email
+        })
 
-        if (!data) {
-          showMessage({
-            type: "error",
-            content: "Error updating email",
-          });
-        }
+        // const { data } = await axiosApi.post("/update-user-email", {
+        //   id: selectedRecord.id,
+        //   email: credentials.email,
+        // });
+
+        // if (!data) {
+        //   showMessage({
+        //     type: "error",
+        //     content: "Error updating email",
+        //   });
+        // }
 
         const { error: profileError } = await supabase
           .from("user_profiles")

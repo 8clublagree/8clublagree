@@ -11,7 +11,6 @@ import {
   Avatar,
   TableColumnsType,
 } from "antd";
-
 import { UserOutlined } from "@ant-design/icons";
 import { Class, Trainer, Schedule, Testimonial } from "@/lib/props";
 import { useRouter } from "next/navigation";
@@ -19,6 +18,8 @@ import UnauthenticatedLayout from "@/components/layout/UnauthenticatedLayout";
 import { useAboutPageData } from "@/lib/api";
 import { CERTIFICATION_MAP } from "@/lib/utils";
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+dayjs.extend(isSameOrAfter);
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -40,9 +41,28 @@ export default function About() {
     if (data) {
       const { classesRes, trainersRes, schedulesRes } = data;
 
+      const now = dayjs()
+      const parsed = schedulesRes.data.reduce((acc: any[], lagreeClass: any) => {
+        if (dayjs(lagreeClass.start_time).isSameOrAfter(now)) {
+          acc.push({
+            ...lagreeClass,
+            key: lagreeClass.id,
+            instructor_id: lagreeClass.instructor_id,
+            class_name: lagreeClass.class_name,
+            instructor_name: lagreeClass.instructor_name,
+            start_time: dayjs(lagreeClass.start_time),
+            end_time: dayjs(lagreeClass.end_time),
+            available_slots: lagreeClass.available_slots,
+            taken_slots: lagreeClass.taken_slots,
+            slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
+          });
+        }
+        return acc;
+      }, [])
+
       if (classesRes.data) setClasses(classesRes.data);
       if (trainersRes.data) setInstructors(trainersRes.data);
-      if (schedulesRes.data) setSchedules(schedulesRes.data);
+      if (schedulesRes.data) setSchedules(parsed);
     }
   };
 

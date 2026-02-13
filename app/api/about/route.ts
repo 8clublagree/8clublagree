@@ -14,7 +14,7 @@ export async function GET() {
       .toISOString();
 
     const [classesRes, trainersRes, schedulesRes] = await Promise.all([
-      supabaseServer.from("classes").select("*").order("created_at"),
+      supabaseServer.from("classes").select("*").order("start_time", { ascending: false }),
       supabaseServer
         .from("user_profiles")
         .select(`*, instructors(certification)`)
@@ -25,7 +25,7 @@ export async function GET() {
         .select(
           `*, instructors(user_id, user_profiles(full_name, avatar_path))`,
         )
-        .order("created_at", { ascending: false })
+        .order("start_time", { ascending: true })
         .gte("class_date", startOfSelectedUTC)
         .lte("class_date", endOfSelectedUTC),
     ]);
