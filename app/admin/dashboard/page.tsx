@@ -74,6 +74,32 @@ export default function DashboardPage() {
     "Weekly"
   );
 
+  const [weeklyChartArea, setWeeklyChartArea] = useState<{
+    top: number;
+    bottom: number;
+    left: number;
+  } | null>(null);
+
+  const captureLayoutPlugin = useMemo(
+    () => ({
+      id: "captureLayout",
+      afterDraw: (chart: any) => {
+        const { top, bottom, left } = chart.chartArea;
+        setWeeklyChartArea((prev) => {
+          if (
+            prev &&
+            prev.top === top &&
+            prev.bottom === bottom &&
+            prev.left === left
+          )
+            return prev;
+          return { top, bottom, left };
+        });
+      },
+    }),
+    []
+  );
+
   useEffect(() => {
     handleFetchClasses({})
   }, [])
@@ -356,7 +382,7 @@ export default function DashboardPage() {
     };
 
     return (
-      <div style={{ width: "100%", height: 520, padding: 12 }}>
+      <div style={{ padding: 12 }}>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-2 px-[10px]">
           {[
             { color: "#4DA6FF", label: "< 3 slots taken" },
@@ -372,8 +398,53 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-        <div style={{ height: 460 }}>
-          <Bar data={data} options={options} />
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ minWidth: 800, height: 460 }}>
+            <Bar
+              data={data}
+              options={options}
+              plugins={[captureLayoutPlugin]}
+            />
+          </div>
+          {weeklyChartArea && (
+            <div
+              style={{
+                position: "sticky",
+                left: 0,
+                marginTop: -460,
+                height: 460,
+                width: weeklyChartArea.left,
+                background: "white",
+                zIndex: 10,
+                pointerEvents: "none",
+              }}
+            >
+              {Array.from({ length: 16 }, (_, i) => 7 + i).map((hour) => {
+                const fraction = (hour - 7) / 15;
+                const y =
+                  weeklyChartArea.bottom -
+                  fraction * (weeklyChartArea.bottom - weeklyChartArea.top);
+                const displayHour = hour % 12 || 12;
+                const suffix = hour >= 12 ? "PM" : "AM";
+                return (
+                  <div
+                    key={hour}
+                    style={{
+                      position: "absolute",
+                      top: y,
+                      right: 8,
+                      transform: "translateY(-50%)",
+                      fontSize: 12,
+                      color: "#666",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {`${displayHour}:00 ${suffix}`}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     );
