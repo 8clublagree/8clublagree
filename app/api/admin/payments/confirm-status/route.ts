@@ -20,19 +20,12 @@ export async function PUT(req: Request) {
     } = await req.json();
 
     // --- Input validation ---
-    if (!id || !userID || credits == null) {
-      return NextResponse.json(
-        { error: "Missing required fields: id, userID, and credits are required." },
-        { status: 400 },
-      );
-    }
-
-    if (userCredits === 0 && (!clientPackageID || !packageID || !packageName || !validityPeriod || packageCredits == null)) {
-      return NextResponse.json(
-        { error: "Missing required package fields for zero-credit rollover." },
-        { status: 400 },
-      );
-    }
+    // if (!id || !userID || credits == null) {
+    //   return NextResponse.json(
+    //     { error: "Missing required fields: id, userID, and credits are required." },
+    //     { status: 400 },
+    //   );
+    // }
 
     // 1. Update order status
     const { data, error } = await supabaseServer
