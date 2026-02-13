@@ -51,27 +51,28 @@ export async function PUT(req: Request) {
         console.error("[confirm-status] Failed to expire client package:", clientPackageError.message);
         return NextResponse.json({ error: clientPackageError.message }, { status: 400 });
       }
-
-      const { error: newClientPackageError } = await supabaseServer
-        .from("client_packages")
-        .insert({
-          user_id: userID,
-          package_id: packageID,
-          status: "active",
-          validity_period: validityPeriod,
-          package_credits: packageCredits,
-          purchase_date: today.toISOString(),
-          package_name: packageName,
-          payment_method: paymentMethod,
-          expiration_date: getDateFromToday(validityPeriod),
-        })
-        .select();
-
-      if (newClientPackageError) {
-        console.error("[confirm-status] Failed to create new client package:", newClientPackageError.message);
-        return NextResponse.json({ error: newClientPackageError.message }, { status: 400 });
-      }
     }
+
+    const { error: newClientPackageError } = await supabaseServer
+      .from("client_packages")
+      .insert({
+        user_id: userID,
+        package_id: packageID,
+        status: "active",
+        validity_period: validityPeriod,
+        package_credits: packageCredits,
+        purchase_date: today.toISOString(),
+        package_name: packageName,
+        payment_method: paymentMethod,
+        expiration_date: getDateFromToday(validityPeriod),
+      })
+      .select();
+
+    if (newClientPackageError) {
+      console.error("[confirm-status] Failed to create new client package:", newClientPackageError.message);
+      return NextResponse.json({ error: newClientPackageError.message }, { status: 400 });
+    }
+
 
     // 3. Update user credits
     const { error: userCreditsError } = await supabaseServer
