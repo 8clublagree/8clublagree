@@ -71,14 +71,14 @@ export default function DashboardPage() {
 
 
   const [dashboardPeriod, setDashboardPeriod] = useState<"Daily" | "Weekly">(
-    "Daily"
+    "Weekly"
   );
 
   useEffect(() => {
     handleFetchClasses({})
   }, [])
 
-  const handleFetchClasses = async ({ period = "Daily" }: { period?: "Daily" | "Weekly" }) => {
+  const handleFetchClasses = async ({ period = "Weekly" }: { period?: "Daily" | "Weekly" }) => {
     setIsProcessingData(true)
     try {
 
@@ -384,10 +384,10 @@ export default function DashboardPage() {
     <AdminAuthenticatedLayout>
       <div className="space-y-6">
         <Row wrap={false} className="justify-between items-center">
-          <Title level={2} className="!mb-2">
+          {/* <Title level={2} className="!mb-2">
             Dashboard
-          </Title>
-          <Segmented
+          </Title> */}
+          {/* <Segmented
             defaultValue={dashboardPeriod}
             options={["Daily", "Weekly"]}
             onChange={(e) => {
@@ -395,7 +395,7 @@ export default function DashboardPage() {
               setDashboardPeriod(value)
               handleFetchClasses({ period: value })
             }}
-          />
+          /> */}
         </Row>
 
 
@@ -404,9 +404,10 @@ export default function DashboardPage() {
             <Card className="shadow-sm hover:shadow-md transition-shadow">
               <Statistic
                 title={
-                  dashboardPeriod === "Daily"
-                    ? "Total Classes Today"
-                    : "Total Classes This Week"
+                  // dashboardPeriod === "Daily"
+                  //   ? "Total Classes Today"
+                  //   :
+                  "Total Classes This Week"
                 }
                 value={dashboardKPI.totalClasses}
                 prefix={<CalendarOutlined className="text-blue-600" />}
@@ -438,9 +439,10 @@ export default function DashboardPage() {
           <Card
             className="shadow-sm hover:shadow-md transition-shadow"
             title={
-              dashboardPeriod === "Daily"
-                ? "Today's Schedule"
-                : "This Week's Schedule"
+              // dashboardPeriod === "Daily"
+              //   ? "Today's Schedule"
+              //   :
+              "This Week's Schedule"
             }
             styles={{ header: { border: "none" }, body: { padding: 0 } }}
           >
