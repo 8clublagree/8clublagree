@@ -310,7 +310,7 @@ export default function BookingsPage() {
           emptyText: "A class hasn't been created for this day",
         }}
         renderItem={(item, index) => {
-          console.log('item: ', item)
+
           const slotsRemaining = item?.available_slots - item?.taken_slots;
           return (
             <List.Item
