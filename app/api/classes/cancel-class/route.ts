@@ -7,7 +7,7 @@ export async function PUT(req: Request) {
 
     const { data: classData, error: classError } = await supabaseServer
       .from("classes")
-      .select()
+      .select(`*, class_bookings (id)`)
       .eq("id", classID)
       .single();
 
@@ -21,10 +21,11 @@ export async function PUT(req: Request) {
       .eq("id", id)
       .select();
 
+    const filteredBookings = classData?.class_bookings?.filter((booking: any) => booking.attendance_status !== 'cancelled');
 
     const { error: updateClassError } = await supabaseServer
       .from("classes")
-      .update({ taken_slots: Number(classData?.taken_slots) === 0 ? 0 : classData?.taken_slots - 1 })
+      .update({ taken_slots: Number(filteredBookings.length) === 0 ? 0 : Number(filteredBookings.length) - 1 })
       .eq("id", classID)
       .select();
 

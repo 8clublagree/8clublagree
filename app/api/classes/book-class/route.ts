@@ -58,10 +58,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    const filteredBookings = classData?.class_bookings?.filter((booking: any) => booking.attendance_status !== 'cancelled');
+
     const { data: updateClassData, error: updateClassError } = await supabaseServer
       .from("classes")
       .update({
-        taken_slots: (classData?.class_bookings?.length || 0) + 1,
+        taken_slots: (filteredBookings?.length || 0) + 1,
       })
       .eq("id", classId)
       .select();
