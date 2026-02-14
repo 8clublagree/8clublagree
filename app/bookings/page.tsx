@@ -301,7 +301,6 @@ export default function BookingsPage() {
   );
 
   const RenderClassList = useCallback(() => {
-    console.log('classes: ', classes)
     return (
       <List
         loading={loading || isProcessingData || isSubmitting}

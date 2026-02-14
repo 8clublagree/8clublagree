@@ -441,8 +441,8 @@ export default function ClassManagementPage() {
   };
 
   const RenderViewClass = () => {
-    const cannotMarkAttendance = dayjs().isAfter(selectedRecord?.end_time);
-
+    const cannotMarkAttendance = dayjs(selectedDate).isAfter(selectedRecord?.end_time);
+    const fitlered = attendees.filter((item: any) => item.attendance_status !== 'cancelled')
     return (
       <Col className="flex flex-col pt-0 space-y-4">
         <Row wrap={false} className="justify-between">
@@ -471,7 +471,6 @@ export default function ClassManagementPage() {
           <div
             style={{
               overflowY: "auto",
-              maxHeight: "30vh",
               scrollbarWidth: "none",
               msOverflowStyle: "none",
             }}
@@ -479,7 +478,7 @@ export default function ClassManagementPage() {
           >
             <List
               itemLayout="horizontal"
-              dataSource={attendees}
+              dataSource={fitlered}
               locale={{ emptyText: "Nobody has booked this class yet" }}
               loading={loading}
               renderItem={(item, index) => {
@@ -487,11 +486,11 @@ export default function ClassManagementPage() {
                   <Row
                     key={index}
                     wrap={false}
-                    className={`${attendees.length > 1 && "border-b"
+                    className={`${fitlered.length > 1 && "border-b"
                       } py-3 justify-between`}
                   >
                     <List.Item.Meta
-                      title={item.attendeeName}
+                      title={`${index + 1}. ${item.attendeeName}`}
                       className="flex items-center"
                     />
 
