@@ -97,61 +97,60 @@ export default function BookingsPage() {
         userId: user?.id,
         selectedDate: selectedDate as Dayjs,
       });
-      // console.log('data: ', data)
-      if (data && !!data.length) {
-        setIsProcessingData(true)
-        const now = dayjs()
-        const parsed = data.reduce((acc: any[], lagreeClass: any) => {
-          if (dayjs(lagreeClass.start_time).isSameOrAfter(now)) {
-            acc.push({
-              ...lagreeClass,
-              key: lagreeClass.id,
-              instructor_id: lagreeClass.instructor_id,
-              class_name: lagreeClass.class_name,
-              instructor_name: lagreeClass.instructor_name,
-              start_time: dayjs(lagreeClass.start_time),
-              end_time: dayjs(lagreeClass.end_time),
-              available_slots: lagreeClass.available_slots,
-              taken_slots: lagreeClass.taken_slots,
-              slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
-            });
-          }
-          return acc;
-        }, [])
 
-        try {
-
-          const mapped = await Promise.all(
-            parsed.map(async (lagreeClass: any) => {
-              let imageURL: any = null;
-
-              if (!lagreeClass.instructors) return null;
-
-              if (lagreeClass.instructors.user_profiles.avatar_path) {
-
-                const signedURL = await fetchImage({
-                  avatarPath: lagreeClass.instructors.user_profiles.avatar_path,
-                });
-
-                imageURL = signedURL;
-              }
-
-              return {
-                ...lagreeClass,
-                avatar_url: imageURL,
-              };
-            }),
-          );
-
-          const filtered = mapped.filter((item) => item !== null);
-          setClasses(filtered);
-          setIsProcessingData(false)
-        } catch (error) {
-          setClasses(parsed);
-          setIsProcessingData(false)
-          console.error(error);
+      setIsProcessingData(true)
+      const now = dayjs()
+      const parsed = data.reduce((acc: any[], lagreeClass: any) => {
+        if (dayjs(lagreeClass.start_time).isSameOrAfter(now)) {
+          acc.push({
+            ...lagreeClass,
+            key: lagreeClass.id,
+            instructor_id: lagreeClass?.instructor_id,
+            class_name: lagreeClass.class_name,
+            instructor_name: lagreeClass.instructor_name,
+            start_time: dayjs(lagreeClass.start_time),
+            end_time: dayjs(lagreeClass.end_time),
+            available_slots: lagreeClass.available_slots,
+            taken_slots: lagreeClass.taken_slots,
+            slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
+          });
         }
+        return acc;
+      }, [])
+
+      try {
+
+        const mapped = await Promise.all(
+          parsed.map(async (lagreeClass: any) => {
+            let imageURL: any = null;
+
+            if (!lagreeClass.instructors) return null;
+
+            if (lagreeClass.instructors.user_profiles.avatar_path) {
+
+              const signedURL = await fetchImage({
+                avatarPath: lagreeClass.instructors.user_profiles.avatar_path,
+              });
+
+              imageURL = signedURL;
+            }
+
+            return {
+              ...lagreeClass,
+              avatar_url: imageURL,
+            };
+          }),
+        );
+
+        const filtered = mapped.filter((item) => item !== null);
+        setClasses(filtered);
+        setIsProcessingData(false)
+      } catch (error) {
+        setClasses(parsed);
+        setIsProcessingData(false)
+        console.error(error);
       }
+
     } catch (error) {
       setIsProcessingData(false)
       console.error(error);
