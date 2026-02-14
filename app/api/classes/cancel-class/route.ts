@@ -25,7 +25,7 @@ export async function PUT(req: Request) {
 
     const { error: updateClassError } = await supabaseServer
       .from("classes")
-      .update({ taken_slots: Number(filteredBookings.length) === 0 ? 0 : Number(filteredBookings.length) - 1 })
+      .update({ taken_slots: Number(classData?.taken_slots) === 0 ? 0 : Number(classData?.taken_slots) - 1 })
       .eq("id", classID)
       .select();
 

@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     const { data: updateClassData, error: updateClassError } = await supabaseServer
       .from("classes")
       .update({
-        taken_slots: (filteredBookings?.length || 0) + 1,
+        taken_slots: (classData?.taken_slots || 0) + 1,
       })
       .eq("id", classId)
       .select();
