@@ -311,7 +311,7 @@ export default function BookingsPage() {
           emptyText: "A class hasn't been created for this day",
         }}
         renderItem={(item, index) => {
-          const slotsRemaining = item.available_slots - item.taken_slots;
+          const slotsRemaining = item?.available_slots - item?.taken_slots;
           return (
             <List.Item
               key={index}
@@ -324,7 +324,7 @@ export default function BookingsPage() {
                       className="border-slate-200 border"
                       size={isMobile ? 50 : 60}
                       icon={<UserOutlined />}
-                      src={item.avatar_url}
+                      src={item?.avatar_url}
                     />
                     <div className="font-light text-xs sm:text-sm text-center w-32 break-words">
                       {item?.instructors?.user_profiles?.first_name}
