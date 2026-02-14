@@ -60,7 +60,7 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
-  const { fetchImage } = useManageImage();
+  const { fetchImage, loading: fetchingImage } = useManageImage();
 
   useEffect(() => {
     const handleResize = () => {
@@ -149,6 +149,9 @@ export default function BookingsPage() {
         setClasses(parsed);
         setIsProcessingData(false)
         console.error(error);
+      } finally {
+        setClasses(parsed);
+        setIsProcessingData(false)
       }
 
     } catch (error) {
@@ -364,7 +367,7 @@ export default function BookingsPage() {
         }}
       />
     );
-  }, [classes, loading, isMobile, isSubmitting, selectedDate, isProcessingData]);
+  }, [classes, loading, isMobile, isSubmitting, selectedDate, isProcessingData, fetchingImage]);
 
   return (
     <AuthenticatedLayout>
