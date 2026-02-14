@@ -20,7 +20,7 @@ import dayjs, { Dayjs } from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
 dayjs.extend(isSameOrAfter);
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import {
@@ -118,39 +118,38 @@ export default function BookingsPage() {
         return acc;
       }, [])
 
+      // Filter out classes without instructors before fetching images
+      const withInstructors = parsed.filter((c: any) => c.instructors);
+
       try {
-
-        const mapped = await Promise.all(
-          parsed.map(async (lagreeClass: any) => {
-            let imageURL: any = null;
-
-            if (!lagreeClass.instructors) return null;
-
-            if (lagreeClass?.instructors?.user_profiles?.avatar_path) {
-
-              const signedURL = await fetchImage({
-                avatarPath: lagreeClass?.instructors?.user_profiles?.avatar_path,
-              });
-
-              imageURL = signedURL;
-            }
-
-            return {
-              ...lagreeClass,
-              avatar_url: imageURL,
-            };
-          }),
+        // Deduplicate image fetches: one request per unique avatar_path
+        const uniquePaths = Array.from(
+          new Set(
+            withInstructors
+              .map((c: any) => c.instructors?.user_profiles?.avatar_path)
+              .filter(Boolean) as string[]
+          )
         );
 
-        const filtered = mapped.filter((item) => item !== null);
-        setClasses(filtered);
-        setIsProcessingData(false)
+        const signedUrls = await Promise.all(
+          uniquePaths.map((path) => fetchImage({ avatarPath: path }))
+        );
+
+        const urlByPath = new Map<string, any>(
+          uniquePaths.map((path, i) => [path, signedUrls[i]])
+        );
+
+        const enriched = withInstructors.map((lagreeClass: any) => ({
+          ...lagreeClass,
+          avatar_url:
+            urlByPath.get(lagreeClass.instructors?.user_profiles?.avatar_path) ?? null,
+        }));
+
+        setClasses(enriched);
       } catch (error) {
-        setClasses(parsed);
-        setIsProcessingData(false)
+        setClasses(withInstructors);
         console.error(error);
       } finally {
-        setClasses(parsed);
         setIsProcessingData(false)
       }
 
@@ -301,7 +300,8 @@ export default function BookingsPage() {
     [classes, user?.credits],
   );
 
-  const RenderClassList = useMemo(() => {
+  const RenderClassList = useCallback(() => {
+    console.log('classes: ', classes)
     return (
       <List
         loading={loading || isProcessingData || isSubmitting}
@@ -311,6 +311,7 @@ export default function BookingsPage() {
           emptyText: "A class hasn't been created for this day",
         }}
         renderItem={(item, index) => {
+          console.log('item: ', item)
           const slotsRemaining = item?.available_slots - item?.taken_slots;
           return (
             <List.Item
@@ -432,7 +433,7 @@ export default function BookingsPage() {
               }}
               className="max-h-[500px] overflow-y-auto"
             >
-              {RenderClassList}
+              {RenderClassList()}
             </div>
           </Card>
         </Row>
