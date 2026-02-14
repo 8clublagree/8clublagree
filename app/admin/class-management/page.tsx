@@ -65,6 +65,7 @@ export default function ClassManagementPage() {
   const [isRebookModalOpen, setIsRebookModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [cannotRebook, setCannotRebook] = useState<boolean>(false);
+  const [isProcessingData, setIsProcessingData] = useState<boolean>(false);
 
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -111,102 +112,106 @@ export default function ClassManagementPage() {
         isAdmin: true,
       });
 
-      if (data) {
-        const mapped = data?.map((item: any, index: number) => {
-          return {
-            key: index,
-            id: item.id,
-            offered_for_clients: item.offered_for_clients,
-            instructor_id: item.instructor_id,
-            class_name: item.class_name,
-            instructor_name:
-              item?.instructors?.user_profiles?.full_name ?? null,
-            start_time: dayjs(item.start_time),
-            end_time: dayjs(item.end_time),
-            slots: `${item.taken_slots} / ${item.available_slots}`,
-            taken_slots: item.taken_slots,
-            available_slots: item.available_slots,
-            deactivated: item?.instructors?.user_profiles?.deactivated ?? null,
-          };
-        });
+      setIsProcessingData(true)
 
-        const allBookings = data.flatMap((cls: any) =>
-          cls.class_bookings.map((booking: any) => ({
-            classID: cls.id,
-            value: booking.booker_id,
-            label: booking.user_profiles
-              ? booking.user_profiles.full_name
-              : `${booking.walk_in_first_name} ${booking.walk_in_last_name}`,
-            class_id: cls.id,
-            class_name: cls.instructor_name,
-            start_time: cls.start_time,
-            end_time: cls.end_time,
-            taken_slots: cls.taken_slots,
-            available_slots: cls.available_slots,
-            bookingID: booking.id,
-          })),
-        );
+      const mapped = data?.map((item: any, index: number) => {
+        return {
+          key: index,
+          id: item.id,
+          offered_for_clients: item.offered_for_clients,
+          instructor_id: item.instructor_id,
+          class_name: item.class_name,
+          instructor_name:
+            item?.instructors?.user_profiles?.full_name ?? null,
+          start_time: dayjs(item.start_time),
+          end_time: dayjs(item.end_time),
+          slots: `${item.taken_slots} / ${item.available_slots}`,
+          taken_slots: item.taken_slots,
+          available_slots: item.available_slots,
+          deactivated: item?.instructors?.user_profiles?.deactivated ?? null,
+        };
+      });
 
-        setAllBookings(allBookings);
+      const allBookings = data.flatMap((cls: any) =>
+        cls.class_bookings.map((booking: any) => ({
+          classID: cls.id,
+          value: booking.booker_id,
+          label: booking.user_profiles
+            ? booking.user_profiles.full_name
+            : `${booking.walk_in_first_name} ${booking.walk_in_last_name}`,
+          class_id: cls.id,
+          class_name: cls.instructor_name,
+          start_time: cls.start_time,
+          end_time: cls.end_time,
+          taken_slots: cls.taken_slots,
+          available_slots: cls.available_slots,
+          bookingID: booking.id,
+        })),
+      );
 
-        const grouped = allBookings.reduce(
-          (acc: any, booking: any) => {
-            if (!acc[booking.value]) {
-              acc[booking.value] = {
-                bookingID: booking.bookingID,
-                classID: booking.classID,
-                value: booking.value,
-                label: booking.label,
-                originalClasses: [
-                  {
-                    value: booking.class_id,
-                    label: `${booking.class_name} ${dayjs(
-                      booking.start_time,
-                    ).format("hh:mm A")} - ${dayjs(booking.end_time).format(
-                      "hh:mm A",
-                    )}`,
-                    takenSlots: booking.taken_slots,
-                    availableSlots: booking.available_slots,
-                    bookingID: booking.bookingID,
-                    startTime: booking.start_time,
-                  },
-                ],
-              };
-            } else {
-              acc[booking.value].originalClasses.push({
-                bookingID: booking.bookingID,
-                value: booking.class_id,
-                label: `${booking.class_name} ${dayjs(
-                  booking.start_time,
-                ).format(
-                  "hh:mm A",
-                )} - ${dayjs(booking.end_time).format("hh:mm A")}`,
-                takenSlots: booking.taken_slots,
-                availableSlots: booking.available_slots,
-                startTime: booking.start_time,
-              });
-            }
-            return acc;
-          },
-          {} as Record<string, any>,
-        );
+      setAllBookings(allBookings);
 
-        const result = Object.values(grouped);
+      const grouped = allBookings.reduce(
+        (acc: any, booking: any) => {
+          if (!acc[booking.value]) {
+            acc[booking.value] = {
+              bookingID: booking.bookingID,
+              classID: booking.classID,
+              value: booking.value,
+              label: booking.label,
+              originalClasses: [
+                {
+                  value: booking.class_id,
+                  label: `${booking.class_name} ${dayjs(
+                    booking.start_time,
+                  ).format("hh:mm A")} - ${dayjs(booking.end_time).format(
+                    "hh:mm A",
+                  )}`,
+                  takenSlots: booking.taken_slots,
+                  availableSlots: booking.available_slots,
+                  bookingID: booking.bookingID,
+                  startTime: booking.start_time,
+                },
+              ],
+            };
+          } else {
+            acc[booking.value].originalClasses.push({
+              bookingID: booking.bookingID,
+              value: booking.class_id,
+              label: `${booking.class_name} ${dayjs(
+                booking.start_time,
+              ).format(
+                "hh:mm A",
+              )} - ${dayjs(booking.end_time).format("hh:mm A")}`,
+              takenSlots: booking.taken_slots,
+              availableSlots: booking.available_slots,
+              startTime: booking.start_time,
+            });
+          }
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
 
-        setFullAttendeeListToday(result);
-        setClasses(mapped);
-      }
+      const result = Object.values(grouped);
+
+      setFullAttendeeListToday(result);
+      setClasses(mapped);
+      setIsProcessingData(false)
+
 
       if (param.clickedDashboardDate) {
         dispatch(setClickedDashboardDate(null));
       }
     } catch (error) {
+      setIsProcessingData(false)
       console.log("error: ", error);
       showMessage({
         type: "error",
         content: "Error fetching classes. Please try refreshing your browser",
       });
     }
+    setIsProcessingData(false)
   };
 
   const handleOpenBookingModal = () => {
