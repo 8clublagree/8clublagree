@@ -126,10 +126,10 @@ export default function BookingsPage() {
 
             if (!lagreeClass.instructors) return null;
 
-            if (lagreeClass.instructors.user_profiles.avatar_path) {
+            if (lagreeClass?.instructors?.user_profiles?.avatar_path) {
 
               const signedURL = await fetchImage({
-                avatarPath: lagreeClass.instructors.user_profiles.avatar_path,
+                avatarPath: lagreeClass?.instructors?.user_profiles?.avatar_path,
               });
 
               imageURL = signedURL;
@@ -327,7 +327,7 @@ export default function BookingsPage() {
                       src={item.avatar_url}
                     />
                     <div className="font-light text-xs sm:text-sm text-center w-32 break-words">
-                      {item.instructors.user_profiles.first_name}
+                      {item?.instructors?.user_profiles?.first_name}
                     </div>
                   </div>
 
