@@ -432,7 +432,70 @@ export default function BookingsPage() {
               }}
               className="max-h-[500px] overflow-y-auto"
             >
-              {RenderClassList()}
+              <List
+                loading={loading || isProcessingData || isSubmitting}
+                itemLayout="horizontal"
+                dataSource={classes}
+                locale={{
+                  emptyText: "A class hasn't been created for this day",
+                }}
+                renderItem={(item, index) => {
+
+                  const slotsRemaining = item?.available_slots - item?.taken_slots;
+                  return (
+                    <List.Item
+                      key={index}
+                      className="!flex-col sm:!flex-row !items-stretch sm:!items-center"
+                    >
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
+                        <div className="flex items-center gap-[5px] w-full sm:w-auto">
+                          <div className="h-[100px] flex flex-col justify-center items-center gap-y-1 sm:gap-y-[5px] min-w-[70px] sm:min-w-[80px]">
+                            <Avatar
+                              className="border-slate-200 border"
+                              size={isMobile ? 50 : 60}
+                              icon={<UserOutlined />}
+                              src={item?.avatar_url}
+                            />
+                            <div className="font-light text-xs sm:text-sm text-center w-32 break-words">
+                              {item?.instructors?.user_profiles?.first_name}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <Text className="font-semibold text-sm truncate">
+                              {item.class_name}
+                            </Text>
+                            <Text className="font-normal text-xs sm:text-sm text-gray-600">
+                              {`${dayjs(item.start_time).format("h:mm A")} to ${dayjs(
+                                item.end_time,
+                              ).format("h:mm A")}`}
+                            </Text>
+                            <div className={`flex flex-col ${isMobile && "mt-1"}`}>
+                              <Text className="text-xs sm:text-sm">{item.slots}</Text>
+                              <span
+                                className={`font-bold text-xs sm:text-sm ${slotsRemaining === 1 || slotsRemaining === 0
+                                  ? `text-red-500 font-semibold`
+                                  : ``
+                                  }`}
+                              >
+                                {slotsRemaining <= 0
+                                  ? "Full"
+                                  : slotsRemaining === 1
+                                    ? "Last Slot"
+                                    : `${slotsRemaining} slots left`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0">
+                          {renderActionButton(item)}
+                        </div>
+                      </div>
+                    </List.Item>
+                  );
+                }}
+              />
             </div>
           </Card>
         </Row>
