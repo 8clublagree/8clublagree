@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     const baseUrl =
-      process.env.SYSTEM_ORIGIN_TEST ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+      process.env.SYSTEM_ORIGIN ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
     const redirectUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
     return NextResponse.json({ redirectUrl });
