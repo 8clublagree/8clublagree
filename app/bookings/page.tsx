@@ -11,6 +11,7 @@ import {
   Divider,
   Drawer,
   Checkbox,
+  Modal,
 } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { ImInfinite } from "react-icons/im";
@@ -56,6 +57,7 @@ export default function BookingsPage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
+  const [confirmBookingOpen, setConfirmBookingOpen] = useState(false);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -587,7 +589,7 @@ export default function BookingsPage() {
 
               <Button
                 loading={loading || isSubmitting}
-                onClick={handleBookClass}
+                onClick={() => setConfirmBookingOpen(true)}
                 disabled={!acceptsTerms || loading || isSubmitting}
                 className={`${acceptsTerms && "hover:!bg-[#800020] hover:scale-[1.03]"
                   } ${!acceptsTerms || loading || isSubmitting
@@ -601,6 +603,36 @@ export default function BookingsPage() {
           )}
         </div>
       </Drawer>
+
+      <Modal
+        className="!z-[9999]"
+        centered
+        title="Confirm Booking"
+        open={confirmBookingOpen}
+        onCancel={() => setConfirmBookingOpen(false)}
+        footer={
+          <Row justify="end" className="gap-2">
+            <Button onClick={() => setConfirmBookingOpen(false)}>Cancel</Button>
+            <Button
+              type="primary"
+              className="!bg-[#800020] hover:!bg-[#800020]/80 !border-none"
+              onClick={() => {
+                setConfirmBookingOpen(false);
+                handleBookClass();
+              }}
+            >
+              Proceed
+            </Button>
+          </Row>
+        }
+      >
+        <Text>
+          Bookings made within 24 hours of the class are non-cancellable. For more information, please refer to our Studio Guidelines.
+        </Text>
+        <Text>
+          Would you like to proceed?
+        </Text>
+      </Modal>
     </AuthenticatedLayout>
   );
 }
