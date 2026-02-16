@@ -381,6 +381,8 @@ const EditClientForm = ({
     refetch?.();
   };
 
+
+
   return (
     <>
       <Form layout="vertical" form={form} onFinish={handleSubmit}>
@@ -562,7 +564,7 @@ const EditClientForm = ({
                   name="credits"
                   rules={[
                     {
-                      required: true,
+                      required: initialValues.credits === null ? false : true,
                       message: "Please enter amount of credits",
                     },
                   ]}
