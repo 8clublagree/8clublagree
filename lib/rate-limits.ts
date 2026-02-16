@@ -12,7 +12,7 @@ const store = new Map<string, Entry>();
 
 // Reusable presets for cost control (fewer DB/external calls when limit hit)
 export const RATE_LIMIT_PRESETS = {
-  resetLink: { limit: 2, windowMs: 24 * 60 * 60 * 1000 },
+  resetLink: { limit: 5, windowMs: 24 * 60 * 60 * 1000 },
   auth: { limit: 20, windowMs: 60 * 1000 },
 } as const;
 
