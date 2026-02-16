@@ -90,6 +90,22 @@ const EditClientForm = ({
   const initialValuesRef = useRef<any>(null);
   const [isModified, setIsModified] = useState<boolean>(false);
 
+  const [isPackagesModalOpen, setIsPackagesModalOpen] =
+    useState<boolean>(false);
+  const [expireConfirmModalOpen, setExpireConfirmModalOpen] =
+    useState<boolean>(false);
+  const {
+    fetchPackages,
+    purchasePackage,
+    updateClientPackage,
+    loading: addingPackage,
+  } = usePackageManagement();
+  const { updateUserCredits } = useManageCredits();
+  const { validatePassword } = useManagePassword();
+  const user = useAppSelector((state) => state.auth.user);
+  const [packages, setPackages] = useState<any>([]);
+  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+
   useEffect(() => {
     if (
       (!!debouncedEmail?.length &&
@@ -262,22 +278,6 @@ const EditClientForm = ({
     setPreviewOpen(false);
     onCancel();
   };
-
-  const [isPackagesModalOpen, setIsPackagesModalOpen] =
-    useState<boolean>(false);
-  const [expireConfirmModalOpen, setExpireConfirmModalOpen] =
-    useState<boolean>(false);
-  const {
-    fetchPackages,
-    purchasePackage,
-    updateClientPackage,
-    loading: addingPackage,
-  } = usePackageManagement();
-  const { updateUserCredits } = useManageCredits();
-  const { validatePassword } = useManagePassword();
-  const user = useAppSelector((state) => state.auth.user);
-  const [packages, setPackages] = useState<any>([]);
-  const [selectedPackage, setSelectedPackage] = useState<any>(null);
 
   const handleOpenPackagesModal = () => {
     setIsPackagesModalOpen(true);

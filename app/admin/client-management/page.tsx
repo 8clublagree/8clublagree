@@ -27,6 +27,7 @@ const { Title, Text } = Typography;
 
 export default function ClientManagementPage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isProcessingData, setIsProcessingData] = useState(false);
@@ -234,6 +235,7 @@ export default function ClientManagementPage() {
 
   const handleSubmit = async (values: any) => {
     try {
+      setIsUpdating(true)
       if (selectedRecord) {
         let promises = [
           updateUser({
@@ -266,7 +268,7 @@ export default function ClientManagementPage() {
 
         setIsEditing(false);
         setSelectedRecord(null);
-        console.log('1')
+        setIsUpdating(false)
         handleSearchClients();
 
         showMessage({
@@ -276,7 +278,9 @@ export default function ClientManagementPage() {
       }
     } catch (error) {
       showMessage({ type: "error", content: "Error updating client" });
+      setIsUpdating(false)
     }
+    setIsUpdating(false)
   };
 
   const handleDeleteUser = async (id: string) => {
@@ -370,7 +374,7 @@ export default function ClientManagementPage() {
             {isEditing && (
               <EditClientForm
                 refetch={handleSearchClients}
-                loading={updating}
+                loading={updating || isUpdating}
                 onSubmit={handleSubmit}
                 onCancel={handleCloseModal}
                 initialValues={selectedRecord}
