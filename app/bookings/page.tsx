@@ -626,12 +626,14 @@ export default function BookingsPage() {
           </Row>
         }
       >
-        <Text>
-          Bookings made within 24 hours of the class are non-cancellable. For more information, please refer to our Studio Guidelines.
-        </Text>
-        <Text>
-          Would you like to proceed?
-        </Text>
+        <Row className="flex flex-col gap-y-2">
+          <Text className="text-justify">
+            Bookings made within 24 hours of the class are non-cancellable. For more information, please refer to our Studio Guidelines.
+          </Text>
+          <Text className="text-center">
+            Would you like to proceed?
+          </Text>
+        </Row>
       </Modal>
     </AuthenticatedLayout>
   );
