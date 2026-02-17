@@ -692,10 +692,10 @@ export default function PackagesPage() {
               <div className="flex flex-col items-center h-full overflow-y-hidden">
                 <Row className="w-full justify-center">
                   <Avatar
-                    className="!text-[50px] bg-[#36013F] border w-full"
+                    className="halyard !text-[60px] bg-[#0a0a0a] border w-full"
                     size={200}
                   >
-                    {selectedRecord?.validityPeriod}
+                    {selectedRecord?.packageCredits}
                   </Avatar>
                 </Row>
                 <Divider />
@@ -735,8 +735,8 @@ export default function PackagesPage() {
                 </div>
 
                 {user?.pendingPurchases && (
-                  <Row className="bg-slate-200 p-[15px] rounded-[10px]">
-                    <Title level={4}>
+                  <Row className="bg-slate-200 p-[15px] rounded-[10px] justify-center">
+                    <Title level={4} className="text-center !m-0">
                       Please wait for us to review your current purchase
                     </Title>
                   </Row>
