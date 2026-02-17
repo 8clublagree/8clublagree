@@ -17,16 +17,7 @@ export async function GET(req: NextRequest) {
       instructorId,
     } = data;
 
-
-    const formattedSelectedDate = dayjs.isDayjs(selectedDate)
-      ? selectedDate
-      : dayjs(selectedDate);
-
-    const nowISO = dayjs().toISOString();
-    const today = dayjs().startOf("day");
-    let query = supabaseServer.from("classes").select(`
-      *,
-      instructors (
+    const { data: instructorData, error: instructorError } = await supabaseServer.from("instructors").select(`
         id,
         user_id,
         full_name,
@@ -38,7 +29,21 @@ export async function GET(req: NextRequest) {
           full_name,
           first_name
         )
-      ),
+      `)
+
+    if (instructorError) {
+      console.error('Error fetching instructor data: ', instructorError)
+      return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
+    }
+
+    const formattedSelectedDate = dayjs.isDayjs(selectedDate)
+      ? selectedDate
+      : dayjs(selectedDate);
+
+    const nowISO = dayjs().toISOString();
+    const today = dayjs().startOf("day");
+    let query = supabaseServer.from("classes").select(`
+      *,
       class_bookings (
         id,
         attendance_status,
@@ -121,10 +126,20 @@ export async function GET(req: NextRequest) {
 
     const { data: classData, error } = await query;
 
+
+    const mapped = classData?.map((data: any) => {
+      const instructor = instructorData?.find((instructor: any) => instructor.id === data.instructor_id)
+      return {
+        ...data,
+        instructors: { ...instructor }
+      }
+    })
+
     if (error) throw error;
 
+
     // const res = 
-    return NextResponse.json({ data: classData });
+    return NextResponse.json({ data: mapped });
     // Short cache to reduce Supabase reads; user-specific so 15s revalidate
     // res.headers.set("Cache-Control", "private, s-maxage=15, stale-while-revalidate=30");
     // return res;
