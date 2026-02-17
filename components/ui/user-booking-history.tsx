@@ -8,7 +8,6 @@ dayjs.extend(isSameOrAfter)
 const { Text } = Typography;
 
 const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
-
   return (
     <div>
       <Col className="flex flex-col gap-y-[10px] cursor-pointer">
@@ -36,27 +35,41 @@ const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
                 </Text>
               </Row>
             </Col>
-            {!dayjs(booking.classDate).isAfter(dayjs(), "day") && (
+            {booking.attendance === 'cancelled' &&
               <Row>
                 <Text
                   strong
-                  className={`text-[${attendanceStatus?.[booking.attendance]?.color
-                    }]`}
+                  className={`text-slate-200`}
                 >
-                  {attendanceStatus?.[booking.attendance]?.status ?? "No Show"}
+                  Cancelled
                 </Text>
               </Row>
-            )}
-            {dayjs(booking.classDate).isSameOrAfter(dayjs(), "day") && (
-              <Row>
-                <Text
-                  strong
-                  className={`text-slate-400`}
-                >
-                  Upcoming
-                </Text>
-              </Row>
-            )}
+            }
+            {booking.attendance !== 'cancelled' &&
+              <Col>
+                {!dayjs(booking.classDate).isAfter(dayjs(), "day") && (
+                  <Row>
+                    <Text
+                      strong
+                      className={`text-[${attendanceStatus?.[booking.attendance]?.color
+                        }]`}
+                    >
+                      {attendanceStatus?.[booking.attendance]?.status ?? "No Show"}
+                    </Text>
+                  </Row>
+                )}
+                {dayjs(booking.classDate).isAfter(dayjs(), "day") && (
+                  <Row>
+                    <Text
+                      strong
+                      className={`text-slate-400`}
+                    >
+                      Upcoming
+                    </Text>
+                  </Row>
+                )}
+              </Col>
+            }
           </Row>
         ))}
       </Col>
