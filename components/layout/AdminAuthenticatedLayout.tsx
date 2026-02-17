@@ -53,16 +53,15 @@ export default function AuthenticatedLayout({
   const { updateUserCredits, loading: updatingCredits } = useManageCredits();
 
   useEffect(() => {
-    checkUser()
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       (() => {
+
         if (event === "SIGNED_OUT") {
           dispatch(logoutAction());
           router.push("/login");
-        } else if (session) {
+        } else if (user === null) {
           checkUser();
         }
       })();
