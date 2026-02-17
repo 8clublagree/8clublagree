@@ -328,13 +328,7 @@ export default function ClassManagementPage() {
             walkInClientEmail: values.walk_in_client_email,
             walkInClientContactNumber: values.walk_in_client_contact_number,
             isWalkIn: true,
-          }),
-          updateClass({
-            id: values.class_id,
-            values: {
-              taken_slots: values.taken_slots + 1,
-            },
-          }),
+          })
         ];
 
         await Promise.all([...promises]);
@@ -350,13 +344,7 @@ export default function ClassManagementPage() {
             classId: values.class_id,
             bookerId: clientID,
             isWalkIn: false,
-          }),
-          updateClass({
-            id: values.class_id,
-            values: {
-              taken_slots: values.taken_slots + 1,
-            },
-          }),
+          })
         ];
 
         if (clientCredits != null) {
