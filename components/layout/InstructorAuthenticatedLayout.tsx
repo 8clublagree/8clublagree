@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   Layout,
@@ -42,19 +42,19 @@ export default function InstructorAuthenticatedLayout({
   const user = useAppSelector((state) => state.auth.user);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { fetchImage } = useManageImage();
+  const userRef = useRef(user);
+  userRef.current = user;
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      (() => {
-        if (event === "SIGNED_OUT") {
-          dispatch(logoutAction());
-          router.push("/login");
-        } else if (user === null) {
-          checkUser();
-        }
-      })();
+      if (event === "SIGNED_OUT") {
+        dispatch(logoutAction());
+        router.push("/login");
+      } else if (userRef.current === null) {
+        checkUser();
+      }
     });
 
     return () => {
@@ -63,6 +63,8 @@ export default function InstructorAuthenticatedLayout({
   }, [dispatch, router]);
 
   const checkUser = async () => {
+    if (userRef.current !== null) return;
+
     const {
       data: { session },
     } = await supabase.auth.getSession();

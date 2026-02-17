@@ -62,7 +62,7 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
-  const { fetchImage, loading: fetchingImage } = useManageImage();
+  const { fetchImages, loading: fetchingImage } = useManageImage();
 
   useEffect(() => {
     const handleResize = () => {
@@ -124,22 +124,16 @@ export default function BookingsPage() {
       const withInstructors = parsed.filter((c: any) => c.instructors);
 
       try {
-        // Deduplicate image fetches: one request per unique avatar_path
+        // Batch fetch all unique avatar URLs in a single Supabase call
         const uniquePaths = Array.from(
           new Set(
             withInstructors
               .map((c: any) => c.instructors?.user_profiles?.avatar_path)
               .filter(Boolean) as string[]
-          )
+          ),
         );
 
-        const signedUrls = await Promise.all(
-          uniquePaths.map((path) => fetchImage({ avatarPath: path }))
-        );
-
-        const urlByPath = new Map<string, any>(
-          uniquePaths.map((path, i) => [path, signedUrls[i]])
-        );
+        const urlByPath = await fetchImages({ avatarPaths: uniquePaths });
 
         const enriched = withInstructors.map((lagreeClass: any) => ({
           ...lagreeClass,

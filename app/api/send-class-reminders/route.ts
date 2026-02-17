@@ -61,15 +61,22 @@ async function checkUpcomingClasses() {
     },
   });
 
-  for (const booking of bookings) {
-    const classInfo: any = booking.classes;
-    const user: any = booking.user_profiles;
+  // Send emails in parallel batches of 5
+  const BATCH_SIZE = 5;
+  const sentIds: string[] = [];
 
-    await transporter.sendMail({
-      from: '"8ClubLagree" <8clublagree@gmail.com>',
-      to: user?.email,
-      subject: `Reminder: Your class is tomorrow!`,
-      html: `
+  for (let i = 0; i < bookings.length; i += BATCH_SIZE) {
+    const batch = bookings.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map(async (booking) => {
+        const classInfo: any = booking.classes;
+        const user: any = booking.user_profiles;
+
+        await transporter.sendMail({
+          from: '"8ClubLagree" <8clublagree@gmail.com>',
+          to: user?.email,
+          subject: `Reminder: Your class is tomorrow!`,
+          html: `
      <div style="width:100%; background:#f4f4f4; padding:40px 0;">
     <div style="
       max-width:480px;
@@ -102,11 +109,11 @@ async function checkUpcomingClasses() {
         text-align:center;
       ">
         Your upcoming class is on <span style="color: red">${`${dayjs(
-        booking.class_date,
-      ).format("MMMM DD YYYY")}`}</span></br>
+            booking.class_date,
+          ).format("MMMM DD YYYY")}`}</span></br>
         It starts at <span style="color: red">${dayjs(
-        classInfo.start_time,
-      ).format("hh:mm A")}</span>.
+            classInfo.start_time,
+          ).format("hh:mm A")}</span>.
       </h2>
 
       <!-- Body Paragraph (your exact content) -->
@@ -123,21 +130,32 @@ async function checkUpcomingClasses() {
     </div>
   </div>
     `,
-    });
+        });
 
+        return booking.id;
+      }),
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        sentIds.push(result.value);
+      } else {
+        console.error("Failed to send reminder:", result.reason);
+      }
+    }
+  }
+
+  // Bulk update all successfully sent reminders in one DB call
+  if (sentIds.length > 0) {
     await supabaseServer
       .from("class_bookings")
       .update({ sent_email_reminder: true })
-      .eq("id", booking.id);
-
-    console.log(
-      `Reminder sent to ${user.email} for class on ${dayjs(
-        booking.class_date,
-      ).format("MMMM DD YYYY")}`,
-    );
+      .in("id", sentIds);
   }
 
-  return NextResponse.json({ success: true, sent: bookings.length });
+  console.log(`Sent ${sentIds.length} of ${bookings.length} reminders`);
+
+  return NextResponse.json({ success: true, sent: sentIds.length });
 }
 
 // --- CRON: runs every hour at minute 0 ---

@@ -49,57 +49,57 @@ export async function GET() {
       );
     }
 
-    const [trainers, schedules] = await Promise.all([
-      Promise.all(
-        trainersRes.data?.map(async (instructor) => {
-          if (!instructor.avatar_path)
-            return { ...instructor, avatar_path: null };
+    // Collect all unique avatar paths from trainers and schedules
+    const trainerPaths = (trainersRes.data ?? [])
+      .map((t) => t.avatar_path)
+      .filter(Boolean) as string[];
+    const schedulePaths = (schedulesRes.data ?? [])
+      .map((s: any) => s?.instructors?.user_profiles?.avatar_path)
+      .filter(Boolean) as string[];
+    const allPaths = Array.from(new Set([...trainerPaths, ...schedulePaths]));
 
-          const { data, error: urlError } = await supabaseServer.storage
-            .from("user-photos")
-            .createSignedUrl(`${instructor.avatar_path}`, 3600);
+    // Batch fetch all signed URLs in a single Supabase call
+    const urlMap = new Map<string, string>();
+    if (allPaths.length > 0) {
+      const { data: signedData, error: signedError } =
+        await supabaseServer.storage
+          .from("user-photos")
+          .createSignedUrls(allPaths, 3600);
 
-          if (urlError) {
-            console.error("Error generating signed URL:", urlError);
-            return { ...instructor, avatar_path: null };
+      if (!signedError && signedData) {
+        signedData.forEach((item) => {
+          if (item.signedUrl && item.path) {
+            urlMap.set(item.path, item.signedUrl);
           }
+        });
+      }
+    }
 
-          return { ...instructor, avatar_path: data?.signedUrl ?? null };
-        }) || [],
-      ),
+    const trainers = (trainersRes.data ?? []).map((instructor) => ({
+      ...instructor,
+      avatar_path: instructor.avatar_path
+        ? urlMap.get(instructor.avatar_path) ?? null
+        : null,
+    }));
 
-      Promise.all(
-        schedulesRes.data?.map(async (schedule) => {
-          const avatar =
-            schedule?.instructors?.user_profiles?.avatar_path ?? null;
-          if (!avatar) return { ...schedule, avatar_path: null };
+    const schedules = (schedulesRes.data ?? []).map((schedule: any) => {
+      const avatar =
+        schedule?.instructors?.user_profiles?.avatar_path ?? null;
+      return {
+        ...schedule,
+        avatar_path: avatar ? urlMap.get(avatar) ?? null : null,
+      };
+    });
 
-          const { data, error: urlError } = await supabaseServer.storage
-            .from("user-photos")
-            .createSignedUrl(`${avatar}`, 3600);
-
-          if (urlError) {
-            console.error("Error generating signed URL:", urlError);
-            return { ...schedule, avatar_path: null };
-          }
-
-          return { ...schedule, avatar_path: data?.signedUrl ?? null };
-        }) || [],
-      ),
-    ]);
-
-    // const res = 
-
-    return NextResponse.json({
+    const res = NextResponse.json({
       data: {
         classesRes,
         trainersRes: { data: trainers },
         schedulesRes: { data: schedules },
       },
     });
-    // CDN/client cache; 60s revalidate to limit server/DB load
-    // res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
-    // return res;
+    res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+    return res;
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }

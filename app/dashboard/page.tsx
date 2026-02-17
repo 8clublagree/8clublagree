@@ -42,7 +42,7 @@ export default function DashboardPage() {
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [openCancelModal, setOpenCancelModal] = useState<boolean>(false);
-  const { fetchImage } = useManageImage();
+  const { fetchImages } = useManageImage();
 
   useEffect(() => {
     handleFetchBookings();
@@ -95,35 +95,30 @@ export default function DashboardPage() {
         const filtered = validBookings.filter((booking: any) =>
           dayjs(booking.classes.start_time).isSameOrAfter(now),
         );
-        const mapped = await Promise.all(
-          filtered.map(async (booking: any) => {
-            let imageURL: any = null;
-            // if (!booking.avatar_path) return booking; // skip if no avatar
 
-            // generate signed URL valid for 1 hour (3600s)
+        // Batch fetch all instructor avatar URLs in a single call
+        const avatarPaths = filtered
+          .map((b: any) => b.classes?.instructors?.user_profiles?.avatar_path)
+          .filter(Boolean) as string[];
+        const uniquePaths = Array.from(new Set(avatarPaths));
+        const urlMap = await fetchImages({ avatarPaths: uniquePaths });
 
-            if (booking.classes.instructors) {
-              imageURL = await fetchImage({
-                avatarPath:
-                  booking.classes.instructors.user_profiles.avatar_path,
-              });
-            }
-
-            return {
-              ...booking,
-              avatar_url: imageURL,
-              id: booking.id,
-              bookerId: booking.booker_id,
-              classId: booking.class_id,
-              className: booking.classes.class_name,
-              classStartTime: booking.classes.start_time,
-              classEndTime: booking.classes.end_time,
-              classDate: booking.class_date,
-              instructorName: booking.classes.instructor_name,
-              instructorAvatarPath: booking.classes.instructors.avatar_path,
-            };
-          }),
-        );
+        const mapped = filtered.map((booking: any) => {
+          const avatarPath = booking.classes?.instructors?.user_profiles?.avatar_path;
+          return {
+            ...booking,
+            avatar_url: avatarPath ? urlMap.get(avatarPath) ?? null : null,
+            id: booking.id,
+            bookerId: booking.booker_id,
+            classId: booking.class_id,
+            className: booking.classes.class_name,
+            classStartTime: booking.classes.start_time,
+            classEndTime: booking.classes.end_time,
+            classDate: booking.class_date,
+            instructorName: booking.classes.instructor_name,
+            instructorAvatarPath: booking.classes.instructors?.avatar_path,
+          };
+        });
 
         setUpcomingBookings(mapped);
       }

@@ -42,7 +42,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ data: packages });
+    const res = NextResponse.json({ data: packages });
+    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+    return res;
   } catch (err: any) {
     return NextResponse.json(
       { error: `Unexpected error: ${err}` },

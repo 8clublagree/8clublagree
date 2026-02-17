@@ -385,6 +385,42 @@ export const useManageImage = () => {
     return signedUrl;
   };
 
+  /**
+   * Batch fetch signed URLs for multiple avatar paths in a single Supabase call.
+   * Returns a Map<path, signedUrl> for easy lookup.
+   */
+  const fetchImages = async ({
+    avatarPaths,
+    bucket = "user-photos",
+  }: {
+    avatarPaths: string[];
+    bucket?: string;
+  }): Promise<Map<string, string>> => {
+    const validPaths = avatarPaths.filter(
+      (p) => p != null && p !== undefined && p.length > 0,
+    );
+
+    if (!validPaths.length) return new Map();
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrls(validPaths, 3600);
+
+    if (error) {
+      console.error("Error generating batch signed URLs:", error);
+      return new Map();
+    }
+
+    const urlMap = new Map<string, string>();
+    data?.forEach((item) => {
+      if (item.signedUrl && item.path) {
+        urlMap.set(item.path, item.signedUrl);
+      }
+    });
+
+    return urlMap;
+  };
+
   const saveImage = async ({ file, id }: { file: any; id?: string }) => {
     let filePath: string = "";
 
@@ -410,7 +446,7 @@ export const useManageImage = () => {
     return imageURL;
   };
 
-  return { saveImage, fetchImage, removeImage, loading };
+  return { saveImage, fetchImage, fetchImages, removeImage, loading };
 };
 
 export const useInstructorManagement = () => {

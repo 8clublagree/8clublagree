@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   Layout,
@@ -57,20 +57,19 @@ export default function AuthenticatedLayout({
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
+  const userRef = useRef(user);
+  userRef.current = user;
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      (() => {
-
-        if (event === "SIGNED_OUT") {
-          dispatch(logoutAction());
-          router.push("/login");
-        } else if (user === null) {
-          checkUser();
-        }
-      })();
+      if (event === "SIGNED_OUT") {
+        dispatch(logoutAction());
+        router.push("/login");
+      } else if (userRef.current === null) {
+        checkUser();
+      }
     });
 
     return () => {
@@ -79,6 +78,8 @@ export default function AuthenticatedLayout({
   }, [dispatch, router]);
 
   const checkUser = async () => {
+    if (userRef.current !== null) return;
+
     const {
       data: { session },
     } = await supabase.auth.getSession();

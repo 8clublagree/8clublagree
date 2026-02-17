@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   Layout,
@@ -26,11 +26,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
 import { LuPackage, LuUserPen } from "react-icons/lu";
 import { MdOutlinePayment } from "react-icons/md";
-import {
-  useAdminProfile,
-  useManageCredits,
-  usePackageManagement,
-} from "@/lib/api";
+import { useAdminProfile } from "@/lib/api";
 import { omit } from "lodash";
 
 const { Header, Sider, Content } = Layout;
@@ -48,23 +44,20 @@ export default function AuthenticatedLayout({
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { getAdmin } = useAdminProfile();
-  const { fetchClientPackages, updateClientPackage } = usePackageManagement();
   const user = useAppSelector((state) => state.auth.user);
-  const { updateUserCredits, loading: updatingCredits } = useManageCredits();
+  const userRef = useRef(user);
+  userRef.current = user;
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      (() => {
-
-        if (event === "SIGNED_OUT") {
-          dispatch(logoutAction());
-          router.push("/login");
-        } else if (user === null) {
-          checkUser();
-        }
-      })();
+      if (event === "SIGNED_OUT") {
+        dispatch(logoutAction());
+        router.push("/login");
+      } else if (userRef.current === null) {
+        checkUser();
+      }
     });
 
     return () => {
@@ -73,6 +66,8 @@ export default function AuthenticatedLayout({
   }, [dispatch, router]);
 
   const checkUser = async () => {
+    if (userRef.current !== null) return;
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -83,24 +78,6 @@ export default function AuthenticatedLayout({
     }
 
     const profile = await getAdmin({ id: session.user.id });
-
-    const clientPackages = await fetchClientPackages({ findExpiry: true });
-
-
-    if (!!clientPackages?.length) {
-      const toExpire = clientPackages.flatMap((item: any) => [
-        updateClientPackage({
-          clientPackageID: item.id,
-          values: { status: "expired" },
-        }),
-        updateUserCredits({
-          userID: item.user_id,
-          values: { credits: 0 },
-        }),
-      ]);
-
-      await Promise.all(toExpire);
-    }
 
     if (profile) {
       if (profile.user_type === "general") {

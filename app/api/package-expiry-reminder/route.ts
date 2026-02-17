@@ -57,16 +57,23 @@ async function checkExpiringPackages() {
     },
   });
 
-  for (const pkg of packages) {
-    const user: any = pkg.user_profiles;
-    const currentCredits = user?.user_credits?.[0]?.credits;
-    const expiry = dayjs(pkg.expiration_date).format("MMMM DD, YYYY");
+  // Send emails in parallel batches of 5
+  const BATCH_SIZE = 5;
+  const sentIds: string[] = [];
 
-    await transporter.sendMail({
-      from: '"8ClubLagree" <8clublagree@gmail.com>',
-      to: user.email,
-      subject: "Your package is expiring soon",
-      html: `
+  for (let i = 0; i < packages.length; i += BATCH_SIZE) {
+    const batch = packages.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map(async (pkg: any) => {
+        const user: any = pkg.user_profiles;
+        const currentCredits = user?.user_credits?.[0]?.credits;
+        const expiry = dayjs(pkg.expiration_date).format("MMMM DD, YYYY");
+
+        await transporter.sendMail({
+          from: '"8ClubLagree" <8clublagree@gmail.com>',
+          to: user.email,
+          subject: "Your package is expiring soon",
+          html: `
      <div style="width:100%; background:#f4f4f4; padding:40px 0;">
     <div style="
       max-width:480px;
@@ -102,7 +109,7 @@ async function checkExpiringPackages() {
       </h2>
 
       ${currentCredits &&
-        `<h2 style="
+            `<h2 style="
           margin:0 0 20px 0;
           font-size:18px;
           font-weight:600;
@@ -111,7 +118,7 @@ async function checkExpiringPackages() {
         ">
           You have <span style="color: red">${currentCredits}</span> left from your package!
         </h2>`
-        }
+            }
 
       <!-- Body Paragraph (your exact content) -->
       <table
@@ -147,18 +154,32 @@ async function checkExpiringPackages() {
     </div>
   </div>
     `,
-    });
+        });
 
-    // Mark package as notified
+        return pkg.id;
+      }),
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        sentIds.push(result.value);
+      } else {
+        console.error("Failed to send expiry reminder:", result.reason);
+      }
+    }
+  }
+
+  // Bulk update all successfully notified packages in one DB call
+  if (sentIds.length > 0) {
     await supabaseServer
       .from("client_packages")
       .update({ sent_initial_expiration_email: true })
-      .eq("id", pkg.id);
-
-    console.log(`Expiration warning sent to ${user.email}`);
+      .in("id", sentIds);
   }
 
-  return NextResponse.json({ success: true, count: packages.length });
+  console.log(`Sent ${sentIds.length} of ${packages.length} expiry reminders`);
+
+  return NextResponse.json({ success: true, count: sentIds.length });
 }
 
 export async function GET(request: Request) {

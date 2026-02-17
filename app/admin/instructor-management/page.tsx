@@ -62,7 +62,7 @@ export default function InstructorManagementPage() {
   } = useInstructorManagement();
   const { changePassword, loading: changingPassword } = useManagePassword();
   const { showMessage, contextHolder } = useAppMessage();
-  const { fetchImage } = useManageImage();
+  const { fetchImages } = useManageImage();
 
   useEffect(() => {
     handleSearchInstructors();
@@ -103,37 +103,30 @@ export default function InstructorManagementPage() {
 
     try {
       if (data) {
-        const usersWithSignedUrls = await Promise.all(
-          data.map(async (record: any) => {
-            let signedUrl: string | null | undefined = undefined;
-            const certification: any = CERTIFICATIONS.find(
-              (x) => x.value === record?.instructors?.[0]?.certification,
-            );
+        // Batch fetch all avatar URLs in a single call
+        const avatarPaths = data
+          .map((r: any) => r.avatar_path)
+          .filter(Boolean) as string[];
+        const urlMap = await fetchImages({ avatarPaths });
 
-            const instructor = {
-              ...record,
-              first_name: record?.first_name,
-              last_name: record?.last_name,
-              full_name: record?.full_name,
-              avatar_path: record?.avatar_path,
-              deactivated: record?.deactivated,
-              certification: certification?.label ?? '',
-            };
+        const usersWithSignedUrls = data.map((record: any) => {
+          const certification: any = CERTIFICATIONS.find(
+            (x) => x.value === record?.instructors?.[0]?.certification,
+          );
 
-            // generate signed URL valid for 1 hour (3600s)
-            if (instructor.avatar_path !== null) {
-              const signedURL = await fetchImage({
-                avatarPath: instructor.avatar_path,
-              });
-
-              signedUrl = signedURL;
-            }
-
-            return { ...instructor, avatar_url: signedUrl };
-          }),
-        );
-
-
+          return {
+            ...record,
+            first_name: record?.first_name,
+            last_name: record?.last_name,
+            full_name: record?.full_name,
+            avatar_path: record?.avatar_path,
+            deactivated: record?.deactivated,
+            certification: certification?.label ?? '',
+            avatar_url: record.avatar_path
+              ? urlMap.get(record.avatar_path) ?? undefined
+              : undefined,
+          };
+        });
 
         setInstructors(usersWithSignedUrls);
       }

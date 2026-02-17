@@ -55,27 +55,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const {
-      data: { users },
-      error: listError,
-    } = await supabaseServer.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (listError) {
-      console.error("reset-password listUsers error:", listError);
-      return NextResponse.json(
-        { error: "Reset failed" },
-        { status: 500 },
-      );
-    }
+    // Look up user by email directly instead of listing all users
+    const { data: profileRow, error: profileError } = await supabaseServer
+      .from("user_profiles")
+      .select("id")
+      .ilike("email", record.email)
+      .limit(1)
+      .single();
 
-    const user = users?.find(
-      (u) => u.email?.toLowerCase() === record.email.toLowerCase(),
-    );
-    if (!user) {
+    if (profileError || !profileRow) {
       return NextResponse.json(
         { error: "No account found for this email" },
         { status: 404 },
       );
     }
+
+    const user = { id: profileRow.id };
 
     const { error: updateError } = await supabaseServer.auth.admin.updateUserById(
       user.id,

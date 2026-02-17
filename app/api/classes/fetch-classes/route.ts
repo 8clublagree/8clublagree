@@ -138,11 +138,9 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
 
-    // const res = 
-    return NextResponse.json({ data: mapped });
-    // Short cache to reduce Supabase reads; user-specific so 15s revalidate
-    // res.headers.set("Cache-Control", "private, s-maxage=15, stale-while-revalidate=30");
-    // return res;
+    const res = NextResponse.json({ data: mapped });
+    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+    return res;
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }

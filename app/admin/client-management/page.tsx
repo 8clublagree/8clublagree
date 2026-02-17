@@ -50,7 +50,7 @@ export default function ClientManagementPage() {
     "Bookings" | "Purchases"
   >("Bookings");
   const { deleteUser } = useDeleteUser();
-  const { fetchImage } = useManageImage();
+  const { fetchImages } = useManageImage();
 
   useEffect(() => {
     handleSearchClients();
@@ -104,94 +104,93 @@ export default function ClientManagementPage() {
     try {
       if (result?.data) {
         setIsProcessingData(true)
-        const mapped = await Promise.all(
-          result.data.map(async (user: any) => {
-            let mappedClientPackages: any[] = [];
-            let classBookings: any[] = [];
-            let signedUrl: string | undefined = "";
 
-            const activePackage = user.client_packages.find(
-              (x: any) => x.status === "active",
-            );
+        // Batch fetch all avatar URLs in a single call
+        const avatarPaths = result.data
+          .map((u: any) => u.avatar_path)
+          .filter(Boolean) as string[];
+        const urlMap = await fetchImages({ avatarPaths });
 
-            let clientPackage =
-              !!user.client_packages.length && activePackage
-                ? activePackage
-                : null;
+        const mapped = result.data.map((user: any) => {
+          let mappedClientPackages: any[] = [];
+          let classBookings: any[] = [];
 
-            //if user has an avatar
-            if (user.avatar_path !== null) {
-              const signedURL = await fetchImage({
-                avatarPath: user?.avatar_path,
-              });
+          const activePackage = user.client_packages.find(
+            (x: any) => x.status === "active",
+          );
 
-              signedUrl = signedURL;
-            }
+          let clientPackage =
+            !!user.client_packages.length && activePackage
+              ? activePackage
+              : null;
 
-            //if user has bookings
-            if (!!user.class_bookings.length) {
-              classBookings = user.class_bookings.map((classBooking: any) => {
-                return {
-                  id: classBooking.id,
-                  attendance: classBooking.attendance_status,
-                  classDate: classBooking.class_date,
+          const signedUrl = user.avatar_path
+            ? urlMap.get(user.avatar_path) ?? ""
+            : "";
 
-                  classDetails: {
-                    id: classBooking.classes.id,
-                    instructor: classBooking.classes.instructor_name,
-                    startTime: classBooking.classes.start_time,
-                    endTime: classBooking.classes.end_time,
-                  },
-                };
-              });
-            }
+          //if user has bookings
+          if (!!user.class_bookings.length) {
+            classBookings = user.class_bookings.map((classBooking: any) => {
+              return {
+                id: classBooking.id,
+                attendance: classBooking.attendance_status,
+                classDate: classBooking.class_date,
 
-            if (clientPackage) {
-              clientPackage = {
-                clientPackageID: clientPackage.id,
-                status: clientPackage.status,
-                packages: {
-                  title: clientPackage.package_name,
+                classDetails: {
+                  id: classBooking.classes.id,
+                  instructor: classBooking.classes.instructor_name,
+                  startTime: classBooking.classes.start_time,
+                  endTime: classBooking.classes.end_time,
                 },
-                packageCredits: clientPackage.package_credits,
-                validityPeriod: clientPackage.validity_period,
-                purchaseDate: clientPackage.purchase_date,
-                expirationDate: clientPackage.expiration_date,
               };
-            }
+            });
+          }
 
-            if (!!user.client_packages.length) {
-              mappedClientPackages = user.client_packages
-                .map((x: any) => {
-                  return {
-                    packages: {
-                      title: x.package_name,
-                    },
-                    status: x.status,
-                    packageCredits: x.package_credits,
-                    validityPeriod: x.validity_period,
-                    purchaseDate: x.purchase_date,
-                    expiration_date: x.expiration_date,
-                  };
-                })
-                .sort(
-                  (a: any, b: any) =>
-                    dayjs(b.purchaseDate).toDate().getTime() -
-                    dayjs(a.purchaseDate).toDate().getTime(),
-                );
-            }
-
-            return {
-              ...user,
-              clientPackage,
-              client_packages: mappedClientPackages,
-              key: user.id,
-              avatar_url: signedUrl,
-              bookingHistory: classBookings,
-              credits: user?.user_credits?.[0]?.credits ?? null,
+          if (clientPackage) {
+            clientPackage = {
+              clientPackageID: clientPackage.id,
+              status: clientPackage.status,
+              packages: {
+                title: clientPackage.package_name,
+              },
+              packageCredits: clientPackage.package_credits,
+              validityPeriod: clientPackage.validity_period,
+              purchaseDate: clientPackage.purchase_date,
+              expirationDate: clientPackage.expiration_date,
             };
-          }),
-        );
+          }
+
+          if (!!user.client_packages.length) {
+            mappedClientPackages = user.client_packages
+              .map((x: any) => {
+                return {
+                  packages: {
+                    title: x.package_name,
+                  },
+                  status: x.status,
+                  packageCredits: x.package_credits,
+                  validityPeriod: x.validity_period,
+                  purchaseDate: x.purchase_date,
+                  expiration_date: x.expiration_date,
+                };
+              })
+              .sort(
+                (a: any, b: any) =>
+                  dayjs(b.purchaseDate).toDate().getTime() -
+                  dayjs(a.purchaseDate).toDate().getTime(),
+              );
+          }
+
+          return {
+            ...user,
+            clientPackage,
+            client_packages: mappedClientPackages,
+            key: user.id,
+            avatar_url: signedUrl,
+            bookingHistory: classBookings,
+            credits: user?.user_credits?.[0]?.credits ?? null,
+          };
+        });
 
         setClients(mapped);
         setTotal(result.total);

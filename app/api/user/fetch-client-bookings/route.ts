@@ -47,7 +47,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ data: classBookings });
+    const res = NextResponse.json({ data: classBookings });
+    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+    return res;
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
