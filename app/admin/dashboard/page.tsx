@@ -105,16 +105,15 @@ export default function DashboardPage() {
   }, [])
 
   const handleFetchClasses = async ({ period = "Weekly" }: { period?: "Daily" | "Weekly" }) => {
-    setIsProcessingData(true)
+    setIsProcessingData(true);
     try {
-
       let params: any = {};
 
       if (period === "Weekly") {
         params = {
           startDate: monday,
           endDate: sunday,
-          isAdmin: true
+          isAdmin: true,
         };
       } else {
         params = { selectedDate: dayjs(), isAdmin: true, daily: true };
@@ -125,14 +124,19 @@ export default function DashboardPage() {
       if (data) {
         let mapped;
         if (period === "Weekly") {
-          mapped = data?.map((item: any, index: number) => ({
+          mapped = data.map((item: any) => ({
             id: item.id,
             label: `Class with ${item.instructor_name}`,
             day: dayjs(item.class_date).format("ddd (MMM D)"),
             startTime: dayjs(item.start_time).format("HH:mm"),
             endTime: dayjs(item.end_time).format("HH:mm"),
             slots: `${item.taken_slots} / ${item.available_slots}`,
-            color: Number(item.taken_slots) < 3 ? '#4DA6FF' : Number(item.taken_slots) >= 3 && Number(item.taken_slots) < 5 ? '#FF9A3C' : Number(item.taken_slots) >= 5 && Number(item.taken_slots) <= 6 ? '#FF0000' : '#4DA6FF',
+            color:
+              Number(item.taken_slots) >= 5
+                ? "#FF0000"
+                : Number(item.taken_slots) >= 3
+                  ? "#FF9A3C"
+                  : "#4DA6FF",
             classDate: item.class_date,
           }));
         } else {
@@ -142,19 +146,18 @@ export default function DashboardPage() {
         setDashboardKPI({
           totalClasses: mapped.length,
           confirmedBookings: data.reduce(
-            (acc: number, curr: any) => acc + curr.class_bookings.length,
-            0
+            (acc: number, curr: any) => acc + (curr.class_bookings?.length ?? 0),
+            0,
           ),
         });
 
-
         setClasses(mapped);
       }
-      setIsProcessingData(false)
     } catch (error) {
-      setIsProcessingData(false)
+      console.error(error);
+    } finally {
+      setIsProcessingData(false);
     }
-    setIsProcessingData(false)
   };
 
   const formatDecimalHour = (decimal: number) => {

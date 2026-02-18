@@ -98,14 +98,9 @@ export default function AuthenticatedLayout({
     const profile = response.data.data.profile;
     const payments = response.data.data.payment;
 
-    let signedUrl: string | undefined = "";
-
-    //if user has an avatar
-    const signedURL = await fetchImage({
+    const signedUrl = await fetchImage({
       avatarPath: profile?.avatar_path,
     });
-
-    signedUrl = signedURL;
 
     const latestCredit = profile?.user_credits?.sort(
       (a: any, b: any) =>
@@ -131,7 +126,7 @@ export default function AuthenticatedLayout({
         setUser({
           ...omit(profile, ['user_type']),
           pendingPurchases: payments,
-          avatar_url: signedUrl,
+          avatar_url: signedUrl ?? undefined,
           currentPackage: activePackage,
           credits: activePackage ? latestCredit.credits : 0,
         }),

@@ -21,12 +21,11 @@ import dayjs, { Dayjs } from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
 dayjs.extend(isSameOrAfter);
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import {
   useClassManagement,
-  useManageCredits,
   useManageImage,
 } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
@@ -45,10 +44,8 @@ export default function BookingsPage() {
   const dispatch = useDispatch();
   const user = useAppSelector((state) => state.auth.user);
 
-  const { updateUserCredits } = useManageCredits();
-
   const { showMessage, contextHolder } = useAppMessage();
-  const { fetchClasses, updateClass, bookClass, loading } =
+  const { fetchClasses, bookClass, loading } =
     useClassManagement();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -62,7 +59,7 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
-  const { fetchImages, loading: fetchingImage } = useManageImage();
+  const { fetchImages } = useManageImage();
 
   useEffect(() => {
     const handleResize = () => {
@@ -93,46 +90,42 @@ export default function BookingsPage() {
   }, [selectedDate, user?.id]);
 
   const handleFetchClasses = async () => {
+    setIsProcessingData(true);
     try {
-
       const data = await fetchClasses({
         userId: user?.id,
         selectedDate: selectedDate as Dayjs,
       });
 
-      setIsProcessingData(true)
-      const now = dayjs()
-      const parsed = data.reduce((acc: any[], lagreeClass: any) => {
-        // if (dayjs(lagreeClass.start_time).isSameOrAfter(now)) {
-        acc.push({
-          ...lagreeClass,
-          key: lagreeClass.id,
-          instructor_id: lagreeClass?.instructor_id,
-          class_name: lagreeClass.class_name,
-          instructor_name: lagreeClass.instructor_name,
-          start_time: dayjs(lagreeClass.start_time),
-          end_time: dayjs(lagreeClass.end_time),
-          available_slots: lagreeClass.available_slots,
-          taken_slots: lagreeClass.taken_slots,
-          slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
-        });
-        // }
-        return acc;
-      }, [])
+      if (!data) {
+        setClasses([]);
+        return;
+      }
 
-      // Filter out classes without instructors before fetching images
+      const parsed = data.map((lagreeClass: any) => ({
+        ...lagreeClass,
+        key: lagreeClass.id,
+        instructor_id: lagreeClass?.instructor_id,
+        class_name: lagreeClass.class_name,
+        instructor_name: lagreeClass.instructor_name,
+        start_time: dayjs(lagreeClass.start_time),
+        end_time: dayjs(lagreeClass.end_time),
+        available_slots: lagreeClass.available_slots,
+        taken_slots: lagreeClass.taken_slots,
+        slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
+      }));
+
       const withInstructors = parsed.filter((c: any) => c.instructors);
 
-      try {
-        // Batch fetch all unique avatar URLs in a single Supabase call
-        const uniquePaths = Array.from(
-          new Set(
-            withInstructors
-              .map((c: any) => c.instructors?.user_profiles?.avatar_path)
-              .filter(Boolean) as string[]
-          ),
-        );
+      const uniquePaths = Array.from(
+        new Set(
+          withInstructors
+            .map((c: any) => c.instructors?.user_profiles?.avatar_path)
+            .filter(Boolean) as string[]
+        ),
+      );
 
+      try {
         const urlByPath = await fetchImages({ avatarPaths: uniquePaths });
 
         const enriched = withInstructors.map((lagreeClass: any) => ({
@@ -145,15 +138,12 @@ export default function BookingsPage() {
       } catch (error) {
         setClasses(withInstructors);
         console.error(error);
-      } finally {
-        setIsProcessingData(false)
       }
-
     } catch (error) {
-      setIsProcessingData(false)
       console.error(error);
+    } finally {
+      setIsProcessingData(false);
     }
-    setIsProcessingData(false)
   };
 
   const handleAcceptTermsChange = (e: any) => {
@@ -196,37 +186,21 @@ export default function BookingsPage() {
     try {
       setIsSubmitting(true);
       if (user) {
-        await bookClass({
+        const shouldDeductCredits = user.credits != null;
+
+        const result = await bookClass({
           classDate: dayjs(selectedDate).toISOString(),
           classId: selectedRecord.id,
-          bookerId: user?.id as string,
+          bookerId: user.id as string,
           isWalkIn: false,
+          deductCredits: shouldDeductCredits,
         });
 
-        // const promises: Promise<unknown>[] = [
-        //   updateClass({
-        //     id: selectedRecord.id,
-        //     values: {
-        //       taken_slots: selectedRecord.taken_slots + 1,
-        //     },
-        //   }),
-        // ];
-
-        let promises: Promise<unknown>[] = [];
-
-        if (user?.credits != null) {
-          const updatedCredits = user.credits - 1;
-          promises = [
-            updateUserCredits({
-              userID: user.id as string,
-              values: { credits: updatedCredits },
-            }),
-          ]
-          dispatch(setUser({ ...user, credits: updatedCredits }));
-
-          await Promise.all([...promises, handleSendConfirmationEmail()]);
+        if (shouldDeductCredits && result?.remaining_credits != null) {
+          dispatch(setUser({ ...user, credits: result.remaining_credits }));
         }
 
+        handleSendConfirmationEmail();
 
         setIsSubmitting(false);
         handleCloseModal();
@@ -306,80 +280,6 @@ export default function BookingsPage() {
     },
     [classes, user?.credits],
   );
-
-  const RenderClassList = useCallback(() => {
-    return (
-      <List
-        loading={loading || isProcessingData || isSubmitting}
-        itemLayout="horizontal"
-        dataSource={classes}
-        locale={{
-          emptyText: "A class hasn't been created for this day",
-        }}
-        renderItem={(item, index) => {
-
-          const slotsRemaining = item?.available_slots - item?.taken_slots;
-          const now = dayjs()
-          const notEnded = dayjs(item.start_time).isSameOrAfter(now)
-          return (
-            <>
-              {
-                notEnded && <List.Item
-                  key={index}
-                  className="!flex-col sm:!flex-row !items-stretch sm:!items-center"
-                >
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
-                    <div className="flex items-center gap-[5px] w-full sm:w-auto">
-                      <div className="h-[100px] flex flex-col justify-center items-center gap-y-1 sm:gap-y-[5px] min-w-[70px] sm:min-w-[80px]">
-                        <Avatar
-                          className="border-slate-200 border"
-                          size={isMobile ? 50 : 60}
-                          icon={<UserOutlined />}
-                          src={item?.avatar_url}
-                        />
-                        <div className="font-light text-xs sm:text-sm text-center w-32 break-words">
-                          {item?.instructors?.user_profiles?.first_name}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <Text className="font-semibold text-sm truncate">
-                          {item.class_name}
-                        </Text>
-                        <Text className="font-normal text-xs sm:text-sm text-gray-600">
-                          {`${dayjs(item.start_time).format("h:mm A")} to ${dayjs(
-                            item.end_time,
-                          ).format("h:mm A")}`}
-                        </Text>
-                        <div className={`flex flex-col ${isMobile && "mt-1"}`}>
-                          <Text className="text-xs sm:text-sm">{item.slots}</Text>
-                          <span
-                            className={`font-bold text-xs sm:text-sm ${slotsRemaining === 1 || slotsRemaining === 0
-                              ? `text-red-500 font-semibold`
-                              : ``
-                              }`}
-                          >
-                            {slotsRemaining <= 0
-                              ? "Full"
-                              : slotsRemaining === 1
-                                ? "Last Slot"
-                                : `${slotsRemaining} slots left`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0">
-                      {renderActionButton(item)}
-                    </div>
-                  </div>
-                </List.Item>}
-            </>
-          );
-        }}
-      />
-    );
-  }, [classes, loading, isMobile, isSubmitting, selectedDate, isProcessingData, fetchingImage]);
 
   return (
     <AuthenticatedLayout>

@@ -15,26 +15,8 @@ export async function GET(req: NextRequest) {
       daily,
       selectedDate,
       instructorId,
+      withAttendees,
     } = data;
-
-    const { data: instructorData, error: instructorError } = await supabaseServer.from("instructors").select(`
-        id,
-        user_id,
-        full_name,
-        avatar_path,
-        user_profiles (
-          id,
-          avatar_path,
-          deactivated,
-          full_name,
-          first_name
-        )
-      `)
-
-    if (instructorError) {
-      console.error('Error fetching instructor data: ', instructorError)
-      return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
-    }
 
     const formattedSelectedDate = dayjs.isDayjs(selectedDate)
       ? selectedDate
@@ -42,21 +24,28 @@ export async function GET(req: NextRequest) {
 
     const nowISO = dayjs().toISOString();
     const today = dayjs().startOf("day");
-    let query = supabaseServer.from("classes").select(`
-      *,
-      class_bookings (
-        id,
-        attendance_status,
-        booker_id,
-        class_id,
-        walk_in_first_name,
-        walk_in_last_name,
-        user_profiles (
-          id,
-          full_name
-        )
-      )
-    `);
+
+    const instructorFragment = `instructors (
+        id, user_id, full_name, avatar_path,
+        user_profiles (id, avatar_path, deactivated, full_name, first_name)
+      )`;
+
+    let bookingsFragment: string;
+    if (withAttendees === "true") {
+      bookingsFragment = `class_bookings (
+        id, attendance_status, booker_id, class_id,
+        walk_in_first_name, walk_in_last_name,
+        user_profiles (id, full_name)
+      )`;
+    } else if (userId) {
+      bookingsFragment = `class_bookings (id, attendance_status)`;
+    } else {
+      bookingsFragment = `class_bookings (id)`;
+    }
+
+    let query = supabaseServer
+      .from("classes")
+      .select(`*, ${instructorFragment}, ${bookingsFragment}`);
 
     if (userId) {
 
@@ -126,19 +115,9 @@ export async function GET(req: NextRequest) {
 
     const { data: classData, error } = await query;
 
-
-    const mapped = classData?.map((data: any) => {
-      const instructor = instructorData?.find((instructor: any) => instructor.id === data.instructor_id)
-      return {
-        ...data,
-        instructors: { ...instructor }
-      }
-    })
-
     if (error) throw error;
 
-
-    const res = NextResponse.json({ data: mapped });
+    const res = NextResponse.json({ data: classData });
     res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
     return res;
   } catch (err: any) {

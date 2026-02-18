@@ -5,6 +5,7 @@ import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayo
 import { Row, Typography, Spin, Drawer, Segmented } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import {
+  useClientBookings,
   useDeleteUser,
   useManageCredits,
   useManageImage,
@@ -51,6 +52,8 @@ export default function ClientManagementPage() {
   >("Bookings");
   const { deleteUser } = useDeleteUser();
   const { fetchImages } = useManageImage();
+  const { fetchClientBookings, loading: loadingBookings } = useClientBookings();
+  const [bookingHistory, setBookingHistory] = useState<any[]>([]);
 
   useEffect(() => {
     handleSearchClients();
@@ -113,7 +116,6 @@ export default function ClientManagementPage() {
 
         const mapped = result.data.map((user: any) => {
           let mappedClientPackages: any[] = [];
-          let classBookings: any[] = [];
 
           const activePackage = user.client_packages.find(
             (x: any) => x.status === "active",
@@ -127,24 +129,6 @@ export default function ClientManagementPage() {
           const signedUrl = user.avatar_path
             ? urlMap.get(user.avatar_path) ?? ""
             : "";
-
-          //if user has bookings
-          if (!!user.class_bookings.length) {
-            classBookings = user.class_bookings.map((classBooking: any) => {
-              return {
-                id: classBooking.id,
-                attendance: classBooking.attendance_status,
-                classDate: classBooking.class_date,
-
-                classDetails: {
-                  id: classBooking.classes.id,
-                  instructor: classBooking.classes.instructor_name,
-                  startTime: classBooking.classes.start_time,
-                  endTime: classBooking.classes.end_time,
-                },
-              };
-            });
-          }
 
           if (clientPackage) {
             clientPackage = {
@@ -187,7 +171,6 @@ export default function ClientManagementPage() {
             client_packages: mappedClientPackages,
             key: user.id,
             avatar_url: signedUrl,
-            bookingHistory: classBookings,
             credits: user?.user_credits?.[0]?.credits ?? null,
           };
         });
@@ -222,9 +205,32 @@ export default function ClientManagementPage() {
     setIsEditing(true);
   };
 
-  const handleViewBookingHistory = (record: any) => {
+  const handleViewBookingHistory = async (record: any) => {
     setSelectedRecord(record);
     setIsViewingHistory(true);
+    setBookingHistory([]);
+
+    try {
+      const bookings = await fetchClientBookings({ userID: record.id });
+      if (bookings) {
+        const mapped = bookings
+          .filter((b: any) => b.classes !== null)
+          .map((b: any) => ({
+            id: b.id,
+            attendance: b.attendance_status,
+            classDate: b.class_date,
+            classDetails: {
+              id: b.classes.id,
+              instructor: b.classes.instructor_name,
+              startTime: b.classes.start_time,
+              endTime: b.classes.end_time,
+            },
+          }));
+        setBookingHistory(mapped);
+      }
+    } catch (error) {
+      console.error("Error fetching booking history:", error);
+    }
   };
   const handleCloseBookingHistory = (record: any) => {
     setSelectedRecord(record);
@@ -410,7 +416,8 @@ export default function ClientManagementPage() {
         {historyTab === "Bookings" && (
           <div className="pt-4">
             <UserBookingHistory
-              bookingHistory={selectedRecord?.bookingHistory ?? []}
+              bookingHistory={bookingHistory}
+              loading={loadingBookings}
             />
           </div>
         )}

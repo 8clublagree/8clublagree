@@ -10,51 +10,51 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing userID" }, { status: 400 });
     }
 
-    const { data: profile, error } = await supabaseServer
-      .from("user_profiles")
-      .select(
-        `
-        *,
-        user_credits (
-          id,
-          credits,
-          created_at
-        ),
-        client_packages (
+    const [profileResult, paymentResult] = await Promise.all([
+      supabaseServer
+        .from("user_profiles")
+        .select(
+          `
           *,
-          packages (*)
+          user_credits (
+            id,
+            credits,
+            created_at
+          ),
+          client_packages (
+            *,
+            packages (*)
+          )
+        `,
         )
-      `,
-      )
-      .eq("id", userID)
-      .single();
+        .eq("id", userID)
+        .single(),
+      supabaseServer
+        .from("orders")
+        .select("*")
+        .eq("user_id", userID)
+        .eq("status", "PENDING")
+        .single(),
+    ]);
 
-    if (error) {
+    if (profileResult.error) {
       return NextResponse.json(
         { error: "Error fetching profile" },
         { status: 500 },
       );
     }
 
-    if (!profile) {
+    if (!profileResult.data) {
       return NextResponse.json(
         { error: "User profile not found" },
         { status: 404 },
       );
     }
 
-    const { data: payment, error: paymentError } = await supabaseServer
-      .from("orders")
-      .select("*")
-      .eq("user_id", userID)
-      .eq("status", "PENDING")
-      .single();
-
-    // payment can legitimately be null
     return NextResponse.json({
       data: {
-        profile,
-        payment: payment ?? null,
+        profile: profileResult.data,
+        payment: paymentResult.data ?? null,
       },
     });
   } catch (err) {

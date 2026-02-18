@@ -20,23 +20,21 @@ import axios from "axios";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// Client GET cache (TTL) — fewer duplicate API calls, lower server/DB load
-// const CACHE_TTL_MS = { about: 60_000, packages: 30_000, classes: 15_000 };
-// const getCache = new Map<string, { data: unknown; expires: number }>();
-// function getCached<T>(key: string, ttlMs: number): T | null {
-//   const entry = getCache.get(key);
-//   if (!entry || Date.now() >= entry.expires) return null;
-//   return entry.data as T;
-// }
-// function setCached(key: string, data: unknown, ttlMs: number): void {
-//   getCache.set(key, { data, expires: Date.now() + ttlMs });
-// }
-// Invalidate cache by prefix after mutations so UI doesn't show stale data
-// function invalidateGetCache(prefix: string): void {
-//   Array.from(getCache.keys()).forEach((key) => {
-//     if (key.startsWith(prefix)) getCache.delete(key);
-//   });
-// }
+const SIGNED_URL_TTL_MS = 45 * 60 * 1000; // 45 min (URLs valid 1 hour)
+const signedUrlCache = new Map<string, { url: string; expires: number }>();
+
+function getCachedUrl(path: string): string | null {
+  const entry = signedUrlCache.get(path);
+  if (!entry || Date.now() >= entry.expires) {
+    if (entry) signedUrlCache.delete(path);
+    return null;
+  }
+  return entry.url;
+}
+
+function setCachedUrl(path: string, url: string): void {
+  signedUrlCache.set(path, { url, expires: Date.now() + SIGNED_URL_TTL_MS });
+}
 
 export const useAboutPageData = () => {
   const [loading, setLoading] = useState(false);
@@ -366,10 +364,10 @@ export const useManageImage = () => {
     avatarPath: string;
     bucket?: string;
   }) => {
-    let signedUrl: any;
-
     if (avatarPath === null || avatarPath === undefined || !avatarPath.length) return null;
 
+    const cached = getCachedUrl(avatarPath);
+    if (cached) return cached;
 
     const { data, error: urlError } = await supabase.storage
       .from(bucket)
@@ -377,12 +375,12 @@ export const useManageImage = () => {
 
     if (urlError) {
       console.error("Error generating signed URL:", urlError);
-      signedUrl = null;
+      return null;
     }
 
-    signedUrl = data?.signedUrl;
-
-    return signedUrl;
+    const url = data?.signedUrl ?? null;
+    if (url) setCachedUrl(avatarPath, url);
+    return url;
   };
 
   /**
@@ -402,21 +400,35 @@ export const useManageImage = () => {
 
     if (!validPaths.length) return new Map();
 
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .createSignedUrls(validPaths, 3600);
+    const urlMap = new Map<string, string>();
+    const uncachedPaths: string[] = [];
 
-    if (error) {
-      console.error("Error generating batch signed URLs:", error);
-      return new Map();
+    for (const path of validPaths) {
+      const cached = getCachedUrl(path);
+      if (cached) {
+        urlMap.set(path, cached);
+      } else {
+        uncachedPaths.push(path);
+      }
     }
 
-    const urlMap = new Map<string, string>();
-    data?.forEach((item) => {
-      if (item.signedUrl && item.path) {
-        urlMap.set(item.path, item.signedUrl);
+    if (uncachedPaths.length > 0) {
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .createSignedUrls(uncachedPaths, 3600);
+
+      if (error) {
+        console.error("Error generating batch signed URLs:", error);
+        return urlMap;
       }
-    });
+
+      data?.forEach((item) => {
+        if (item.signedUrl && item.path) {
+          setCachedUrl(item.path, item.signedUrl);
+          urlMap.set(item.path, item.signedUrl);
+        }
+      });
+    }
 
     return urlMap;
   };
@@ -638,6 +650,7 @@ export const useClassManagement = () => {
     endDate,
     selectedDate,
     instructorId,
+    withAttendees = false,
   }: {
     isAdmin?: boolean;
     isInstructor?: boolean;
@@ -646,12 +659,13 @@ export const useClassManagement = () => {
     startDate?: Dayjs;
     endDate?: Dayjs;
     selectedDate?: Dayjs;
+    withAttendees?: boolean;
   }) => {
 
     try {
       setLoading(true);
       const response = await axiosApi.get("/classes/fetch-classes", {
-        params: { isAdmin, isInstructor, userId, startDate, endDate, selectedDate, instructorId },
+        params: { isAdmin, isInstructor, userId, startDate, endDate, selectedDate, instructorId, withAttendees },
       });
       const data = response?.data?.data;
       if (!data) return null;
@@ -759,6 +773,7 @@ export const useClassManagement = () => {
     walkInLastName,
     walkInClientEmail,
     walkInClientContactNumber,
+    deductCredits = false,
   }: {
     classDate: string;
     classId: string;
@@ -768,12 +783,14 @@ export const useClassManagement = () => {
     walkInLastName?: string;
     walkInClientEmail?: string;
     walkInClientContactNumber?: string;
+    deductCredits?: boolean;
   }) => {
     try {
       setLoading(true);
       const response = await axiosApi.post("/classes/book-class", {
         classDate, bookerId, classId, isWalkIn,
         walkInFirstName, walkInLastName, walkInClientEmail, walkInClientContactNumber,
+        deductCredits,
       });
       const data = response.data?.data;
       if (data === null) return null;

@@ -1,5 +1,5 @@
 import { attendanceStatus } from "@/lib/utils";
-import { Col, Row, Typography } from "antd";
+import { Col, Row, Spin, Typography } from "antd";
 import dayjs from "dayjs";
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 
@@ -7,7 +7,15 @@ dayjs.extend(isSameOrAfter)
 
 const { Text } = Typography;
 
-const UserBookingHistory = ({ bookingHistory }: { bookingHistory: any }) => {
+const UserBookingHistory = ({ bookingHistory, loading }: { bookingHistory: any; loading?: boolean }) => {
+  if (loading) {
+    return (
+      <Row className="w-full p-[20px] justify-center">
+        <Spin />
+      </Row>
+    );
+  }
+
   return (
     <div>
       <Col className="flex flex-col gap-y-[10px] cursor-pointer">

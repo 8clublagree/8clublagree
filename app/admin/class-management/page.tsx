@@ -23,7 +23,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { CreateClassProps } from "@/lib/props";
 import { IoMdPersonAdd } from "react-icons/io";
 import ManualBookingForm from "@/components/forms/ManualBookingForm";
-import { useClassManagement, useManageCredits } from "@/lib/api";
+import { useClassManagement } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 import utc from "dayjs/plugin/utc";
@@ -52,7 +52,6 @@ export default function ClassManagementPage() {
   } = useClassManagement();
   const dispatch = useDispatch();
   const { showMessage, contextHolder } = useAppMessage();
-  const { updateUserCredits } = useManageCredits();
   const param = useAppSelector((state) => state.param);
   const [classes, setClasses] = useState<any[]>([]);
   const [attendees, setAttendees] = useState<any[]>([]);
@@ -110,6 +109,7 @@ export default function ClassManagementPage() {
       const data = await fetchClasses({
         selectedDate: dateQuery as Dayjs,
         isAdmin: true,
+        withAttendees: true,
       });
 
       setIsProcessingData(true)
@@ -313,49 +313,32 @@ export default function ClassManagementPage() {
 
   const handleManualBook = async (formData: any) => {
     try {
-      let promises;
       const bookingType = formData.bookingType;
-
       const values = omit(formData, ["bookingType"]);
 
       if (bookingType === "walk-in") {
-        promises = [
-          bookClass({
-            classDate: values.classDate,
-            classId: values.class_id,
-            walkInFirstName: values.first_name,
-            walkInLastName: values.last_name,
-            walkInClientEmail: values.walk_in_client_email,
-            walkInClientContactNumber: values.walk_in_client_contact_number,
-            isWalkIn: true,
-          })
-        ];
-
-        await Promise.all([...promises]);
+        await bookClass({
+          classDate: values.classDate,
+          classId: values.class_id,
+          walkInFirstName: values.first_name,
+          walkInLastName: values.last_name,
+          walkInClientEmail: values.walk_in_client_email,
+          walkInClientContactNumber: values.walk_in_client_contact_number,
+          isWalkIn: true,
+        });
       }
 
       if (bookingType === "existing") {
         const clientID = values.existingClientRecord.id;
         const clientCredits = values.existingClientRecord.credits;
 
-        promises = [
-          bookClass({
-            classDate: dayjs(selectedDate).toISOString(),
-            classId: values.class_id,
-            bookerId: clientID,
-            isWalkIn: false,
-          })
-        ];
-
-        if (clientCredits != null) {
-          const updatedCredits = clientCredits - 1;
-          promises.push(
-            updateUserCredits({
-              userID: clientID,
-              values: { credits: updatedCredits },
-            }),
-          );
-        }
+        await bookClass({
+          classDate: dayjs(selectedDate).toISOString(),
+          classId: values.class_id,
+          bookerId: clientID,
+          isWalkIn: false,
+          deductCredits: clientCredits != null,
+        });
       }
 
       showMessage({

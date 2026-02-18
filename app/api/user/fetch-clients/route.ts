@@ -20,49 +20,24 @@ export async function GET(req: NextRequest) {
       .select(
         `*,
         user_credits (
-        id,
-        credits
-        ),
-        class_bookings (      
-                attendance_status,
-                booker_id,
-                class_date,
-                class_id,
-                id,
-            classes (
-                id,
-                start_time,
-                end_time,
-                class_name,
-                instructor_id,
-                instructor_name,
-                instructors (
-                id,
-                full_name,
-                avatar_path
-                )
-            )
+          id,
+          credits
         ),
         client_packages (
-            *,
-            id,
-            package_id,
-            status,
-            package_name,
-            purchase_date, 
-            package_credits,
-            validity_period,
-            expiration_date
+          id,
+          package_id,
+          status,
+          package_name,
+          purchase_date,
+          package_credits,
+          validity_period,
+          expiration_date
         )
         `,
         { count: "exact" },
       )
       .eq("user_type", "general")
       .is("deleted_at", null)
-      .order("created_at", {
-        ascending: false,
-        foreignTable: "class_bookings",
-      })
       .range(from, to);
 
     if (!!name?.length) {
