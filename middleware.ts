@@ -26,6 +26,9 @@ export async function middleware(req: NextRequest) {
   if (pathname === "/api/package-expiry-reminder") {
     return NextResponse.next();
   }
+  if (pathname === "/api/admin/expire-packages") {
+    return NextResponse.next();
+  }
 
   if (pathname === "/api/maya/webhook") {
     return NextResponse.next();
@@ -88,6 +91,7 @@ export async function middleware(req: NextRequest) {
           },
         },
       );
+
       if (!res.ok) {
         return NextResponse.json({ error: "Invalid token" }, { status: 401 });
       }
