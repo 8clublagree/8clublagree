@@ -402,14 +402,17 @@ export default function ClassManagementPage() {
   };
 
   const handleChange = async ({
+    item,
     bookingID,
     status,
   }: {
+    item: any;
     bookingID: string;
     status: string;
   }) => {
     try {
-      await markAttendance({ bookingID, status });
+      const classID = item.class_id;
+      await markAttendance({ bookingID, status, classID });
 
       showMessage({ type: "success", content: "Marked Attendance" });
 
@@ -457,7 +460,7 @@ export default function ClassManagementPage() {
           >
             <List
               itemLayout="horizontal"
-              dataSource={fitlered}
+              dataSource={attendees}
               locale={{ emptyText: "Nobody has booked this class yet" }}
               loading={loading}
               renderItem={(item, index) => {
@@ -465,7 +468,7 @@ export default function ClassManagementPage() {
                   <Row
                     key={index}
                     wrap={false}
-                    className={`${fitlered.length > 1 && "border-b"
+                    className={`${attendees.length > 1 && "border-b"
                       } py-3 justify-between`}
                   >
                     <List.Item.Meta
@@ -475,15 +478,13 @@ export default function ClassManagementPage() {
 
                     <Tooltip
                       title={
-                        (item?.attendanceStatus === "cancelled" ||
-                          cannotRebook ||
+                        (cannotRebook ||
                           cannotMarkAttendance) &&
                         "Cannot modify the attendance of classes that are over, or clients who have cancelled."
                       }
                     >
                       <Select
                         disabled={
-                          item?.attendanceStatus === "cancelled" ||
                           cannotRebook ||
                           cannotMarkAttendance
                         }
@@ -493,6 +494,7 @@ export default function ClassManagementPage() {
                         style={{ width: 120 }}
                         onChange={(e) =>
                           handleChange({
+                            item,
                             bookingID: item.id,
                             status: e,
                           })
@@ -500,11 +502,7 @@ export default function ClassManagementPage() {
                         options={[
                           { value: "no-show", label: "No Show" },
                           { value: "attended", label: "Attended" },
-                          {
-                            value: "cancelled",
-                            label: "Cancelled",
-                            disabled: true,
-                          },
+                          { value: "cancelled", label: "Cancelled" },
                         ]}
                       />
                     </Tooltip>

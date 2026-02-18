@@ -576,15 +576,17 @@ export const useClassManagement = () => {
   const user = useAppSelector((state) => state.auth.user);
 
   const markAttendance = async ({
+    classID,
     bookingID,
     status,
   }: {
+    classID: string;
     bookingID: string;
     status: string;
   }) => {
     try {
       setLoading(true);
-      const response = await axiosApi.put("/classes/mark-attendance", { bookingID, status });
+      const response = await axiosApi.put("/classes/mark-attendance", { bookingID, status, classID });
       const data = response?.data?.data;
       if (!data) return null;
       // invalidateGetCache("classes:");
