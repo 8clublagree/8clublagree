@@ -65,9 +65,8 @@ export default function RebookAttendeeForm({
           value: item.id,
           label: `${item.instructor_name} (${dayjs(item.start_time).format(
             "hh:mm A",
-          )} - ${dayjs(item.end_time).format("hh:mm A")}) (${
-            item.taken_slots
-          } / ${item.available_slots} slots remaining)`,
+          )} - ${dayjs(item.end_time).format("hh:mm A")}) (${item.taken_slots
+            } / ${item.available_slots} slots remaining)`,
           disabled: item.taken_slots === item.available_slots,
         };
       });
@@ -180,10 +179,9 @@ export default function RebookAttendeeForm({
           disabled={loading || !selectedRecord?.availableClasses.length}
           loading={loading}
           onClick={handleFinish}
-          className={`${
-            (loading || !!selectedRecord?.availableClasses.length) &&
+          className={`${(loading || !!selectedRecord?.availableClasses.length) &&
             "bg-[#36013F] hover:!bg-[#36013F]"
-          } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] h-[40px]`}
+            } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] h-[40px]`}
         >
           Rebook
         </Button>

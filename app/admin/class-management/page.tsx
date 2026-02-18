@@ -132,22 +132,29 @@ export default function ClassManagementPage() {
         };
       });
 
-      const allBookings = data.flatMap((cls: any) =>
-        cls.class_bookings.map((booking: any) => ({
-          classID: cls.id,
-          value: booking.booker_id,
-          label: booking.user_profiles
-            ? booking.user_profiles.full_name
-            : `${booking.walk_in_first_name} ${booking.walk_in_last_name}`,
-          class_id: cls.id,
-          class_name: cls.instructor_name,
-          start_time: cls.start_time,
-          end_time: cls.end_time,
-          taken_slots: cls.taken_slots,
-          available_slots: cls.available_slots,
-          bookingID: booking.id,
-        })),
-      );
+
+      const allBookings = [];
+      for (const cls of data ?? []) {
+        const bookings = cls.class_bookings;
+        if (!Array.isArray(bookings)) continue;
+        for (const booking of bookings) {
+          if (booking.attendance_status === 'cancelled') continue;
+          allBookings.push({
+            classID: cls.id,
+            value: booking.booker_id,
+            label: booking.user_profiles
+              ? booking.user_profiles.full_name
+              : `${booking.walk_in_first_name} ${booking.walk_in_last_name}`,
+            class_id: cls.id,
+            class_name: cls.instructor_name,
+            start_time: cls.start_time,
+            end_time: cls.end_time,
+            taken_slots: cls.taken_slots,
+            available_slots: cls.available_slots,
+            bookingID: booking.id,
+          });
+        }
+      }
 
       setAllBookings(allBookings);
 
@@ -194,6 +201,7 @@ export default function ClassManagementPage() {
       );
 
       const result = Object.values(grouped);
+
 
       setFullAttendeeListToday(result);
       setClasses(mapped);
