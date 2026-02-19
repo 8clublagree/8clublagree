@@ -23,7 +23,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
+import { setUser, logout as logoutAction, setInstructors } from "@/lib/features/authSlice";
 import { LuPackage, LuUserPen } from "react-icons/lu";
 import { MdOutlinePayment } from "react-icons/md";
 import { useAdminProfile } from "@/lib/api";
@@ -45,8 +45,11 @@ export default function AuthenticatedLayout({
   const dispatch = useAppDispatch();
   const { getAdmin } = useAdminProfile();
   const user = useAppSelector((state) => state.auth.user);
+  const instructorsState = useAppSelector((state) => state.auth.instructors);
   const userRef = useRef(user);
   userRef.current = user;
+  const instructorsRef = useRef(instructorsState);
+  instructorsRef.current = instructorsState;
 
   useEffect(() => {
     const {
@@ -55,7 +58,7 @@ export default function AuthenticatedLayout({
       if (event === "SIGNED_OUT") {
         dispatch(logoutAction());
         router.push("/login");
-      } else if (userRef.current === null) {
+      } else if (userRef.current === null || instructorsRef.current === null) {
         checkUser();
       }
     });
@@ -77,7 +80,10 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    const profile = await getAdmin({ id: session.user.id });
+    const response = await getAdmin({ id: session.user.id });
+    const profile = response?.profile;
+    const instructors = response?.instructors;
+    dispatch(setInstructors(instructors));
 
     if (profile) {
       if (profile.user_type === "general") {

@@ -53,6 +53,7 @@ export default function ClassManagementPage() {
   const dispatch = useDispatch();
   const { showMessage, contextHolder } = useAppMessage();
   const param = useAppSelector((state) => state.param);
+  const instructorsState = useAppSelector((state) => state.auth.instructors);
   const [classes, setClasses] = useState<any[]>([]);
   const [attendees, setAttendees] = useState<any[]>([]);
   const [allBookings, setAllBookings] = useState<any[]>([]);
@@ -97,7 +98,7 @@ export default function ClassManagementPage() {
     if (selectedDate) {
       handleFetchClasses();
     }
-  }, [selectedDate]);
+  }, [selectedDate, instructorsState]);
 
   const handleFetchClasses = async () => {
     try {
@@ -114,21 +115,31 @@ export default function ClassManagementPage() {
 
       setIsProcessingData(true)
 
-      const mapped = data?.map((item: any, index: number) => {
+      const parsedInstructors = instructorsState?.map((instructor: any) => {
         return {
+          ...instructor,
+          id: instructor.instructors[0].id,
+          key: instructor.id,
+        }
+      });
+
+      const mapped = data?.map((item: any, index: number) => {
+        const instructors = parsedInstructors?.find((instructor: any) => instructor.id === item.instructor_id);
+        return {
+          ...item,
+          instructors: instructors ?? {},
           key: index,
           id: item.id,
           offered_for_clients: item.offered_for_clients,
           instructor_id: item.instructor_id,
           class_name: item.class_name,
-          instructor_name:
-            item?.instructors?.user_profiles?.full_name ?? null,
+          instructor_name: instructors?.full_name,
           start_time: dayjs(item.start_time),
           end_time: dayjs(item.end_time),
           slots: `${item.taken_slots} / ${item.available_slots}`,
           taken_slots: item.taken_slots,
           available_slots: item.available_slots,
-          deactivated: item?.instructors?.user_profiles?.deactivated ?? null,
+          deactivated: instructors?.deactivated,
         };
       });
 

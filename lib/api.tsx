@@ -70,9 +70,11 @@ export const useAdminProfile = () => {
       setLoading(true);
       const response = await axiosApi.get(`/admin/getAdmin`, { params: { id } });
       const profile = response?.data?.data;
-      if (!profile) return null;
-      return profile;
+      const instructors = response?.data?.instructors;
+      if (!profile || !instructors) return null;
+      return { profile, instructors };
     } catch (error) {
+      console.error(error);
       return null;
     } finally {
       setLoading(false);
