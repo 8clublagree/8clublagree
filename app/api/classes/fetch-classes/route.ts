@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     const instructorFragment = `instructors (
         id, user_id, full_name, avatar_path,
-        user_profiles (id, avatar_path, deactivated, full_name, first_name)
+        user_profiles!instructors_user_id_fkey (id, avatar_path, deactivated, full_name, first_name)
       )`;
 
     let bookingsFragment: string;
