@@ -599,19 +599,19 @@ export default function ClassManagementPage() {
                 Rebook Attendee
               </Button>
             </Tooltip>
-            <Tooltip title={!classes.length && "No available classes"}>
+            <Tooltip title={!classes?.length && "No available classes"}>
               <Button
                 type="primary"
                 icon={<IoMdPersonAdd />}
                 disabled={
-                  !classes.length ||
-                  !classes.filter((cls) =>
+                  !classes?.length ||
+                  !classes?.filter((cls) =>
                     dayjs(cls.start_time).isAfter(dayjs()),
                   ).length
                 }
                 onClick={handleOpenBookingModal}
                 className={`${!!classes?.length &&
-                  !!classes.filter((cls) =>
+                  !!classes?.filter((cls) =>
                     dayjs(cls.start_time).isAfter(dayjs()),
                   ).length
                   ? "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
@@ -624,7 +624,7 @@ export default function ClassManagementPage() {
           </Row>
           <AdminBookingTable
             loading={loading}
-            data={[...classes]}
+            data={[...classes ?? []]}
             onEdit={handleEdit}
             onView={handleView}
             onDelete={handleConfirmDelete}
