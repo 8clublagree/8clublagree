@@ -43,6 +43,7 @@ export default function BookingsPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const instructorsState = useAppSelector((state) => state.auth.instructors);
 
   const { showMessage, contextHolder } = useAppMessage();
   const { fetchClasses, bookClass, loading } =
@@ -97,18 +98,35 @@ export default function BookingsPage() {
         selectedDate: selectedDate as Dayjs,
       });
 
-      const parsed = data.map((lagreeClass: any) => ({
-        ...lagreeClass,
-        key: lagreeClass.id,
-        instructor_id: lagreeClass?.instructor_id,
-        class_name: lagreeClass.class_name,
-        instructor_name: lagreeClass.instructor_name,
-        start_time: dayjs(lagreeClass.start_time),
-        end_time: dayjs(lagreeClass.end_time),
-        available_slots: lagreeClass.available_slots,
-        taken_slots: lagreeClass.taken_slots,
-        slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
-      }));
+      // console.log('data: ', data)
+
+      const parsedInstructors = instructorsState?.map((instructor: any) => {
+        return {
+          ...instructor,
+          id: instructor.instructors[0].id,
+          key: instructor.id,
+        }
+      });
+
+      // console.log('parsedInstructors: ', parsedInstructors)
+      const parsed = data.map((lagreeClass: any) => {
+        const instructors = parsedInstructors?.find((instructor: any) => instructor.id === lagreeClass.instructor_id);
+        return {
+          ...lagreeClass,
+          instructors: instructors ?? {},
+          key: lagreeClass.id,
+          instructor_id: lagreeClass?.instructor_id,
+          class_name: lagreeClass.class_name,
+          instructor_name: lagreeClass.instructor_name,
+          start_time: dayjs(lagreeClass.start_time),
+          end_time: dayjs(lagreeClass.end_time),
+          available_slots: lagreeClass.available_slots,
+          taken_slots: lagreeClass.taken_slots,
+          slots: `${lagreeClass.taken_slots} / ${lagreeClass.available_slots}`,
+        }
+      });
+
+
 
       const withInstructors = parsed.filter((c: any) => c.instructors);
 
@@ -240,7 +258,7 @@ export default function BookingsPage() {
               Ended
             </Button>
           )}
-          {notEnded && !!item.class_bookings.length && (
+          {notEnded && !!item?.class_bookings?.length && (
             <Button
               type="primary"
               className={`${isCancelled
@@ -251,18 +269,18 @@ export default function BookingsPage() {
               {isCancelled ? "You Cancelled" : "Joined"}
             </Button>
           )}
-          {notEnded && !item.class_bookings.length && (
+          {notEnded && !item?.class_bookings?.length && (
             <Button
               type="primary"
               disabled={
                 user?.credits === 0
                   ? false
-                  : item.taken_slots === item.available_slots
+                  : item?.taken_slots === item?.available_slots
               }
               onClick={() => handleScheduleAction(item)}
               className={`bg-[#800020] ${user?.credits === 0
                 ? "hover:!bg-[#800020]"
-                : item.taken_slots === item.available_slots
+                : item?.taken_slots === item?.available_slots
                   ? ""
                   : "hover:!bg-[#800020]"
                 } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}

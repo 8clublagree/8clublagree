@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing userID" }, { status: 400 });
     }
 
-    const [profileResult, paymentResult] = await Promise.all([
+    const [profileResult, paymentResult, instructorsResults] = await Promise.all([
       supabaseServer
         .from("user_profiles")
         .select(
@@ -35,6 +35,10 @@ export async function GET(req: NextRequest) {
         .eq("user_id", userID)
         .eq("status", "PENDING")
         .single(),
+      supabaseServer
+        .from("user_profiles")
+        .select("id, avatar_path, deactivated, full_name, first_name, instructors ( id )")
+        .eq("user_type", 'instructor')
     ]);
 
     if (profileResult.error) {
@@ -55,6 +59,7 @@ export async function GET(req: NextRequest) {
       data: {
         profile: profileResult.data,
         payment: paymentResult.data ?? null,
+        instructors: instructorsResults.data ?? null,
       },
     });
   } catch (err) {

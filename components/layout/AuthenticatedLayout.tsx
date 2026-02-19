@@ -27,7 +27,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { CurrentPackageProps, supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { setUser, logout as logoutAction } from "@/lib/features/authSlice";
+import { setUser, logout as logoutAction, setInstructors } from "@/lib/features/authSlice";
 import { LuPackage } from "react-icons/lu";
 import { FaBook, FaList, FaQuestion } from "react-icons/fa";
 import {
@@ -53,12 +53,15 @@ export default function AuthenticatedLayout({
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const instructorsState = useAppSelector((state) => state.auth.instructors);
   const { fetchImage } = useManageImage();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const userRef = useRef(user);
   userRef.current = user;
+  const instructorsRef = useRef(instructorsState);
+  instructorsRef.current = instructorsState;
 
   useEffect(() => {
     const {
@@ -67,7 +70,7 @@ export default function AuthenticatedLayout({
       if (event === "SIGNED_OUT") {
         dispatch(logoutAction());
         router.push("/login");
-      } else if (userRef.current === null) {
+      } else if (userRef.current === null || instructorsRef.current === null) {
         checkUser();
       }
     });
@@ -97,6 +100,9 @@ export default function AuthenticatedLayout({
 
     const profile = response.data.data.profile;
     const payments = response.data.data.payment;
+    const instructors = response.data.data.instructors;
+
+    dispatch(setInstructors(instructors));
 
     const signedUrl = await fetchImage({
       avatarPath: profile?.avatar_path,

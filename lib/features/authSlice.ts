@@ -5,12 +5,14 @@ interface AuthState {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  instructors: any[] | null;
 }
 
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: true,
+  instructors: null
 };
 
 const authSlice = createSlice({
@@ -25,6 +27,9 @@ const authSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
+    setInstructors: (state, action: PayloadAction<any[] | null>) => {
+      state.instructors = action.payload;
+    },
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
@@ -33,5 +38,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, setLoading, logout } = authSlice.actions;
+export const { setUser, setLoading, setInstructors, logout } = authSlice.actions;
 export default authSlice.reducer;
