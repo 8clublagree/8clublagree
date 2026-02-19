@@ -97,11 +97,6 @@ export default function BookingsPage() {
         selectedDate: selectedDate as Dayjs,
       });
 
-      if (!data) {
-        setClasses([]);
-        return;
-      }
-
       const parsed = data.map((lagreeClass: any) => ({
         ...lagreeClass,
         key: lagreeClass.id,
