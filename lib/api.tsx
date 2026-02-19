@@ -580,7 +580,7 @@ export const useClassManagement = () => {
     bookingID,
     status,
   }: {
-    classID: string;
+    classID?: string;
     bookingID: string;
     status: string;
   }) => {
