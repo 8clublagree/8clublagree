@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const today = dayjs().startOf("day");
 
     const instructorFragment = `instructors (
-        id, user_id, full_name, avatar_path,
+        id, user_id,
         user_profiles!instructors_user_id_fkey (id, avatar_path, deactivated, full_name, first_name)
       )`;
 

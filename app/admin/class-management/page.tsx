@@ -208,7 +208,7 @@ export default function ClassManagementPage() {
       setIsProcessingData(false)
 
 
-      if (param.clickedDashboardDate) {
+      if (param?.clickedDashboardDate) {
         dispatch(setClickedDashboardDate(null));
       }
     } catch (error) {
