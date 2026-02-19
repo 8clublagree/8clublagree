@@ -117,7 +117,7 @@ export default function BookingsPage() {
           key: lagreeClass.id,
           instructor_id: lagreeClass?.instructor_id,
           class_name: lagreeClass.class_name,
-          instructor_name: lagreeClass.instructor_name,
+          instructor_name: instructors.full_name,
           start_time: dayjs(lagreeClass.start_time),
           end_time: dayjs(lagreeClass.end_time),
           available_slots: lagreeClass.available_slots,
@@ -126,14 +126,12 @@ export default function BookingsPage() {
         }
       });
 
-
-
       const withInstructors = parsed.filter((c: any) => c.instructors);
 
       const uniquePaths = Array.from(
         new Set(
-          withInstructors
-            .map((c: any) => c.instructors?.user_profiles?.avatar_path)
+          parsed
+            .map((c: any) => c.instructors?.avatar_path)
             .filter(Boolean) as string[]
         ),
       );
@@ -141,10 +139,10 @@ export default function BookingsPage() {
       try {
         const urlByPath = await fetchImages({ avatarPaths: uniquePaths });
 
-        const enriched = withInstructors.map((lagreeClass: any) => ({
+        const enriched = parsed.map((lagreeClass: any) => ({
           ...lagreeClass,
           avatar_url:
-            urlByPath.get(lagreeClass.instructors?.user_profiles?.avatar_path) ?? null,
+            urlByPath.get(lagreeClass?.instructors?.avatar_path) ?? null,
         }));
 
         setClasses(enriched);
@@ -385,7 +383,7 @@ export default function BookingsPage() {
                                 src={item?.avatar_url}
                               />
                               <div className="font-light text-xs sm:text-sm text-center w-32 break-words">
-                                {item?.instructors?.user_profiles?.first_name}
+                                {item?.instructors?.first_name}
                               </div>
                             </div>
 
