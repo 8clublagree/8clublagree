@@ -118,8 +118,8 @@ export default function ClassManagementPage() {
       const parsedInstructors = instructorsState?.map((instructor: any) => {
         return {
           ...instructor,
-          id: instructor.instructors[0].id,
-          key: instructor.id,
+          id: instructor.instructors?.[0]?.id,
+          key: instructor?.id,
         }
       });
 
