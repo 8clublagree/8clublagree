@@ -41,8 +41,11 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ data: profileResult.data, instructors: mappedInstructors });
+    return NextResponse.json({ data: profileResult.data, instructors: mappedInstructors, temp: instructorsResult.data });
   } catch (err: any) {
-    return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unexpected error" },
+      { status: 500 },
+    );
   }
 }
