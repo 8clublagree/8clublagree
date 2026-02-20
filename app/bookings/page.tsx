@@ -103,8 +103,8 @@ export default function BookingsPage() {
       const parsedInstructors = instructorsState?.map((instructor: any) => {
         return {
           ...instructor,
-          id: instructor.instructors[0].id,
-          key: instructor.id,
+          id: instructor?.instructors?.[0]?.id,
+          key: instructor?.id,
         }
       });
 
@@ -117,7 +117,7 @@ export default function BookingsPage() {
           key: lagreeClass.id,
           instructor_id: lagreeClass?.instructor_id,
           class_name: lagreeClass.class_name,
-          instructor_name: instructors.full_name,
+          instructor_name: instructors?.full_name,
           start_time: dayjs(lagreeClass.start_time),
           end_time: dayjs(lagreeClass.end_time),
           available_slots: lagreeClass.available_slots,
