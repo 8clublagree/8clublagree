@@ -688,6 +688,10 @@ export default function PackagesPage() {
               dots={false}
               initialSlide={0}
               className="h-full"
+              swipeToSlide={false}
+              swipe={false}
+              draggable={false}
+              accessibility={false}
             >
               <div className="flex flex-col items-center h-full overflow-y-hidden">
                 <Row className="w-full justify-center">
