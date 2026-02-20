@@ -74,7 +74,6 @@ export const useAdminProfile = () => {
       if (!profile || !instructors) return null;
       return { profile, instructors };
     } catch (error) {
-      console.error(error);
       return null;
     } finally {
       setLoading(false);

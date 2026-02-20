@@ -118,20 +118,21 @@ export default function ClassManagementPage() {
       const parsedInstructors = instructorsState?.map((instructor: any) => {
         return {
           ...instructor,
-          id: instructor.instructors?.[0]?.id,
+          id: instructor?.id,
           key: instructor?.id,
         }
       });
 
       const mapped = data?.map((item: any, index: number) => {
         const instructors = parsedInstructors?.find((instructor: any) => instructor.id === item.instructor_id);
+
         return {
           ...item,
           instructors: instructors ?? {},
           key: index,
           id: item.id,
           offered_for_clients: item.offered_for_clients,
-          instructor_id: item.instructor_id,
+          instructor_id: item?.instructor_id,
           class_name: item.class_name,
           instructor_name: instructors?.full_name,
           start_time: dayjs(item.start_time),
