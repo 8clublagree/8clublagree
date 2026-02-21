@@ -12,7 +12,7 @@ import {
 import axiosApi from "@/lib/axiosConfig";
 import { setUser } from "@/lib/features/authSlice";
 import { useAppSelector } from "@/lib/hooks";
-import { supabase } from "@/lib/supabase";
+
 import { formatPrice } from "@/lib/utils";
 import {
   Drawer,
@@ -277,39 +277,16 @@ const PaymentsPage = () => {
   const handleFetchOrders = async (page?: number, pageSize?: number) => {
     const p = page ?? pagination.current;
     const ps = Math.min(100, Math.max(1, pageSize ?? pagination.pageSize));
-    const from = (p - 1) * ps;
-    const to = from + ps - 1;
-
-    const SELECT_QUERY = `
-      *,
-      user_profiles (
-        id,
-        full_name,
-        email,
-        user_credits (
-          credits
-        ),
-        client_packages (
-          id,
-          status
-        )
-      )
-    `;
 
     setLoadingPayments(true);
     try {
-      const { data: payments, error: paymentsError, count } = await supabase
-        .from("orders")
-        .select(SELECT_QUERY, { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
+      const response = await axiosApi.get("/admin/payments/fetch-orders", {
+        params: { page: p, pageSize: ps },
+      });
 
-      if (paymentsError) {
-        showMessage({ type: "error", content: paymentsError.message });
-        return;
-      }
+      const list = response.data?.data ?? [];
+      const total = response.data?.total ?? 0;
 
-      const list = payments ?? [];
       const mapped = list.map((item: any) => {
         const profiles = item?.user_profiles;
         const active =
@@ -324,7 +301,7 @@ const PaymentsPage = () => {
       });
 
       setPayments(mapped);
-      setTotal(count ?? mapped.length);
+      setTotal(total);
       setPagination((prev) => ({ ...prev, current: p, pageSize: ps }));
     } catch (error) {
       showMessage({ type: "error", content: "Error fetching orders" });
