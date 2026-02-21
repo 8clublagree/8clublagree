@@ -26,6 +26,7 @@ import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
 import {
   useClassManagement,
+  useManageCredits,
   useManageImage,
 } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
@@ -48,6 +49,7 @@ export default function BookingsPage() {
   const { showMessage, contextHolder } = useAppMessage();
   const { fetchClasses, bookClass, loading } =
     useClassManagement();
+  const { updateUserCredits } = useManageCredits();
 
   const [isMobile, setIsMobile] = useState(false);
   const [isProcessingData, setIsProcessingData] = useState(false);
@@ -209,6 +211,8 @@ export default function BookingsPage() {
         });
 
         if (shouldDeductCredits && result?.remaining_credits != null) {
+          // Call updateUserCredits to update in the database, then update Redux state
+          await updateUserCredits({ userID: user?.id as string, values: { credits: result.remaining_credits } });
           dispatch(setUser({ ...user, credits: result.remaining_credits }));
         }
 
