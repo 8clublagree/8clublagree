@@ -215,7 +215,7 @@ export default function BookingsPage() {
           ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: user?.credits as number - 1 } }),
         });
 
-        if (isNaN(user?.credits as number) && Number(user?.credits) !== 0) {
+        if (!isNaN(user?.credits as number) && Number(user?.credits) !== 0) {
 
           dispatch(setUser({ ...user, credits: Number(user?.credits) - 1 }));
         }
