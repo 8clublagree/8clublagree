@@ -210,11 +210,12 @@ export default function BookingsPage() {
           deductCredits: shouldDeductCredits,
         });
 
-        if (shouldDeductCredits && result?.remaining_credits != null) {
-          // Call updateUserCredits to update in the database, then update Redux state
-          await updateUserCredits({ userID: user?.id as string, values: { credits: result.remaining_credits } });
-          dispatch(setUser({ ...user, credits: result.remaining_credits }));
-        }
+        await updateUserCredits({
+          userID: user?.id as string,
+          values: { credits: result.remaining_credits },
+        });
+        dispatch(setUser({ ...user, credits: result.remaining_credits }));
+
 
         handleSendConfirmationEmail();
 
