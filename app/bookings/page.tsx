@@ -230,8 +230,8 @@ export default function BookingsPage() {
           content: "Successfully booked a class!",
         });
 
-        await handleFetchClasses()
-        // window.location.reload()
+        // await handleFetchClasses()
+        window.location.reload()
       }
     } catch (error) {
       setIsSubmitting(false);
