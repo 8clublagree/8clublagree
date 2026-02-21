@@ -582,10 +582,13 @@ export default function PackagesPage() {
         formData.append("fileName", fileName);
         formData.append("action", "upload-proof");
 
-        await axiosApi.post(
+        const uploadRes = await axiosApi.post(
           "/orders/upload-screenshot",
           formData,
         );
+        if (!uploadRes.data?.data) {
+          throw new Error("File upload failed");
+        }
 
         const response = await axiosApi.post("/package/upload-proof", {
           values: {
@@ -602,11 +605,14 @@ export default function PackagesPage() {
             referenceId: uuid
           },
         });
+        if (!response.data?.data && response.data?.status !== 200) {
+          throw new Error("Order creation failed");
+        }
 
-        await handleSendConfirmationEmail();
+        handleSendConfirmationEmail().catch(console.error);
 
         setIsSendingPending(false);
-        return response.status;
+        return response.status ?? 200;
       }
     } catch (err: any) {
       setIsSendingPending(false);
