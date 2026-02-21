@@ -212,10 +212,13 @@ export default function BookingsPage() {
 
         await updateUserCredits({
           userID: user?.id as string,
-          ...(user.credits && user.credits !== null && !isNaN(user.credits as number) && { values: { credits: user.credits as number - 1 } }),
-          // values: { credits: result.remaining_credits },
+          ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: user?.credits as number - 1 } }),
         });
-        dispatch(setUser({ ...user, credits: result.remaining_credits }));
+
+        if (isNaN(user?.credits as number) && Number(user?.credits) !== 0) {
+
+          dispatch(setUser({ ...user, credits: Number(user?.credits) - 1 }));
+        }
 
 
         handleSendConfirmationEmail();
@@ -226,7 +229,8 @@ export default function BookingsPage() {
           type: "success",
           content: "Successfully booked a class!",
         });
-        handleFetchClasses();
+
+        // window.location.reload()
       }
     } catch (error) {
       setIsSubmitting(false);
