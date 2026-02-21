@@ -385,9 +385,9 @@ const PaymentsPage = () => {
 
       if (paymentStatusResponse?.data) {
         try {
-          if (paymentStatusResponse.data) {
-            await Promise.all([handleSendConfirmationEmail(), handleFetchOrders(1, pagination.pageSize)]);
-          }
+          await handleSendConfirmationEmail();
+          await new Promise((r) => setTimeout(r, 500));
+          await handleFetchOrders(1, pagination.pageSize);
 
           showMessage({
             type: "success",
