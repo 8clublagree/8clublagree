@@ -212,7 +212,8 @@ export default function BookingsPage() {
 
         await updateUserCredits({
           userID: user?.id as string,
-          values: { credits: result.remaining_credits },
+          ...(user.credits && user.credits !== null && !isNaN(user.credits as number) && { values: { credits: user.credits as number - 1 } }),
+          // values: { credits: result.remaining_credits },
         });
         dispatch(setUser({ ...user, credits: result.remaining_credits }));
 
