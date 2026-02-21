@@ -251,58 +251,58 @@ export default function BookingsPage() {
     setTermsModalOpen(true);
   };
 
-  const renderActionButton = useMemo(
-    () => (item: any) => {
-      const now = dayjs()
-      const isCancelled =
-        item?.class_bookings?.[0]?.attendance_status === "cancelled";
+  // const renderActionButton = useMemo(
+  //   () => (item: any) => {
+  //     const now = dayjs()
+  //     const isCancelled =
+  //       item?.class_bookings?.[0]?.attendance_status === "cancelled";
 
-      const notEnded = dayjs(item.start_time).isSameOrAfter(now)
-      return (
-        <>
-          {!notEnded && (
-            <Button
-              type="primary"
-              className="bg-red-700 hover:!bg-red-700 !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm"
-            >
-              Ended
-            </Button>
-          )}
-          {notEnded && !!item?.class_bookings?.length && (
-            <Button
-              type="primary"
-              className={`${isCancelled
-                ? "bg-red-700 hover:!bg-red-700"
-                : "bg-green-600 hover:!bg-green-600"
-                } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
-            >
-              {isCancelled ? "You Cancelled" : "Joined"}
-            </Button>
-          )}
-          {notEnded && !item?.class_bookings?.length && (
-            <Button
-              type="primary"
-              disabled={
-                user?.credits === 0
-                  ? false
-                  : item?.taken_slots === item?.available_slots
-              }
-              onClick={() => handleScheduleAction(item)}
-              className={`bg-[#800020] ${user?.credits === 0
-                ? "hover:!bg-[#800020]"
-                : item?.taken_slots === item?.available_slots
-                  ? ""
-                  : "hover:!bg-[#800020]"
-                } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
-            >
-              {user?.credits === 0 ? "Get Credits" : "Join"}
-            </Button>
-          )}
-        </>
-      );
-    },
-    [classes, user?.credits, isSubmitting, loading, isProcessingData],
-  );
+  //     const notEnded = dayjs(item.start_time).isSameOrAfter(now)
+  //     return (
+  //       <>
+  //         {!notEnded && (
+  //           <Button
+  //             type="primary"
+  //             className="bg-red-700 hover:!bg-red-700 !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm"
+  //           >
+  //             Ended
+  //           </Button>
+  //         )}
+  //         {notEnded && !!item?.class_bookings?.length && (
+  //           <Button
+  //             type="primary"
+  //             className={`${isCancelled
+  //               ? "bg-red-700 hover:!bg-red-700"
+  //               : "bg-green-600 hover:!bg-green-600"
+  //               } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
+  //           >
+  //             {isCancelled ? "You Cancelled" : "Joined"}
+  //           </Button>
+  //         )}
+  //         {notEnded && !item?.class_bookings?.length && (
+  //           <Button
+  //             type="primary"
+  //             disabled={
+  //               user?.credits === 0
+  //                 ? false
+  //                 : item?.taken_slots === item?.available_slots
+  //             }
+  //             onClick={() => handleScheduleAction(item)}
+  //             className={`bg-[#800020] ${user?.credits === 0
+  //               ? "hover:!bg-[#800020]"
+  //               : item?.taken_slots === item?.available_slots
+  //                 ? ""
+  //                 : "hover:!bg-[#800020]"
+  //               } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
+  //           >
+  //             {user?.credits === 0 ? "Get Credits" : "Join"}
+  //           </Button>
+  //         )}
+  //       </>
+  //     );
+  //   },
+  //   [classes, user?.credits, isSubmitting, loading, isProcessingData],
+  // );
 
   return (
     <AuthenticatedLayout>
@@ -376,8 +376,11 @@ export default function BookingsPage() {
                 }}
                 renderItem={(item, index) => {
                   const now = dayjs()
-                  const notEnded = dayjs(item.start_time).isSameOrAfter(now)
                   const slotsRemaining = item?.available_slots - item?.taken_slots;
+                  const isCancelled =
+                    item?.class_bookings?.[0]?.attendance_status === "cancelled";
+
+                  const notEnded = dayjs(item.start_time).isSameOrAfter(now)
                   return (
                     <>
                       <List.Item
@@ -427,7 +430,44 @@ export default function BookingsPage() {
                           </div>
 
                           <div className="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0">
-                            {renderActionButton(item)}
+                            {!notEnded && (
+                              <Button
+                                type="primary"
+                                className="bg-red-700 hover:!bg-red-700 !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm"
+                              >
+                                Ended
+                              </Button>
+                            )}
+                            {notEnded && !!item?.class_bookings?.length && (
+                              <Button
+                                type="primary"
+                                className={`${isCancelled
+                                  ? "bg-red-700 hover:!bg-red-700"
+                                  : "bg-green-600 hover:!bg-green-600"
+                                  } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
+                              >
+                                {isCancelled ? "You Cancelled" : "Joined"}
+                              </Button>
+                            )}
+                            {notEnded && !item?.class_bookings?.length && (
+                              <Button
+                                type="primary"
+                                disabled={
+                                  user?.credits === 0
+                                    ? false
+                                    : item?.taken_slots === item?.available_slots
+                                }
+                                onClick={() => handleScheduleAction(item)}
+                                className={`bg-[#800020] ${user?.credits === 0
+                                  ? "hover:!bg-[#800020]"
+                                  : item?.taken_slots === item?.available_slots
+                                    ? ""
+                                    : "hover:!bg-[#800020]"
+                                  } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
+                              >
+                                {user?.credits === 0 ? "Get Credits" : "Join"}
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </List.Item>
