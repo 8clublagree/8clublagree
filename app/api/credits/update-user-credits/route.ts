@@ -11,7 +11,7 @@ export async function PUT(req: Request) {
       .update(values)
       .eq("user_id", userID)
       .select()
-      .single();
+
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
