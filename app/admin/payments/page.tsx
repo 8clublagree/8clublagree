@@ -383,7 +383,29 @@ const PaymentsPage = () => {
         return
       }
 
-      // paymentStatusResponse = await supabase.from('orders').update({ status: 'SUCCESSFUL', approved_at: dayjs().toISOString() }).eq('id', selectedPayment?.id as string).select();
+      if (paymentStatusResponse?.data) {
+        try {
+          if (paymentStatusResponse.data) {
+            await Promise.all([handleSendConfirmationEmail(), handleFetchOrders(1, pagination.pageSize)]);
+          }
+
+          showMessage({
+            type: "success",
+            content: "You have confirmed this transaction",
+          });
+          setIsReviewingPayment(false);
+          setIsConfirmingPayment(false);
+        } catch (error) {
+          showMessage({
+            type: "error",
+            content: "An error has occurred",
+          });
+
+          setIsReviewingPayment(false);
+          setIsConfirmingPayment(false);
+        }
+      }
+
 
     } catch (error) {
       showMessage({
@@ -392,31 +414,6 @@ const PaymentsPage = () => {
       });
       setIsReviewingPayment(false);
       setIsConfirmingPayment(false);
-
-      return
-    }
-
-    if (paymentStatusResponse?.data) {
-      try {
-        await Promise.all([handleSendConfirmationEmail()]);
-
-        if (paymentStatusResponse.data) await handleFetchOrders(1, pagination.pageSize);
-
-        showMessage({
-          type: "success",
-          content: "You have confirmed this transaction",
-        });
-        setIsReviewingPayment(false);
-        setIsConfirmingPayment(false);
-      } catch (error) {
-        showMessage({
-          type: "error",
-          content: "An error has occurred",
-        });
-
-        setIsReviewingPayment(false);
-        setIsConfirmingPayment(false);
-      }
     }
   };
 
