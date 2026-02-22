@@ -605,7 +605,7 @@ export default function PackagesPage() {
             referenceId: uuid
           },
         });
-        if (!response.data?.data && response.data?.status !== 200) {
+        if (response?.status !== 200) {
           throw new Error("Order creation failed");
         }
 
@@ -618,6 +618,8 @@ export default function PackagesPage() {
       setIsSendingPending(false);
       console.error(err);
       showMessage({ type: "error", content: "Failed to upload image." });
+
+      return null
     }
     setIsSendingPending(false);
   };
