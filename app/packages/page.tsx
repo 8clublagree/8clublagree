@@ -577,6 +577,20 @@ export default function PackagesPage() {
         const fileExt = (file[0] as File).name.split(".").pop();
         const fileName = `payment_proof_${filePath}.${fileExt}`;
 
+        // console.log({
+        //   userID: user?.id,
+        //   status: "PENDING",
+        //   manualPaymentMethod: selectedPaymentMethod,
+        //   paymentProofPath: fileName,
+        //   packageID: selectedRecord.id,
+        //   packageCredits: selectedRecord.packageCredits,
+        //   packageTitle: selectedRecord.title,
+        //   packagePrice: selectedRecord.price,
+        //   packageValidityPeriod: selectedRecord.validityPeriod,
+        //   uploadedAt: dayjs().toISOString(),
+        //   referenceId: uuid
+        // })
+
         const formData = new FormData();
         formData.append("file", file[0].originFileObj); // raw File
         formData.append("fileName", fileName);
@@ -613,11 +627,12 @@ export default function PackagesPage() {
 
         setIsSendingPending(false);
         return response.status ?? 200;
+        // return 200;
       }
     } catch (err: any) {
       setIsSendingPending(false);
       console.error(err);
-      showMessage({ type: "error", content: `Failed to upload image. ${err?.message}` });
+      showMessage({ type: "error", content: `Failed to upload image. ${err}` });
 
       return null
     }
