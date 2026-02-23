@@ -23,7 +23,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { CreateClassProps } from "@/lib/props";
 import { IoMdPersonAdd } from "react-icons/io";
 import ManualBookingForm from "@/components/forms/ManualBookingForm";
-import { useClassManagement } from "@/lib/api";
+import { useClassManagement, useManageCredits } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 import utc from "dayjs/plugin/utc";
@@ -66,6 +66,7 @@ export default function ClassManagementPage() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [cannotRebook, setCannotRebook] = useState<boolean>(false);
   const [isProcessingData, setIsProcessingData] = useState<boolean>(false);
+  const { updateUserCredits } = useManageCredits();
 
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -124,6 +125,8 @@ export default function ClassManagementPage() {
           key: instructor?.id,
         }
       });
+
+      // console.log('data: ', data)
 
       const mapped = data?.map((item: any, index: number) => {
         // const instructors = parsedInstructors?.find((instructor: any) => instructor.id === item.instructor_id);
@@ -337,6 +340,8 @@ export default function ClassManagementPage() {
       const bookingType = formData.bookingType;
       const values = omit(formData, ["bookingType"]);
 
+      // console.log('values: ', values)
+
       if (bookingType === "walk-in") {
         await bookClass({
           classDate: values.classDate,
@@ -360,6 +365,12 @@ export default function ClassManagementPage() {
           isWalkIn: false,
           deductCredits: clientCredits != null,
         });
+
+        await updateUserCredits({
+          userID: clientID as string,
+          ...(clientCredits && clientCredits !== null && !isNaN(clientCredits as number) && { values: { credits: clientCredits as number - 1 } }),
+        });
+
       }
 
       showMessage({
