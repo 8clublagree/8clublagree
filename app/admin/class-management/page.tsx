@@ -113,6 +113,8 @@ export default function ClassManagementPage() {
         withAttendees: true,
       });
 
+      // console.log('data: ', data)
+
       setIsProcessingData(true)
 
       const parsedInstructors = instructorsState?.map((instructor: any) => {
@@ -124,23 +126,22 @@ export default function ClassManagementPage() {
       });
 
       const mapped = data?.map((item: any, index: number) => {
-        const instructors = parsedInstructors?.find((instructor: any) => instructor.id === item.instructor_id);
+        // const instructors = parsedInstructors?.find((instructor: any) => instructor.id === item.instructor_id);
 
         return {
           ...item,
-          instructors: instructors ?? {},
           key: index,
           id: item.id,
           offered_for_clients: item.offered_for_clients,
           instructor_id: item?.instructor_id,
           class_name: item.class_name,
-          instructor_name: instructors?.full_name,
+          instructor_name: item.instructors?.user_profiles?.full_name,
           start_time: dayjs(item.start_time),
           end_time: dayjs(item.end_time),
           slots: `${item.taken_slots} / ${item.available_slots}`,
           taken_slots: item.taken_slots,
           available_slots: item.available_slots,
-          deactivated: instructors?.deactivated,
+          deactivated: item.instructors?.user_profiles?.deactivated,
         };
       });
 

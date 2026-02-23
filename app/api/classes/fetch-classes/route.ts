@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabaseServer
       .from("classes")
-      .select(`*, ${bookingsFragment}`);
+      .select(`*, ${instructorFragment}, ${bookingsFragment}`);
 
     if (userId) {
 

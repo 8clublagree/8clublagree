@@ -777,8 +777,10 @@ export const useClassManagement = () => {
     walkInClientEmail,
     walkInClientContactNumber,
     deductCredits = false,
+    method,
   }: {
     classDate: string;
+    method?: string;
     classId: string;
     isWalkIn: boolean;
     bookerId?: string;
@@ -791,7 +793,7 @@ export const useClassManagement = () => {
     try {
       setLoading(true);
       const response = await axiosApi.post("/classes/book-class", {
-        classDate, bookerId, classId, isWalkIn,
+        method, classDate, bookerId, classId, isWalkIn,
         walkInFirstName, walkInLastName, walkInClientEmail, walkInClientContactNumber,
         deductCredits,
       });
