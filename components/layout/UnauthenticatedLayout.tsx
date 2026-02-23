@@ -155,7 +155,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
               </Paragraph>
             </div>
 
-            <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
+            {/* <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
               <Title
                 level={5}
                 className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
@@ -172,7 +172,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
                   Let's connect
                 </a>
               </Paragraph>
-            </div>
+            </div> */}
 
             <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
               <Title
