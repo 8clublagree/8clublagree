@@ -118,7 +118,11 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     const res = NextResponse.json({ data: classData });
-    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+
+    if (isAdmin || isInstructor) {
+      res.headers.set("Cache-Control", "private, max-age=10, stale-while-revalidate=15");
+    }
+
     return res;
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });

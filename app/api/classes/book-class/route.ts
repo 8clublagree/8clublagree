@@ -12,6 +12,7 @@ export async function POST(req: Request) {
       walkInLastName,
       walkInClientEmail,
       walkInClientContactNumber,
+      method
     } = await req.json();
 
     const { data: classData, error: classError } = await supabaseServer
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
     const { data, error } = await supabaseServer
       .from("class_bookings")
       .insert({
+        method,
         class_id: classId,
         class_date: classDate,
         is_walk_in: isWalkIn,

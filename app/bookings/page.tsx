@@ -112,15 +112,14 @@ export default function BookingsPage() {
 
       // console.log('parsedInstructors: ', parsedInstructors)
       const parsed = data.map((lagreeClass: any) => {
-        const instructors = parsedInstructors?.find((instructor: any) => instructor.id === lagreeClass.instructor_id);
+        // const instructors = parsedInstructors?.find((instructor: any) => instructor.id === lagreeClass.instructor_id);
         return {
           ...lagreeClass,
-          instructors: instructors ?? {},
           key: lagreeClass.id,
           instructor_id: lagreeClass?.instructor_id,
           class_name: lagreeClass.class_name,
           // instructor_name: instructors?.full_name,
-          instructor_name: lagreeClass?.instructor_name,
+          instructor_name: lagreeClass?.instructors?.user_profiles?.full_name,
           start_time: dayjs(lagreeClass.start_time),
           end_time: dayjs(lagreeClass.end_time),
           available_slots: lagreeClass.available_slots,
@@ -134,10 +133,11 @@ export default function BookingsPage() {
       const uniquePaths = Array.from(
         new Set(
           parsed
-            .map((c: any) => c.instructors?.avatar_path)
+            .map((c: any) => c.instructors?.user_profiles?.avatar_path)
             .filter(Boolean) as string[]
         ),
       );
+
 
       try {
         const urlByPath = await fetchImages({ avatarPaths: uniquePaths });
@@ -145,7 +145,7 @@ export default function BookingsPage() {
         const enriched = parsed.map((lagreeClass: any) => ({
           ...lagreeClass,
           avatar_url:
-            urlByPath.get(lagreeClass?.instructors?.avatar_path) ?? null,
+            urlByPath.get(lagreeClass?.instructors?.user_profiles?.avatar_path) ?? null,
         }));
 
         setClasses(enriched);
@@ -202,12 +202,13 @@ export default function BookingsPage() {
       if (user) {
         const shouldDeductCredits = user.credits != null;
 
-        const result = await bookClass({
+        await bookClass({
           classDate: dayjs(selectedDate).toISOString(),
           classId: selectedRecord.id,
           bookerId: user.id as string,
           isWalkIn: false,
           deductCredits: shouldDeductCredits,
+          method: 'client_account'
         });
 
         await updateUserCredits({
@@ -235,7 +236,11 @@ export default function BookingsPage() {
       }
     } catch (error) {
       setIsSubmitting(false);
-      showMessage({ type: "error", content: "Error while booking a class" });
+      setTimeout(() => {
+        window.location.reload()
+      }, 3000)
+      showMessage({ type: "error", content: "Error while booking a class. Please try again after the page has refreshed" });
+
     }
   };
 
