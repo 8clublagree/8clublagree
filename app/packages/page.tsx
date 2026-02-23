@@ -640,9 +640,8 @@ export default function PackagesPage() {
         content: "Proof uploaded successfully",
       });
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 7000);
+      await handleFetchPackages()
+
     } catch (err: any) {
       setIsSendingPending(false);
       console.error(err);
