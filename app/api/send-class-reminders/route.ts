@@ -17,6 +17,7 @@ async function checkUpcomingClasses() {
     .select(
       `
       id,
+      walk_in_client_email,
       class_date,
       user_profiles (
         id,
@@ -70,11 +71,12 @@ async function checkUpcomingClasses() {
     const results = await Promise.allSettled(
       batch.map(async (booking) => {
         const classInfo: any = booking.classes;
-        const user: any = booking.user_profiles;
+        const userProfile: any = booking?.user_profiles?.[0];
+        const email: any = booking?.walk_in_client_email ?? userProfile?.email;
 
         await transporter.sendMail({
           from: '"8ClubLagree" <8clublagree@gmail.com>',
-          to: user?.email,
+          to: email,
           subject: `Reminder: Your class is tomorrow!`,
           html: `
      <div style="width:100%; background:#f4f4f4; padding:40px 0;">
@@ -97,7 +99,7 @@ async function checkUpcomingClasses() {
         color:#36013F;
         text-align:center;
       ">
-        Hey ${user.first_name}!
+        Hey ${userProfile?.first_name ?? 'there'}!
       </h2>
 
       <!-- Package -->
