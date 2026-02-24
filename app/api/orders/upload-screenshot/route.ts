@@ -8,10 +8,11 @@ export async function POST(req: Request) {
     const file = formData.get("file") as File;
     const fileName = formData.get("fileName") as string;
 
+    await supabaseServer.storage.from("payment-proof").remove([fileName]);
+
     const { data, error: uploadError } = await supabaseServer.storage
       .from("payment-proof")
       .upload(fileName, file as File, {
-        upsert: true, // overwrite if exists
         contentType: file.type,
       });
 
