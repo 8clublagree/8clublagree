@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       package_price: packagePrice,
       package_validity_period: packageValidityPeriod,
       reference_id: referenceId
-    });
+    }).select()
 
     if (error) {
       return NextResponse.json({ error: error }, { status: 400 });
