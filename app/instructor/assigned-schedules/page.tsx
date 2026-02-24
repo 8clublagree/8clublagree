@@ -163,6 +163,15 @@ export default function ClassManagementPage() {
   };
 
   const RenderViewClass = () => {
+    const cannotMarkAttendance = dayjs(selectedDate).isAfter(selectedRecord?.end_time);
+
+    const [notCancelledAttendees, cancelledAttendees] = attendees.reduce<[any[], any[]]>(
+      ([active, cancelled], item: any) => {
+        (item.attendance_status === 'cancelled' ? cancelled : active).push(item);
+        return [active, cancelled];
+      },
+      [[], []]
+    );
     return (
       <Col className="flex flex-col pt-0 space-y-4">
         <Row wrap={false} className="justify-between">
@@ -181,14 +190,11 @@ export default function ClassManagementPage() {
         <Divider />
 
         <Col>
-          <div className="mb-[15px]">
-            <span className="font-semibold">Attendees</span>
-          </div>
+          <Divider >Attendees</Divider>
 
           <div
             style={{
               overflowY: "auto",
-              maxHeight: "30vh",
               scrollbarWidth: "none",
               msOverflowStyle: "none",
             }}
@@ -196,54 +202,111 @@ export default function ClassManagementPage() {
           >
             <List
               itemLayout="horizontal"
-              dataSource={attendees}
+              dataSource={notCancelledAttendees}
               locale={{ emptyText: "Nobody has booked this class yet" }}
               loading={loading}
-              renderItem={(item, index) => (
-                <Row
-                  key={index}
-                  wrap={false}
-                  className={`${
-                    attendees.length > 1 && "border-b"
-                  } py-3 justify-between`}
-                >
-                  <List.Item.Meta
-                    title={item.attendeeName}
-                    className="flex items-center"
-                  />
-
-                  <Tooltip
-                    title={
-                      item?.attendanceStatus === "cancelled" ||
-                      (cannotMarkAttendance &&
-                        "Cannot change the status of a past class or of a person who cancelled.")
-                    }
+              renderItem={(item, index) => {
+                return (
+                  <Row
+                    key={index}
+                    wrap={false}
+                    className={`${index !== notCancelledAttendees.length - 1 && notCancelledAttendees.length > 1 ? 'border-b border-slate-100' : ''} py-3 justify-between`}
                   >
-                    <Select
-                      disabled={
-                        item?.attendanceStatus === "cancelled" ||
-                        cannotMarkAttendance
-                      }
-                      defaultValue={item?.attendanceStatus}
-                      placeholder="Status"
-                      className="!outline-none"
-                      style={{ width: 120 }}
-                      onChange={(e) =>
-                        handleChange({ bookingID: item.id, status: e })
-                      }
-                      options={[
-                        { value: "no-show", label: "No Show" },
-                        { value: "attended", label: "Attended" },
-                        {
-                          value: "cancelled",
-                          label: "Cancelled",
-                          disabled: true,
-                        },
-                      ]}
+                    <List.Item.Meta
+                      title={`${index + 1}. ${item.attendeeName}`}
+                      className="flex items-center"
                     />
-                  </Tooltip>
-                </Row>
-              )}
+
+                    <Tooltip
+                      title={
+                        cannotMarkAttendance &&
+                        "Cannot modify the attendance of classes that are over, or clients who have cancelled."
+                      }
+                    >
+                      <Select
+                        disabled={cannotMarkAttendance}
+                        defaultValue={item?.attendanceStatus}
+                        placeholder="Status"
+                        className="!outline-none"
+                        style={{ width: 120 }}
+                        onChange={(e) =>
+                          handleChange({
+
+                            bookingID: item.id,
+                            status: e,
+                          })
+                        }
+                        options={[
+                          { value: "no-show", label: "No Show" },
+                          { value: "attended", label: "Attended" },
+                          { value: "cancelled", label: "Cancelled" },
+                        ]}
+                      />
+                    </Tooltip>
+                  </Row>
+                );
+              }}
+            />
+          </div>
+
+          <Divider >Cancelled</Divider>
+
+          <div
+            style={{
+              overflowY: "auto",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+            className="overflow-y-auto"
+          >
+            <List
+              itemLayout="horizontal"
+              dataSource={cancelledAttendees}
+              locale={{ emptyText: "Nobody has booked this class yet" }}
+              loading={loading}
+              renderItem={(item, index) => {
+                return (
+                  <Row
+                    key={index}
+                    wrap={false}
+                    className={`${index !== cancelledAttendees.length - 1 || cancelledAttendees.length > 1 ? 'border-b border-slate-100' : ''} py-3 justify-between`}
+                  >
+                    <List.Item.Meta
+                      title={`${index + 1}. ${item.attendeeName}`}
+                      className="flex items-center"
+                    />
+
+                    <Tooltip
+                      title={
+                        cannotMarkAttendance &&
+                        "Cannot modify the attendance of classes that are over, or clients who have cancelled."
+                      }
+                    >
+                      <Select
+                        disabled={
+                          cannotMarkAttendance
+                        }
+                        defaultValue={item?.attendanceStatus}
+                        placeholder="Status"
+                        className="!outline-none"
+                        style={{ width: 120 }}
+                        onChange={(e) =>
+                          handleChange({
+
+                            bookingID: item.id,
+                            status: e,
+                          })
+                        }
+                        options={[
+                          { value: "no-show", label: "No Show" },
+                          { value: "attended", label: "Attended" },
+                          { value: "cancelled", label: "Cancelled" },
+                        ]}
+                      />
+                    </Tooltip>
+                  </Row>
+                );
+              }}
             />
           </div>
         </Col>
