@@ -39,13 +39,14 @@ export async function GET(req: NextRequest) {
     `
       )
       .eq("booker_id", userID)
-      .or(
-        "attendance_status.eq.active,attendance_status.eq.no-show,attendance_status.is.null"
-      );
+    // .or(
+    //   "attendance_status.eq.active,attendance_status.eq.no-show,attendance_status.is.null"
+    // );
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
 
     const res = NextResponse.json({ data: classBookings });
     res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
