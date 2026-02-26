@@ -632,8 +632,10 @@ export default function PackagesPage() {
     } catch (err: any) {
       setIsSendingPending(false);
       console.error(err);
-      showMessage({ type: "error", content: `Failed to upload image. ${err}` });
-
+      showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page and submitting the proof again to the desired package.` });
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
       return null
     }
     setIsSendingPending(false);
