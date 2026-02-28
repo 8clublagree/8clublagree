@@ -633,9 +633,7 @@ export default function PackagesPage() {
       setIsSendingPending(false);
       console.error(err);
       showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page and submitting the proof again to the desired package.` });
-      setTimeout(() => {
-        window.location.reload();
-      }, 5000);
+
       return null
     }
     setIsSendingPending(false);
@@ -648,17 +646,19 @@ export default function PackagesPage() {
       const status = await handleManualUploadProof(file);
 
 
-      setPaymentUploadSuccess(status === 200);
-      setUploadingPayment(false);
-      setIsSendingPending(false);
+      if (status === 200) {
+        setPaymentUploadSuccess(status === 200);
+        setUploadingPayment(false);
+        setIsSendingPending(false);
 
-      showMessage({
-        type: "success",
-        content: "Proof uploaded successfully",
-      });
+        showMessage({
+          type: "success",
+          content: "Proof uploaded successfully",
+        });
 
-      dispatch(setUser({ ...user, pendingPurchases: true }))
-      await handleFetchPackages()
+        dispatch(setUser({ ...user, pendingPurchases: true }))
+        await handleFetchPackages()
+      }
 
     } catch (err: any) {
       setIsSendingPending(false);
