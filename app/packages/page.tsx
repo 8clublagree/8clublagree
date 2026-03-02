@@ -621,13 +621,15 @@ export default function PackagesPage() {
         });
         if (response?.status !== 200) {
           throw new Error("Order creation failed");
+        } else {
+
+          handleSendConfirmationEmail().catch(console.error);
+
+          setIsSendingPending(false);
+          // return 200;
         }
-
-        handleSendConfirmationEmail().catch(console.error);
-
-        setIsSendingPending(false);
         return response.status ?? 200;
-        // return 200;
+
       }
     } catch (err: any) {
       setIsSendingPending(false);
@@ -646,10 +648,10 @@ export default function PackagesPage() {
       const status = await handleManualUploadProof(file);
 
 
+      setUploadingPayment(false);
+      setIsSendingPending(false);
       if (status === 200) {
         setPaymentUploadSuccess(status === 200);
-        setUploadingPayment(false);
-        setIsSendingPending(false);
 
         showMessage({
           type: "success",
