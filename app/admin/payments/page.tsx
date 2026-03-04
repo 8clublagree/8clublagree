@@ -438,64 +438,50 @@ const PaymentsPage = () => {
 
   const handleUpdatePaymentStatus = async (status: string) => {
     setIsConfirmingPayment(true);
-    let paymentStatusResponse = null
-    try {
-      if (selectedPayment) {
-        paymentStatusResponse = await updatePaymentStatus({
-          status,
-          id: selectedPayment?.id as string,
-          approved_at: dayjs().toISOString(),
 
-          userID: selectedPayment!.user_profiles.id,
-          credits: selectedPayment!.package_credits as number,
-          clientPackageID: selectedPayment!.currentActivePackage?.id as string,
-          userCredits: selectedPayment!.userCredits as number,
-          packageID: selectedPayment!.package_id as string,
-          paymentMethod: selectedPayment!.payment_method as string,
-          packageName: selectedPayment!.package_title as string,
-          validityPeriod: Number(selectedPayment!.package_validity_period),
-          packageCredits: selectedPayment!.package_credits as number,
-        })
-      } else {
-        showMessage({
-          type: "error",
-          content: "Please try again.",
-        });
+    if (!selectedPayment) {
+      showMessage({ type: "error", content: "Please try again." });
+      setIsReviewingPayment(false);
+      setIsConfirmingPayment(false);
+      return;
+    }
+
+    try {
+      const paymentStatusResponse = await updatePaymentStatus({
+        status,
+        id: selectedPayment.id as string,
+        approved_at: dayjs().toISOString(),
+        userID: selectedPayment.user_profiles.id,
+        credits: selectedPayment.package_credits as number,
+        clientPackageID: selectedPayment.currentActivePackage?.id as string,
+        userCredits: selectedPayment.userCredits as number,
+        packageID: selectedPayment.package_id as string,
+        paymentMethod: selectedPayment.payment_method as string,
+        packageName: selectedPayment.package_title as string,
+        validityPeriod: Number(selectedPayment.package_validity_period),
+        packageCredits: selectedPayment.package_credits as number,
+      });
+
+      if (!paymentStatusResponse?.data) {
+        showMessage({ type: "error", content: "Error updating payment status" });
         setIsReviewingPayment(false);
         setIsConfirmingPayment(false);
-
-        return
+        return;
       }
 
-      if (paymentStatusResponse?.data) {
-        try {
-          await handleSendConfirmationEmail();
-          await new Promise((r) => setTimeout(r, 500));
-          await handleFetchOrders(1, pagination.pageSize, '', false);
+      showMessage({ type: "success", content: "You have confirmed this transaction" });
+      setIsReviewingPayment(false);
+      setIsConfirmingPayment(false);
 
-          showMessage({
-            type: "success",
-            content: "You have confirmed this transaction",
-          });
-          setIsReviewingPayment(false);
-          setIsConfirmingPayment(false);
-        } catch (error) {
-          showMessage({
-            type: "error",
-            content: "An error has occurred",
-          });
+      handleSendConfirmationEmail().catch((err) =>
+        console.error("Email failed (non-blocking):", err)
+      );
 
-          setIsReviewingPayment(false);
-          setIsConfirmingPayment(false);
-        }
-      }
-
-
+      handleFetchOrders(1, pagination.pageSize, "", false).catch((err) =>
+        console.error("Re-fetch failed (non-blocking):", err)
+      );
     } catch (error) {
-      showMessage({
-        type: "error",
-        content: "Error updating payment status",
-      });
+      showMessage({ type: "error", content: "Error updating payment status" });
       setIsReviewingPayment(false);
       setIsConfirmingPayment(false);
     }
