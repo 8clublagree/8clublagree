@@ -24,10 +24,16 @@ import {
   Image,
   Button,
   Empty,
+  Input,
+  Space,
 } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
+import type { InputRef } from "antd";
+import type { FilterDropdownProps } from "antd/es/table/interface";
 import { ColumnsType } from "antd/es/table";
+import Highlighter from "react-highlight-words";
 import dayjs from "dayjs";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IoEye } from "react-icons/io5";
 import { useDispatch } from "react-redux";
 
@@ -55,6 +61,11 @@ interface OrdersTableType {
 }
 
 const PaymentsPage = () => {
+  const searchInput = useRef<InputRef>(null);
+  const searchTextRef = useRef("");
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const filtersRef = useRef<{ paymentMethod?: string[]; status?: string[] }>({});
   const [confirmingPayment, setIsConfirmingPayment] = useState<boolean>(false);
   const {
     loading,
@@ -83,6 +94,7 @@ const PaymentsPage = () => {
   const [adminConfirmModalOpen, setAdminConfirmModalOpen] = useState(false);
 
   useEffect(() => {
+
     handleFetchOrders();
   }, []);
 
@@ -132,7 +144,6 @@ const PaymentsPage = () => {
           { text: "GCash", value: "gcash" },
           { text: "Bank Transfer", value: "bank_transfer" },
         ],
-        onFilter: (value, record) => record.payment_method === value,
         filterDropdownClassName: "admin-payments-method-filter",
         render: (value) => {
           if (!value) return "";
@@ -167,7 +178,6 @@ const PaymentsPage = () => {
           { text: "Expired", value: "EXPIRED" },
           { text: "Maya Checkout", value: "MAYA CHECKOUT" },
         ],
-        onFilter: (value, record) => record.status === value,
         filterDropdownClassName: "admin-payments-method-filter",
         render: (value) => {
           if (!value) return "";
@@ -193,9 +203,91 @@ const PaymentsPage = () => {
         key: "customer_name",
         ellipsis: true,
         width: "12%",
+        filterDropdown: ({
+          setSelectedKeys,
+          selectedKeys,
+          confirm,
+          clearFilters,
+          close,
+        }) => (
+          <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+            <Input
+              ref={searchInput}
+              placeholder="Search customer"
+              value={selectedKeys[0]}
+              onChange={(e) =>
+                setSelectedKeys(e.target.value ? [e.target.value] : [])
+              }
+              onPressEnter={() => {
+                const value = (selectedKeys[0] as string) ?? "";
+                setSearchText(value);
+                setSearchedColumn("customer_name");
+                confirm();
+
+                handleFetchOrders(1, pagination.pageSize, value, false);
+              }}
+              style={{ marginBottom: 8, display: "block" }}
+            />
+            <Space>
+              <Button
+                className="!bg-[#800020] hover:!bg-[#800020] hover:!border-[#800020] hover:!text-white !text-white"
+                onClick={() => {
+                  const value = (selectedKeys[0] as string) ?? "";
+                  setSearchText(value);
+                  setSearchedColumn("customer_name");
+                  confirm();
+
+                  handleFetchOrders(1, pagination.pageSize, value, false);
+                }}
+                icon={<SearchOutlined />}
+                size="small"
+                style={{ width: 90 }}
+              >
+                Search
+              </Button>
+              <Button
+                onClick={async () => {
+                  clearFilters?.();
+                  setSearchText("");
+                  setSearchedColumn("");
+                  confirm();
+
+                  await handleFetchOrders(1, pagination.pageSize, "", true);
+                }}
+                size="small"
+                style={{ width: 90 }}
+              >
+                Reset
+              </Button>
+              <Button type="link" size="small" onClick={() => close()}>
+                close
+              </Button>
+            </Space>
+          </div>
+        ),
+        filterIcon: (filtered: boolean) => (
+          <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
+        ),
+        filterDropdownProps: {
+          onOpenChange(open: boolean) {
+            if (open) {
+              setTimeout(() => searchInput.current?.select(), 100);
+            }
+          },
+        },
         render: (_, record) => {
           if (!record) return "";
-          return record.user_profiles?.full_name || "N/A";
+          const name = record.user_profiles?.full_name || "N/A";
+          return searchedColumn === "customer_name" ? (
+            <Highlighter
+              highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+              searchWords={[searchText]}
+              autoEscape
+              textToHighlight={name}
+            />
+          ) : (
+            name
+          );
         },
       },
       {
@@ -274,14 +366,29 @@ const PaymentsPage = () => {
     }
   };
 
-  const handleFetchOrders = async (page?: number, pageSize?: number) => {
+  const handleFetchOrders = async (page?: number, pageSize?: number, customerName?: string, reset?: boolean) => {
     const p = page ?? pagination.current;
     const ps = Math.min(100, Math.max(1, pageSize ?? pagination.pageSize));
+    let name: any;
+    if (reset === false) {
+      name = customerName?.length ? customerName : searchText;
+    }
+    if (reset === true) {
+      name = undefined;
+    }
+
+    const { paymentMethod, status } = filtersRef.current;
 
     setLoadingPayments(true);
     try {
       const response = await axiosApi.get("/admin/payments/fetch-orders", {
-        params: { page: p, pageSize: ps },
+        params: {
+          page: p,
+          pageSize: ps,
+          ...(name && { customerName: name }),
+          ...(paymentMethod?.length && { paymentMethod: paymentMethod.join(",") }),
+          ...(status?.length && { status: status.join(",") }),
+        },
       });
 
       const list = response.data?.data ?? [];
@@ -364,7 +471,7 @@ const PaymentsPage = () => {
         try {
           await handleSendConfirmationEmail();
           await new Promise((r) => setTimeout(r, 500));
-          await handleFetchOrders(1, pagination.pageSize);
+          await handleFetchOrders(1, pagination.pageSize, '', false);
 
           showMessage({
             type: "success",
@@ -403,50 +510,6 @@ const PaymentsPage = () => {
     const data = await res.data;
   };
 
-  const handleUpdateUserCredits = async ({
-    userID,
-    credits,
-  }: {
-    userID: string;
-    credits: number;
-  }) => {
-    try {
-      await updateUserCredits({
-        userID: userID as string,
-        values: { credits },
-      });
-
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handlePurchasePackage = async () => {
-    if (selectedPayment) {
-      try {
-        if (selectedPayment?.userCredits === 0) {
-          await updateClientPackage({
-            clientPackageID: selectedPayment.currentActivePackage?.id as string,
-            values: { status: "expired", expirationDate: dayjs() },
-          });
-        }
-
-        const response = await purchasePackage({
-          userID: selectedPayment.user_profiles?.id as string,
-          packageID: selectedPayment.package_id as string,
-          paymentMethod: selectedPayment.payment_method as string,
-          packageName: selectedPayment.package_title as string,
-          validityPeriod: Number(selectedPayment.package_validity_period),
-          packageCredits: selectedPayment.package_credits as number,
-        });
-
-        return response;
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
-
   const handleClose = () => {
     setIsReviewingPayment(false);
     setSelectedPayment(null);
@@ -471,6 +534,29 @@ const PaymentsPage = () => {
           emptyText: <Empty description="No payments have been made yet" />,
         }}
         size={isMobile ? "small" : "middle"}
+        onChange={(pag, filters) => {
+          const newMethods = (filters.payment_method as string[] | null) ?? [];
+          const newStatuses = (filters.status as string[] | null) ?? [];
+
+          const methodsChanged =
+            JSON.stringify(newMethods) !== JSON.stringify(filtersRef.current.paymentMethod ?? []);
+          const statusesChanged =
+            JSON.stringify(newStatuses) !== JSON.stringify(filtersRef.current.status ?? []);
+
+          filtersRef.current = { paymentMethod: newMethods, status: newStatuses };
+
+          if (methodsChanged || statusesChanged) {
+            handleFetchOrders(1, pagination.pageSize, "", false);
+            return;
+          }
+
+          const page = pag.current ?? pagination.current;
+          const pageSize = pag.pageSize ?? pagination.pageSize;
+          if (page !== pagination.current || pageSize !== pagination.pageSize) {
+            setPagination((prev) => ({ ...prev, current: page, pageSize }));
+            handleFetchOrders(page, pageSize, "", false);
+          }
+        }}
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,
@@ -481,14 +567,6 @@ const PaymentsPage = () => {
             `${range[0]}-${range[1]} of ${t} items`,
           responsive: true,
           hideOnSinglePage: false,
-          onChange: async (page, pageSize) => {
-            setPagination((prev) => ({
-              ...prev,
-              current: page,
-              pageSize: pageSize ?? prev.pageSize,
-            }));
-            await handleFetchOrders(page, pageSize ?? pagination.pageSize);
-          },
         }}
       />
 
