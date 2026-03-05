@@ -9,6 +9,7 @@ import {
   Col,
   Checkbox,
   FormInstance,
+  Divider,
 } from "antd";
 import { TeamOutlined } from "@ant-design/icons";
 import { LuCalendarDays, LuPackage } from "react-icons/lu";
@@ -35,6 +36,7 @@ export default function CreatePackageForm({
   clearSignal,
 }: CreatePackageFormProps) {
   const initialRef = useRef<any>(null);
+  const [isShareable, setIsShareable] = useState<boolean>(false);
   const [isOffered, setIsOffered] = useState<boolean>(false);
   const [isUnlimited, setIsUnlimited] = useState<boolean>(false);
 
@@ -47,6 +49,7 @@ export default function CreatePackageForm({
 
   useEffect(() => {
     if (initialValues) {
+      setIsShareable(initialValues.is_shareable as boolean);
       setIsUnlimited(initialValues.package_credits ? false : true);
       setIsOffered(initialValues.offered_for_clients as boolean);
 
@@ -57,6 +60,8 @@ export default function CreatePackageForm({
         ...(initialValues.package_credits !== null && {
           package_credits: initialValues.package_credits,
         }),
+        is_shareable: initialValues.is_shareable,
+        shareable_credits: initialValues.shareable_credits,
       };
 
       initialRef.current = initial;
@@ -67,8 +72,11 @@ export default function CreatePackageForm({
   const handleFinish = (values: any) => {
     const formattedValues = {
       ...values,
+      is_shareable: isShareable,
       offered_for_clients: isOffered,
+      shareable_credits: isShareable ? values.shareable_credits : null,
     };
+    // console.log('formattedValues: ', formattedValues)
     onSubmit(formattedValues);
     if (!isEdit) {
       form.resetFields();
@@ -247,6 +255,51 @@ export default function CreatePackageForm({
             </Checkbox>
           </Row>
         </Col>
+
+        <Divider>Shareable</Divider>
+        <Col>
+          <Form.Item
+            name="shareable_credits"
+            label="Amount of Shareable Credits"
+            rules={[
+              {
+                required: isShareable,
+                message: "Please enter amount of shareable credits",
+              },
+              {
+                type: "number",
+                min: 1,
+                message: "Amount of shareable credits must be more than 0",
+              },
+            ]}
+          >
+            <InputNumber
+              size="large"
+              disabled={isShareable === false}
+              placeholder="Credits to share"
+              className="w-full"
+              min={1}
+              precision={0}
+              onKeyDown={(e) => {
+                if (!/[0-9]/.test(e.key) && e.code !== "Backspace") {
+                  e.preventDefault();
+                }
+              }}
+              onPaste={(e) => {
+                const paste = e.clipboardData.getData("text");
+                if (!/^\d+$/.test(paste)) {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </Form.Item>
+          <Form.Item name="is_shareable">
+            <Checkbox checked={isShareable} onChange={(e) => {
+              setIsShareable(e.target.checked);
+            }}>Allow sharing of this package</Checkbox>
+          </Form.Item>
+        </Col>
+
       </Row>
 
       <Form.Item className="mb-0 mt-6">
@@ -271,6 +324,6 @@ export default function CreatePackageForm({
           </Col>
         </Row>
       </Form.Item>
-    </Form>
+    </Form >
   );
 }

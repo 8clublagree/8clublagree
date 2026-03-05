@@ -53,6 +53,8 @@ export interface CreatePackageProps {
   validity_period?: number;
   package_credits?: number | null;
   offered_for_clients?: boolean;
+  is_shareable?: boolean;
+  shareable_credits?: number;
 }
 
 export interface ChartData {
