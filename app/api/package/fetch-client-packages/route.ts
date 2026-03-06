@@ -17,7 +17,12 @@ export async function GET(req: NextRequest) {
     let query = supabaseServer.from("client_packages").select(`
         *, 
         packages(
-            *
+            id, 
+            price,
+            title,
+            created_at,
+            package_credits,
+            validity_period
         )`);
     const startOfToday = dayjs().startOf("day").toISOString();
     const endOfToday = dayjs().endOf("day").toISOString();

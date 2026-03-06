@@ -41,6 +41,8 @@ export default function CreditsPage() {
         clientID: user?.id as string,
       });
 
+      // console.log('response: ', response)
+
       if (response) {
         mapped = response?.map((data: any) => ({
           id: data.id,
@@ -53,6 +55,9 @@ export default function CreditsPage() {
           paymentMethod: data.payment_method,
           packageCredits: data.package_credits,
           validityPeriod: data.validity_period,
+          isShareable: data.is_shareable,
+          shareableCredits: data.shareable_credits,
+          numberOfCreditsShared: data.number_of_credits_shared,
 
           packages: {
             id: data.packages?.id ? data.packages.id : null,
@@ -77,6 +82,8 @@ export default function CreditsPage() {
         );
       }
 
+
+      // console.log('active: ', active)
       setActivePackage(active);
       setPackages(mapped);
     }
@@ -94,7 +101,7 @@ export default function CreditsPage() {
         <div className="space-y-6">
           <Row gutter={[16, 16]} className="flex flex-wrap items-stretch">
             {/* Current Package */}
-            <Col xs={24} sm={12} lg={8} className="flex">
+            <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
                   <TfiPackage size={25} className="flex-shrink-0" />
@@ -125,7 +132,7 @@ export default function CreditsPage() {
             </Col>
 
             {/* Credits */}
-            <Col xs={24} sm={12} lg={8} className="flex">
+            <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row justify={"space-between"} className="mb-4 flex-wrap gap-y-2">
                   <Row wrap={false} className="items-center gap-[10px]">
@@ -181,7 +188,7 @@ export default function CreditsPage() {
             </Col>
 
             {/* Expiration Date */}
-            <Col xs={24} sm={12} lg={8} className="flex">
+            <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
                   <HiOutlineCalendarDateRange size={30} className="flex-shrink-0" />
@@ -203,6 +210,32 @@ export default function CreditsPage() {
                       <Text>No package</Text>
                     </Row>
                   )}
+                </Row>
+              </Card>
+            </Col>
+
+            {/* Shareable Credits */}
+            <Col xs={24} sm={12} lg={6} className="flex">
+              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
+                <Row wrap={false} className="items-center gap-[10px] mb-4">
+                  <HiOutlineCalendarDateRange size={30} className="flex-shrink-0" />
+                  <Title level={3} className="halyard !m-0">Shared Credits</Title>
+                </Row>
+
+                <Row
+                  justify={"start"}
+                  className={`${!activePackage && "p-[10px] bg-slate-200"
+                    } rounded-lg items-center gap-[10px] min-h-[60px]`}
+                >
+                  {activePackage && activePackage.isShareable && (
+                    <Title level={4} className="!mb-0 !font-normal">
+                      {activePackage.numberOfCreditsShared}
+                    </Title>
+                  )}
+                  {activePackage && !activePackage.isShareable && (
+                    <Row className="w-full justify-center">
+                      <Text>No shareable credits</Text>
+                    </Row>)}
                 </Row>
               </Card>
             </Col>
