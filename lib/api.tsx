@@ -664,14 +664,23 @@ export const useClassManagement = () => {
     selectedDate?: Dayjs;
     withAttendees?: boolean;
   }) => {
+    const params = { isAdmin, isInstructor, userId, startDate, endDate, selectedDate, instructorId, withAttendees };
+
+    const hasBrokenProfiles = (classes: any[]) =>
+      classes.some((c: any) => c.instructors && !c.instructors.user_profiles);
 
     try {
       setLoading(true);
-      const response = await axiosApi.get("/classes/fetch-classes", {
-        params: { isAdmin, isInstructor, userId, startDate, endDate, selectedDate, instructorId, withAttendees },
-      });
+      const response = await axiosApi.get("/classes/fetch-classes", { params });
       const data = response?.data?.data;
       if (!data) return null;
+
+      if (hasBrokenProfiles(data)) {
+        await new Promise((r) => setTimeout(r, 500));
+        const retry = await axiosApi.get("/classes/fetch-classes", { params });
+        return retry?.data?.data ?? data;
+      }
+
       return data;
     } catch (error) {
       console.error(error);
