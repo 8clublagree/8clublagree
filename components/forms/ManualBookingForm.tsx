@@ -153,9 +153,9 @@ export default function ManualBookingForm({
         filtered = classes;
       }
 
-      filtered = filtered.filter((cls: any) =>
-        dayjs(cls.start_time).isAfter(now),
-      );
+      // filtered = filtered.filter((cls: any) =>
+      //   dayjs(cls.start_time).isAfter(now),
+      // );
 
       mapped = filtered.map((cls: any, key: number) => ({
         value: cls.id,

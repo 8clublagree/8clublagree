@@ -696,12 +696,12 @@ export default function ClassManagementPage() {
               <Button
                 type="primary"
                 icon={<IoMdPersonAdd />}
-                disabled={
-                  !classes?.length ||
-                  !classes?.filter((cls) =>
-                    dayjs(cls.start_time).isAfter(dayjs()),
-                  ).length
-                }
+                // disabled={
+                //   !classes?.length ||
+                //   !classes?.filter((cls) =>
+                //     dayjs(cls.start_time).isAfter(dayjs()),
+                //   ).length
+                // }
                 onClick={handleOpenBookingModal}
                 className={`${!!classes?.length &&
                   !!classes?.filter((cls) =>
