@@ -256,7 +256,7 @@ export default function CreatePackageForm({
           </Row>
         </Col>
 
-        <Divider>Shareable</Divider>
+        {/* <Divider>Shareable</Divider>
         <Col>
           <Form.Item
             name="shareable_credits"
@@ -298,7 +298,7 @@ export default function CreatePackageForm({
               setIsShareable(e.target.checked);
             }}>Allow sharing of this package</Checkbox>
           </Form.Item>
-        </Col>
+        </Col> */}
 
       </Row>
 

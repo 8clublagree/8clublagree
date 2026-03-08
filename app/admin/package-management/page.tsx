@@ -67,8 +67,8 @@ export default function PackageManagementPage() {
         validity_period: pkg.validity_period,
         package_credits: pkg.package_credits,
         offered_for_clients: pkg.offered_for_clients,
-        is_shareable: pkg.is_shareable,
-        shareable_credits: pkg.shareable_credits,
+        // is_shareable: pkg.is_shareable,
+        // shareable_credits: pkg.shareable_credits,
       }));
 
 
@@ -99,8 +99,8 @@ export default function PackageManagementPage() {
       package_credits: values.package_credits ?? null,
       validity_period: values.validity_period,
       offered_for_clients: values.offered_for_clients,
-      is_shareable: values.is_shareable,
-      shareable_credits: values.shareable_credits,
+      // is_shareable: values.is_shareable,
+      // shareable_credits: values.shareable_credits,
     };
     try {
       if (editingRecord) {
