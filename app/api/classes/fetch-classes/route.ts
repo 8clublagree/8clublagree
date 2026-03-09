@@ -25,14 +25,12 @@ export async function GET(req: NextRequest) {
       withAttendees,
     } = data;
 
-    const toManilDate = (d: string) => {
-      const dateOnly = d.split("T")[0];
-      return dayjs.tz(dateOnly, BIZ_TZ);
-    };
+    const formattedSelectedDate = dayjs.isDayjs(selectedDate)
+      ? selectedDate
+      : dayjs(selectedDate);
 
-    const nowManila = dayjs().tz(BIZ_TZ);
-    const nowISO = nowManila.toISOString();
-    const today = nowManila.startOf("day");
+    const nowISO = dayjs().tz(BIZ_TZ).toISOString();
+    const today = dayjs().tz(BIZ_TZ).startOf("day");
 
     const instructorFragment = `instructors (
         id, user_id,
@@ -67,8 +65,13 @@ export async function GET(req: NextRequest) {
     }
 
     if (selectedDate === undefined && startDate && endDate) {
-      const startOfSelectedUTC = toManilDate(startDate).startOf("day").utc().toISOString();
-      const endOfSelectedUTC = toManilDate(endDate).endOf("day").utc().toISOString();
+
+      const startOfSelectedUTC = dayjs(startDate)
+        .startOf("day")
+        .toISOString();
+      const endOfSelectedUTC = dayjs(endDate)
+        .endOf("day")
+        .toISOString();
 
       query = query
         .gte("class_date", startOfSelectedUTC)
@@ -76,19 +79,41 @@ export async function GET(req: NextRequest) {
     }
 
     if (selectedDate !== undefined) {
-      const selectedInManila = toManilDate(selectedDate);
-      const startOfSelectedUTC = selectedInManila.startOf("day").utc().toISOString();
-      const endOfSelectedUTC = selectedInManila.endOf("day").utc().toISOString();
+
+      let startOfSelectedUTC;
+      let endOfSelectedUTC;
+
+
+      if (isAdmin && daily) {
+        startOfSelectedUTC = formattedSelectedDate
+          .startOf("day")
+          .subtract(8, "hour")
+          .toISOString();
+        endOfSelectedUTC = formattedSelectedDate
+          .endOf("day")
+          .subtract(8, "hour")
+          .toISOString();
+      } else {
+        startOfSelectedUTC = formattedSelectedDate
+          .startOf("day")
+          .toISOString();
+        endOfSelectedUTC = formattedSelectedDate
+          .endOf("day")
+          .toISOString();
+      }
 
       query = query
         .gte("class_date", startOfSelectedUTC)
         .lte("class_date", endOfSelectedUTC);
 
+      // If selected day is today, and the caller is NOT admin and NOT instructor,
+      // only show classes that haven't started yet.
       if (
         !isAdmin &&
         !isInstructor &&
-        selectedInManila.isSame(today, "day")
+        formattedSelectedDate.isSame(today, "day")
       ) {
+
         query = query.gte("start_time", nowISO);
       }
     }
