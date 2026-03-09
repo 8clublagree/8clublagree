@@ -27,6 +27,7 @@ import { useClassManagement, useManageCredits } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import RebookAttendeeForm from "@/components/forms/RebookAttendeeForm";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
@@ -35,6 +36,9 @@ import { useAppMessage } from "@/components/ui/message-popup";
 import { omit } from "lodash";
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const BIZ_TZ = "Asia/Manila";
 
 const { Text } = Typography;
 
@@ -703,13 +707,7 @@ export default function ClassManagementPage() {
                 //   ).length
                 // }
                 onClick={handleOpenBookingModal}
-                className={`${!!classes?.length &&
-                  !!classes?.filter((cls) =>
-                    dayjs(cls.start_time).isAfter(dayjs()),
-                  ).length
-                  ? "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
-                  : "!bg-slate-200 hover:!bg-slate-200"
-                  } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                className={`bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
               >
                 Manual Booking
               </Button>
