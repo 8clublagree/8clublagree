@@ -65,8 +65,13 @@ export async function GET(req: NextRequest) {
     }
 
     if (selectedDate === undefined && startDate && endDate) {
-      const startOfSelectedUTC = dayjs(startDate).tz(BIZ_TZ).startOf("day").utc().toISOString();
-      const endOfSelectedUTC = dayjs(endDate).tz(BIZ_TZ).endOf("day").utc().toISOString();
+
+      const startOfSelectedUTC = dayjs(startDate)
+        .startOf("day")
+        .toISOString();
+      const endOfSelectedUTC = dayjs(endDate)
+        .endOf("day")
+        .toISOString();
 
       query = query
         .gte("class_date", startOfSelectedUTC)
@@ -74,19 +79,41 @@ export async function GET(req: NextRequest) {
     }
 
     if (selectedDate !== undefined) {
-      const selectedInBizTz = formattedSelectedDate.tz(BIZ_TZ, true);
-      const startOfSelectedUTC = selectedInBizTz.startOf("day").utc().toISOString();
-      const endOfSelectedUTC = selectedInBizTz.endOf("day").utc().toISOString();
+
+      let startOfSelectedUTC;
+      let endOfSelectedUTC;
+
+
+      if (isAdmin && daily) {
+        startOfSelectedUTC = formattedSelectedDate
+          .startOf("day")
+          .subtract(8, "hour")
+          .toISOString();
+        endOfSelectedUTC = formattedSelectedDate
+          .endOf("day")
+          .subtract(8, "hour")
+          .toISOString();
+      } else {
+        startOfSelectedUTC = formattedSelectedDate
+          .startOf("day")
+          .toISOString();
+        endOfSelectedUTC = formattedSelectedDate
+          .endOf("day")
+          .toISOString();
+      }
 
       query = query
         .gte("class_date", startOfSelectedUTC)
         .lte("class_date", endOfSelectedUTC);
 
+      // If selected day is today, and the caller is NOT admin and NOT instructor,
+      // only show classes that haven't started yet.
       if (
         !isAdmin &&
         !isInstructor &&
-        selectedInBizTz.isSame(today, "day")
+        formattedSelectedDate.isSame(today, "day")
       ) {
+
         query = query.gte("start_time", nowISO);
       }
     }

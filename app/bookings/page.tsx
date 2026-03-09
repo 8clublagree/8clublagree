@@ -386,12 +386,12 @@ export default function BookingsPage() {
                   emptyText: "A class hasn't been created for this day",
                 }}
                 renderItem={(item, index) => {
-                  const now = dayjs().tz(BIZ_TZ);
+                  const now = dayjs()
                   const slotsRemaining = item?.available_slots - item?.taken_slots;
                   const isCancelled =
                     item?.class_bookings?.[0]?.attendance_status === "cancelled";
 
-                  const notEnded = dayjs(item.start_time).tz(BIZ_TZ).isSameOrAfter(now)
+                  const notEnded = dayjs(item.start_time).isSameOrAfter(now)
                   return (
                     <>
                       <List.Item
