@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import supabaseServer from "../../supabase";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const BIZ_TZ = "Asia/Manila";
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,8 +29,8 @@ export async function GET(req: NextRequest) {
       ? selectedDate
       : dayjs(selectedDate);
 
-    const nowISO = dayjs().toISOString();
-    const today = dayjs().startOf("day");
+    const nowISO = dayjs().tz(BIZ_TZ).toISOString();
+    const today = dayjs().tz(BIZ_TZ).startOf("day");
 
     const instructorFragment = `instructors (
         id, user_id,
@@ -58,13 +65,8 @@ export async function GET(req: NextRequest) {
     }
 
     if (selectedDate === undefined && startDate && endDate) {
-
-      const startOfSelectedUTC = dayjs(startDate)
-        .startOf("day")
-        .toISOString();
-      const endOfSelectedUTC = dayjs(endDate)
-        .endOf("day")
-        .toISOString();
+      const startOfSelectedUTC = dayjs(startDate).tz(BIZ_TZ).startOf("day").utc().toISOString();
+      const endOfSelectedUTC = dayjs(endDate).tz(BIZ_TZ).endOf("day").utc().toISOString();
 
       query = query
         .gte("class_date", startOfSelectedUTC)
@@ -72,41 +74,19 @@ export async function GET(req: NextRequest) {
     }
 
     if (selectedDate !== undefined) {
-
-      let startOfSelectedUTC;
-      let endOfSelectedUTC;
-
-
-      if (isAdmin && daily) {
-        startOfSelectedUTC = formattedSelectedDate
-          .startOf("day")
-          .subtract(8, "hour")
-          .toISOString();
-        endOfSelectedUTC = formattedSelectedDate
-          .endOf("day")
-          .subtract(8, "hour")
-          .toISOString();
-      } else {
-        startOfSelectedUTC = formattedSelectedDate
-          .startOf("day")
-          .toISOString();
-        endOfSelectedUTC = formattedSelectedDate
-          .endOf("day")
-          .toISOString();
-      }
+      const selectedInBizTz = formattedSelectedDate.tz(BIZ_TZ, true);
+      const startOfSelectedUTC = selectedInBizTz.startOf("day").utc().toISOString();
+      const endOfSelectedUTC = selectedInBizTz.endOf("day").utc().toISOString();
 
       query = query
         .gte("class_date", startOfSelectedUTC)
         .lte("class_date", endOfSelectedUTC);
 
-      // If selected day is today, and the caller is NOT admin and NOT instructor,
-      // only show classes that haven't started yet.
       if (
         !isAdmin &&
         !isInstructor &&
-        formattedSelectedDate.isSame(today, "day")
+        selectedInBizTz.isSame(today, "day")
       ) {
-
         query = query.gte("start_time", nowISO);
       }
     }
