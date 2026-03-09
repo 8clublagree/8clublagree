@@ -127,7 +127,7 @@ export default function ManualBookingForm({
 
     if (tab === "walk-in") {
       mapped = classes
-        .filter((cls) => dayjs(cls.start_time).isAfter(now))
+        // .filter((cls) => dayjs(cls.start_time).isAfter(now))
         .map((cls, key) => ({
           value: cls.id,
           label: `${cls.instructor_name} (${dayjs(cls.start_time).format(
