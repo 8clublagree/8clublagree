@@ -19,8 +19,14 @@ import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import DatePickerCarousel from "@/components/ui/datepicker-carousel";
 import dayjs, { Dayjs } from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
 dayjs.extend(isSameOrAfter);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const BIZ_TZ = "Asia/Manila";
 import { useEffect, useMemo, useState } from "react";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useRouter } from "next/navigation";
@@ -380,12 +386,12 @@ export default function BookingsPage() {
                   emptyText: "A class hasn't been created for this day",
                 }}
                 renderItem={(item, index) => {
-                  const now = dayjs()
+                  const now = dayjs().tz(BIZ_TZ);
                   const slotsRemaining = item?.available_slots - item?.taken_slots;
                   const isCancelled =
                     item?.class_bookings?.[0]?.attendance_status === "cancelled";
 
-                  const notEnded = dayjs(item.start_time).isSameOrAfter(now)
+                  const notEnded = dayjs(item.start_time).tz(BIZ_TZ).isSameOrAfter(now)
                   return (
                     <>
                       <List.Item
