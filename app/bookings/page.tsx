@@ -251,9 +251,7 @@ export default function BookingsPage() {
   };
 
   const handleScheduleAction = (item: any) => {
-    if (user?.credits === 0) {
-      router.push("/packages");
-    } else {
+    if (user?.credits !== 0) {
       handleOpenModal(item);
     }
   };
