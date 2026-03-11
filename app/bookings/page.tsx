@@ -467,11 +467,11 @@ export default function BookingsPage() {
                                     : item?.taken_slots === item?.available_slots
                                 }
                                 onClick={() => handleScheduleAction(item)}
-                                className={`bg-[#800020] ${user?.credits === 0
-                                  ? "hover:!bg-[#800020]"
+                                className={`${user?.credits === 0
+                                  ? "!bg-slate-200 hover:!bg-slate-200"
                                   : item?.taken_slots === item?.available_slots
                                     ? ""
-                                    : "hover:!bg-[#800020]"
+                                    : "!bg-[#800020] hover:!bg-[#800020]"
                                   } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
                               >
                                 {user?.credits === 0 ? "Get Credits" : "Join"}
