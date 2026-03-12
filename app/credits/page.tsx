@@ -1,13 +1,13 @@
 "use client";
 
-import { Card, Row, Col, Typography, Button, List, Spin } from "antd";
+import { Card, Row, Col, Typography, Button, List, Spin, Modal, Input, Form } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useRouter } from "next/navigation";
 import { MdErrorOutline } from "react-icons/md";
 import { LiaCoinsSolid } from "react-icons/lia";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
-import { usePackageManagement } from "@/lib/api";
+import { usePackageManagement, useSearchUser } from "@/lib/api";
 import { ClientPackageProps } from "@/lib/props";
 import { TfiPackage } from "react-icons/tfi";
 import { formatDate } from "@/lib/utils";
@@ -17,6 +17,8 @@ import dayjs from "dayjs";
 
 import { HiOutlineCalendarDateRange } from "react-icons/hi2";
 import PackageHistoryCard from "@/components/ui/package-history-card";
+import { Handshake } from "lucide-react";
+import { useAppMessage } from "@/components/ui/message-popup";
 
 const { Title, Text } = Typography;
 
@@ -26,7 +28,10 @@ export default function CreditsPage() {
   const [packages, setPackages] = useState<ClientPackageProps[]>([]);
   const user = useAppSelector((state) => state.auth.user);
   const { fetchClientPackages, loading: fetchingData } = usePackageManagement();
-
+  const { validateEmail, loading: validatingEmail } = useSearchUser();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareCreditsForm] = Form.useForm();
+  const { showMessage } = useAppMessage();
   useEffect(() => {
     if (user?.id) {
       handleFetchClientPackages();
@@ -86,6 +91,18 @@ export default function CreditsPage() {
       // console.log('active: ', active)
       setActivePackage(active);
       setPackages(mapped);
+    }
+  };
+
+  const handleShareCredits = async ({ email }: { email: string }) => {
+    const result = await validateEmail({ email });
+    if (result) {
+      setShareModalOpen(false);
+      showMessage({ type: "success", content: "Credits shared successfully." });
+    } else {
+      shareCreditsForm.setFields([
+        { name: "email", errors: ["This person has not yet registered an account."] },
+      ]);
     }
   };
 
@@ -218,8 +235,8 @@ export default function CreditsPage() {
             <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
-                  <HiOutlineCalendarDateRange size={30} className="flex-shrink-0" />
-                  <Title level={3} className="halyard !m-0">Shared Credits</Title>
+                  <Handshake size={30} className="flex-shrink-0" />
+                  <Title level={3} className="halyard !m-0">Shareable</Title>
                 </Row>
 
                 <Row
@@ -228,9 +245,12 @@ export default function CreditsPage() {
                     } rounded-lg items-center gap-[10px] min-h-[60px]`}
                 >
                   {activePackage && activePackage.isShareable && (
-                    <Title level={4} className="!mb-0 !font-normal">
-                      {activePackage.numberOfCreditsShared}
-                    </Title>
+                    <Row wrap={false} className="flex-col justify-center w-full">
+                      <Title level={4} className="!mb-0 !font-normal">
+                        {`${user?.shareable_credits} out of ${activePackage.shareableCredits} remaining`}
+                      </Title>
+                      <Button onClick={() => setShareModalOpen(true)} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03]">Share</Button>
+                    </Row>
                   )}
                   {activePackage && !activePackage.isShareable && (
                     <Row className="w-full justify-center">
@@ -282,6 +302,30 @@ export default function CreditsPage() {
           </Card>
         </div>
       )}
+      <Modal
+        title="Share Credits"
+        open={shareModalOpen}
+        onCancel={() => setShareModalOpen(false)}
+        footer={null}
+        height={400}
+      >
+        <Row className="flex-col mb-[10px]" wrap={false}>
+          <Text>Enter the email of the person you want to share your credits with.</Text>
+          <Text className="!text-red-500">Selected person must have an account to receive the credits.</Text>
+        </Row>
+
+        <Form form={shareCreditsForm} className="gap-y-[5px]" layout="horizontal" onFinish={handleShareCredits}>
+          <Row className="flex-col sm:flex-row gap-2">
+            <Form.Item className="mb-0 flex-1" name="email" rules={[{ required: true, message: "Please enter the email address of the person you want to share your credits with." }, { type: "email", message: "Please enter a valid email address." }]}>
+              <Input disabled={validatingEmail} placeholder="Enter email address" />
+            </Form.Item>
+            <Form.Item className="mb-0">
+              <Button disabled={validatingEmail} loading={validatingEmail} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto" htmlType="submit">Share</Button>
+            </Form.Item>
+          </Row>
+
+        </Form>
+      </Modal>
     </AuthenticatedLayout>
   );
 }

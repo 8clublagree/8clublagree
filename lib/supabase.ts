@@ -42,6 +42,7 @@ export interface UserProfile {
   created_at?: string;
   updated_at?: string;
   credits?: number;
+  shareable_credits?: number;
   deactivated?: boolean;
   emergency_contact_name?: string;
   emergency_contact_number?: string;
@@ -59,6 +60,7 @@ export interface UpdateUserProfile {
   birthday?: string;
   location?: string;
   credits?: number;
+  shareable_credits?: number;
   emergency_contact_name?: string;
   emergency_contact_number?: string;
 }

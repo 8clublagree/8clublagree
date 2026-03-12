@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
           user_credits (
             id,
             credits,
+            shareable_credits,
             created_at
           ),
           client_packages (

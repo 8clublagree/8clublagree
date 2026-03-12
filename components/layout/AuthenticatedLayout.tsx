@@ -135,6 +135,7 @@ export default function AuthenticatedLayout({
           avatar_url: signedUrl ?? undefined,
           currentPackage: activePackage,
           credits: activePackage ? latestCredit.credits : 0,
+          shareable_credits: activePackage ? latestCredit.shareable_credits : 0,
         }),
       );
     }
