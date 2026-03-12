@@ -678,18 +678,12 @@ export default function ClassManagementPage() {
             >
               <Button
                 disabled={
-                  cannotRebook ||
-                  !classes?.length ||
-                  !allBookings?.length ||
                   classes?.length === 1
                 }
                 type="primary"
                 icon={<HiOutlineSwitchHorizontal />}
                 onClick={handleOpenRebookModal}
-                className={`${!!allBookings?.length &&
-                  !!classes?.length &&
-                  classes?.length !== 1 &&
-                  !cannotRebook &&
+                className={`${classes?.length > 1 &&
                   "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
                   } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
               >
@@ -707,7 +701,13 @@ export default function ClassManagementPage() {
                 //   ).length
                 // }
                 onClick={handleOpenBookingModal}
-                className={`bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
+                className={`${!!classes?.length &&
+                  !!classes?.filter((cls) =>
+                    dayjs(cls.start_time).isAfter(dayjs()),
+                  ).length
+                  ? "bg-[#36013F] hover:!bg-[#36013F] hover:scale-[1.03]"
+                  : "!bg-slate-200 hover:!bg-slate-200"
+                  } !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200`}
               >
                 Manual Booking
               </Button>
