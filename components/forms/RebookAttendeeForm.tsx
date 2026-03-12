@@ -136,8 +136,7 @@ export default function RebookAttendeeForm({
               onSelect={(e) => setSelectedOriginalSchedule(e)}
               options={selectedRecord?.originalClasses ?? []}
               disabled={
-                selectedRecord === null ||
-                !selectedRecord?.availableClasses.length
+                selectedRecord === null
               }
               placeholder="Select attendee original class"
             />
@@ -158,8 +157,7 @@ export default function RebookAttendeeForm({
             value={selectedNewSchedule}
             onSelect={(e) => setSelectedNewSchedule(e)}
             disabled={
-              selectedRecord === null ||
-              !selectedRecord?.availableClasses.length
+              selectedRecord === null
             }
             placeholder="Select a new schedule"
             options={selectedRecord?.availableClasses ?? []}
