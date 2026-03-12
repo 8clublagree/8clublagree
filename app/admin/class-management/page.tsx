@@ -670,12 +670,7 @@ export default function ClassManagementPage() {
             >
               Create a Class
             </Button>
-            <Tooltip
-              title={
-                (cannotRebook || !classes?.length || !allBookings?.length) &&
-                "No available classes"
-              }
-            >
+            <Tooltip>
               <Button
                 disabled={
                   classes?.length === 1
