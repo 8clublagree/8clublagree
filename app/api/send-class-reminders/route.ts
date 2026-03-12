@@ -3,11 +3,13 @@ import dayjs from "dayjs";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 import supabaseServer from "../supabase";
+import { MailtrapTransport } from "mailtrap";
 
 // --- Move your main logic here ---
 async function checkUpcomingClasses() {
   console.log("Running test: checking upcoming classes...");
-
+  const apiToken =
+    process.env.MAILTRAP_TOKEN!!
   const now = dayjs();
   const in24h = now.add(24, "hour");
 
@@ -53,14 +55,9 @@ async function checkUpcomingClasses() {
 
   console.log("classes within the next 24 hours:", bookings);
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_HOST,
-    port: Number(process.env.MAILTRAP_PORT) || 587,
-    auth: {
-      user: process.env.MAILTRAP_USERNAME,
-      pass: process.env.MAILTRAP_PASSWORD,
-    },
-  });
+  const transporter = nodemailer.createTransport(
+    MailtrapTransport({ token: apiToken }),
+  );
 
   // Send emails in parallel batches of 5
   const BATCH_SIZE = 5;

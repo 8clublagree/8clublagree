@@ -17,6 +17,7 @@ import dayjs from "dayjs";
 
 import { HiOutlineCalendarDateRange } from "react-icons/hi2";
 import PackageHistoryCard from "@/components/ui/package-history-card";
+import { Handshake } from "lucide-react";
 
 const { Title, Text } = Typography;
 
