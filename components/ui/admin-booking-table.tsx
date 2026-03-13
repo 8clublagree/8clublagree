@@ -327,7 +327,7 @@ const AdminBookingTable = ({
         dataSource={data}
         scroll={{ x: 1000 }}
         pagination={{
-          defaultPageSize: 10,
+          defaultPageSize: 20,
           showSizeChanger: true,
           pageSizeOptions: ["10", "20", "50"],
           responsive: true,
