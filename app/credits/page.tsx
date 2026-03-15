@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Row, Col, Typography, Button, List, Spin, Modal, Input, Form } from "antd";
+import { Card, Row, Col, Typography, Button, List, Spin, Modal, Input, InputNumber, Form } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useRouter } from "next/navigation";
 import { MdErrorOutline } from "react-icons/md";
@@ -8,6 +8,7 @@ import { LiaCoinsSolid } from "react-icons/lia";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { usePackageManagement, useSearchUser } from "@/lib/api";
+import axiosApi from "@/lib/axiosConfig";
 import { ClientPackageProps } from "@/lib/props";
 import { TfiPackage } from "react-icons/tfi";
 import { formatDate } from "@/lib/utils";
@@ -63,6 +64,7 @@ export default function CreditsPage() {
           isShareable: data.is_shareable,
           shareableCredits: data.shareable_credits,
           numberOfCreditsShared: data.number_of_credits_shared,
+          isShared: data.is_shared,
 
           packages: {
             id: data.packages?.id ? data.packages.id : null,
@@ -94,15 +96,36 @@ export default function CreditsPage() {
     }
   };
 
-  const handleShareCredits = async ({ email }: { email: string }) => {
+  const [sharing, setSharing] = useState(false);
+
+  const handleShareCredits = async ({ email, creditsAmount }: { email: string; creditsAmount: number }) => {
     const result = await validateEmail({ email });
-    if (result) {
-      setShareModalOpen(false);
-      showMessage({ type: "success", content: "Credits shared successfully." });
-    } else {
+    if (!result) {
       shareCreditsForm.setFields([
         { name: "email", errors: ["This person has not yet registered an account."] },
       ]);
+      return;
+    }
+
+    try {
+      setSharing(true);
+      await axiosApi.post("/credits/share-credits", {
+        senderID: user?.id,
+        recipientEmail: email,
+        creditsAmount,
+      });
+
+      shareCreditsForm.resetFields();
+      setShareModalOpen(false);
+      showMessage({ type: "success", content: "Credits shared! An email has been sent to the recipient." });
+      handleFetchClientPackages();
+    } catch (err: any) {
+      const message = err?.response?.data?.error ?? "Failed to share credits. Please try again.";
+      shareCreditsForm.setFields([
+        { name: "email", errors: [message] },
+      ]);
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -314,16 +337,16 @@ export default function CreditsPage() {
           <Text className="!text-red-500">Selected person must have an account to receive the credits.</Text>
         </Row>
 
-        <Form form={shareCreditsForm} className="gap-y-[5px]" layout="horizontal" onFinish={handleShareCredits}>
-          <Row className="flex-col sm:flex-row gap-2">
-            <Form.Item className="mb-0 flex-1" name="email" rules={[{ required: true, message: "Please enter the email address of the person you want to share your credits with." }, { type: "email", message: "Please enter a valid email address." }]}>
-              <Input disabled={validatingEmail} placeholder="Enter email address" />
+        <Form form={shareCreditsForm} layout="vertical" onFinish={handleShareCredits} initialValues={{ creditsAmount: 1 }}>
+          <Row className="flex-col sm:flex-row gap-x-3">
+            <Form.Item className="mb-3 flex-1" name="email" label="Email address" rules={[{ required: true, message: "Please enter the email address." }, { type: "email", message: "Please enter a valid email address." }]}>
+              <Input disabled={validatingEmail || sharing} placeholder="Enter email address" />
             </Form.Item>
-            <Form.Item className="mb-0">
-              <Button disabled={validatingEmail} loading={validatingEmail} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto" htmlType="submit">Share</Button>
+            <Form.Item className="mb-3" name="creditsAmount" label="Credits to share" rules={[{ required: true, message: "Enter the number of credits." }]}>
+              <InputNumber disabled={validatingEmail || sharing} min={1} max={user?.shareable_credits ?? 1} className="!w-full sm:!w-[130px]" />
             </Form.Item>
           </Row>
-
+          <Button disabled={validatingEmail || sharing} loading={validatingEmail || sharing} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03] w-full" htmlType="submit">Share</Button>
         </Form>
       </Modal>
     </AuthenticatedLayout>
