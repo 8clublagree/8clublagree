@@ -79,16 +79,6 @@ export default function ClaimCreditsPage() {
               {claimData.expirationDate &&
                 `These credits expire on ${dayjs(claimData.expirationDate).format("MMMM D, YYYY")}.`}
             </Text>
-            <Row justify="center" className="mt-6">
-              <Button
-                type="primary"
-                size="large"
-                onClick={() => router.push("/bookings")}
-                className="!bg-[#800020] hover:!bg-[#800020]/80 !border-none"
-              >
-                Book a Class
-              </Button>
-            </Row>
           </div>
         )}
 

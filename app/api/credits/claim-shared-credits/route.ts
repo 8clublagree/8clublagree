@@ -46,19 +46,19 @@ export async function POST(req: NextRequest) {
         .update({ status: "expired" })
         .eq("id", shareRecord.id);
 
-      const { data: senderCredits } = await supabaseServer
-        .from("user_credits")
-        .select("shareable_credits")
-        .eq("user_id", shareRecord.sender_id)
+      const { data: senderPkg } = await supabaseServer
+        .from("client_packages")
+        .select("number_of_credits_shared")
+        .eq("id", shareRecord.client_package_id)
         .single();
 
-      if (senderCredits) {
+      if (senderPkg) {
         await supabaseServer
-          .from("user_credits")
+          .from("client_packages")
           .update({
-            shareable_credits: (senderCredits.shareable_credits ?? 0) + shareRecord.credits_amount,
+            number_of_credits_shared: Math.max(0, (senderPkg.number_of_credits_shared ?? 0) - shareRecord.credits_amount),
           })
-          .eq("user_id", shareRecord.sender_id);
+          .eq("id", shareRecord.client_package_id);
       }
 
       return NextResponse.json(
@@ -130,6 +130,7 @@ export async function POST(req: NextRequest) {
         payment_method: "shared",
         expiration_date: shareRecord.expiration_date,
         is_shared: true,
+        number_of_shared_credits_used: 0
       });
 
     if (insertPackageError) {

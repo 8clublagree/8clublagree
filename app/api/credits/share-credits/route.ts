@@ -53,19 +53,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const senderCredits = (senderResult.data as any).user_credits?.[0];
-    const shareableRemaining = senderCredits?.shareable_credits ?? 0;
 
-    if (shareableRemaining < creditsAmount) {
-      return NextResponse.json(
-        { error: "Not enough shareable credits" },
-        { status: 400 },
-      );
-    }
+
+    // const senderCredits = (senderResult.data as any).user_credits?.[0];
+    // const shareableRemaining = senderCredits?.shareable_credits ?? 0;
+
+    // console.log('shareableRemaining: ', shareableRemaining)
+    // console.log('creditsAmount: ', creditsAmount)
+
+    // if (shareableRemaining < creditsAmount) {
+    //   return NextResponse.json(
+    //     { error: "Not enough shareable credits" },
+    //     { status: 400 },
+    //   );
+    // }
 
     const { data: activePackage, error: pkgError } = await supabaseServer
       .from("client_packages")
-      .select("id, expiration_date")
+      .select("id, expiration_date, number_of_credits_shared")
       .eq("user_id", senderID)
       .eq("status", "active")
       .single();
@@ -103,22 +108,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { error: deductError } = await supabaseServer
-      .from("user_credits")
-      .update({ shareable_credits: shareableRemaining - creditsAmount })
-      .eq("user_id", senderID);
+    const { error: updatePkgError } = await supabaseServer
+      .from("client_packages")
+      .update({
+        number_of_credits_shared: (activePackage?.number_of_credits_shared ?? 0) + creditsAmount,
+      })
+      .eq("id", activePackage.id);
 
-    if (deductError) {
-      console.error("[share-credits] Deduct error:", deductError);
+    if (updatePkgError) {
+      console.error("[share-credits] Update client_packages error:", updatePkgError);
     }
 
-    const host =
+
+
+    /**
+     * TEST
+     * 
+     * const host =
       req.headers.get("x-forwarded-host") ??
       req.headers.get("host") ??
       "lagree-booking-system.vercel.app";
     const protocol = host.includes("localhost") ? "http" : "https";
-    // change host on launch
     const claimLink = `${protocol}://${host}/claim-credits?token=${token}`;
+     */
+
+    const origin = process.env.SYSTEM_ORIGIN!!
+    const claimLink = `${origin}/claim-credits?token=${token}`;
 
     const template = EMAIL_TEMPLATE.credit_share_invitation;
     const { subject, body } = template({

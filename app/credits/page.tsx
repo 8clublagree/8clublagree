@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Row, Col, Typography, Button, List, Spin, Modal, Input, InputNumber, Form } from "antd";
+import { Card, Row, Col, Typography, Button, List, Spin, Modal, Input, InputNumber, Form, Descriptions } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useRouter } from "next/navigation";
 import { MdErrorOutline } from "react-icons/md";
@@ -32,7 +32,7 @@ export default function CreditsPage() {
   const { validateEmail, loading: validatingEmail } = useSearchUser();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareCreditsForm] = Form.useForm();
-  const { showMessage } = useAppMessage();
+  const { showMessage, contextHolder } = useAppMessage();
   useEffect(() => {
     if (user?.id) {
       handleFetchClientPackages();
@@ -47,7 +47,11 @@ export default function CreditsPage() {
         clientID: user?.id as string,
       });
 
-      // console.log('response: ', response)
+      console.log('response: ', response)
+
+      const findActivePackage = response?.find((data: any) => data.status === "active" && data.is_shareable);
+
+      console.log('findActivePackage: ', findActivePackage)
 
       if (response) {
         mapped = response?.map((data: any) => ({
@@ -62,8 +66,9 @@ export default function CreditsPage() {
           packageCredits: data.package_credits,
           validityPeriod: data.validity_period,
           isShareable: data.is_shareable,
-          shareableCredits: data.shareable_credits,
+          shareableCredits: data?.packages?.shareable_credits ?? null,
           numberOfCreditsShared: data.number_of_credits_shared,
+          numberOfSharedCreditsUsed: data.number_of_shared_credits_used,
           isShared: data.is_shared,
 
           packages: {
@@ -118,7 +123,10 @@ export default function CreditsPage() {
       shareCreditsForm.resetFields();
       setShareModalOpen(false);
       showMessage({ type: "success", content: "Credits shared! An email has been sent to the recipient." });
-      handleFetchClientPackages();
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (err: any) {
       const message = err?.response?.data?.error ?? "Failed to share credits. Please try again.";
       shareCreditsForm.setFields([
@@ -129,8 +137,15 @@ export default function CreditsPage() {
     }
   };
 
+  useEffect(() => {
+
+    console.log('activePackage: ', activePackage)
+  }, [activePackage])
+
+
   return (
     <AuthenticatedLayout>
+      {contextHolder}
       {fetchingData && (
         <Row wrap={false} className="justify-center">
           <Spin spinning={true} />
@@ -197,6 +212,11 @@ export default function CreditsPage() {
                   {activePackage ? (
                     <Row className="items-center gap-x-[7px] flex-wrap">
 
+                      {activePackage.packages.packageCredits &&
+                        <Title level={4} className="!mb-0 !font-normal">
+                          {`${(user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)} available credits`}
+                        </Title>
+                      }
                       {!activePackage.packages.packageCredits && (
                         <Row className="items-center gap-x-[10px]">
                           <ImInfinite size={25} className="!font-normal" />
@@ -205,7 +225,7 @@ export default function CreditsPage() {
                           </Title>
                         </Row>
                       )}
-                      {activePackage.packages.packageCredits && (
+                      {/* {activePackage.packages.packageCredits && (
                         <Title
                           level={4}
                           className={`${user?.credits === 0 && "!text-red-400"
@@ -213,10 +233,10 @@ export default function CreditsPage() {
                         >
                           {`${user?.credits} out of ${activePackage.packages.packageCredits}`}
                         </Title>
-                      )}
-                      <Title level={4} className="!m-0 !font-normal">
+                      )} */}
+                      {/* <Title level={4} className="!m-0 !font-normal">
                         sessions remaining
-                      </Title>
+                      </Title> */}
                     </Row>
                   ) : (
                     <Row className="w-full justify-center">
@@ -228,7 +248,7 @@ export default function CreditsPage() {
             </Col>
 
             {/* Expiration Date */}
-            <Col xs={24} sm={12} lg={6} className="flex">
+            {/* <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
                   <HiOutlineCalendarDateRange size={30} className="flex-shrink-0" />
@@ -252,14 +272,14 @@ export default function CreditsPage() {
                   )}
                 </Row>
               </Card>
-            </Col>
+            </Col> */}
 
             {/* Shareable Credits */}
             <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
                   <Handshake size={30} className="flex-shrink-0" />
-                  <Title level={3} className="halyard !m-0">Shareable</Title>
+                  <Title level={3} className="halyard !m-0">Share Credits</Title>
                 </Row>
 
                 <Row
@@ -270,14 +290,14 @@ export default function CreditsPage() {
                   {activePackage && activePackage.isShareable && (
                     <Row wrap={false} className="flex-col justify-center w-full">
                       <Title level={4} className="!mb-0 !font-normal">
-                        {`${user?.shareable_credits} out of ${activePackage.shareableCredits} remaining`}
+                        {`${activePackage.shareableCredits - (activePackage?.numberOfCreditsShared ?? 0)} out of ${activePackage.shareableCredits} remaining`}
                       </Title>
-                      <Button onClick={() => setShareModalOpen(true)} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03]">Share</Button>
+                      <Button disabled={((activePackage.shareableCredits ?? 0) - (activePackage?.numberOfCreditsShared ?? 0)) === 0} onClick={() => setShareModalOpen(true)} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03]">Share</Button>
                     </Row>
                   )}
                   {activePackage && !activePackage.isShareable && (
                     <Row className="w-full justify-center">
-                      <Text>No shareable credits</Text>
+                      <Text>Your purchased package does not come with shareable credits</Text>
                     </Row>)}
                 </Row>
               </Card>
@@ -343,7 +363,27 @@ export default function CreditsPage() {
               <Input disabled={validatingEmail || sharing} placeholder="Enter email address" />
             </Form.Item>
             <Form.Item className="mb-3" name="creditsAmount" label="Credits to share" rules={[{ required: true, message: "Enter the number of credits." }]}>
-              <InputNumber disabled={validatingEmail || sharing} min={1} max={user?.shareable_credits ?? 1} className="!w-full sm:!w-[130px]" />
+              {/* <InputNumber disabled={validatingEmail || sharing} min={1} keyboard={false} controls className="!w-full sm:!w-[130px]" /> */}
+              <InputNumber
+
+                disabled={validatingEmail || sharing}
+                placeholder="Credits to share"
+                className="!w-full sm:!w-[130px]"
+                min={1}
+                max={(activePackage?.shareableCredits ?? 0) - (activePackage?.numberOfCreditsShared ?? 0)}
+                precision={0}
+                onKeyDown={(e) => {
+                  // if (!/[0-9]/.test(e.key) && e.code !== "Backspace") {
+                  e.preventDefault();
+                  // }
+                }}
+                onPaste={(e) => {
+                  const paste = e.clipboardData.getData("text");
+                  if (!/^\d+$/.test(paste)) {
+                    e.preventDefault();
+                  }
+                }}
+              />
             </Form.Item>
           </Row>
           <Button disabled={validatingEmail || sharing} loading={validatingEmail || sharing} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03] w-full" htmlType="submit">Share</Button>

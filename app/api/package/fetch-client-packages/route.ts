@@ -22,7 +22,8 @@ export async function GET(req: NextRequest) {
             title,
             created_at,
             package_credits,
-            validity_period
+            validity_period,
+            shareable_credits
         )`);
     const startOfToday = dayjs().startOf("day").toISOString();
     const endOfToday = dayjs().endOf("day").toISOString();

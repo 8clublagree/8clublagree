@@ -25,6 +25,9 @@ export interface CurrentPackageProps {
   expiration_date: string;
   package_credits: number;
   validity_period: number;
+  number_of_shared_credits_used?: number;
+  number_of_credits_shared?: number;
+  shareable_credits?: number;
 }
 
 export interface UserProfile {
@@ -43,10 +46,12 @@ export interface UserProfile {
   updated_at?: string;
   credits?: number;
   shareable_credits?: number;
+  totalUsableSharedCredits?: number;
   deactivated?: boolean;
   emergency_contact_name?: string;
   emergency_contact_number?: string;
   currentPackage?: CurrentPackageProps;
+  sharedPackages?: CurrentPackageProps[];
   instructors?: any[];
   pendingPurchases?: any;
 }

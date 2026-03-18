@@ -919,6 +919,9 @@ export const usePackageManagement = () => {
     validityPeriod,
     packageCredits,
     packageName,
+    isShareable = false,
+    shareableCredits = 0,
+    numberOfCreditsShared = 0
   }: {
     userID: string;
     packageID: string;
@@ -926,11 +929,17 @@ export const usePackageManagement = () => {
     packageName: string;
     packageCredits: number;
     validityPeriod: number;
+    isShareable?: boolean;
+    shareableCredits?: number;
+    numberOfCreditsShared?: number;
   }) => {
     try {
       setLoading(true);
       const response = await axiosApi.post("/package/purchase-package", {
         userID, packageID, paymentMethod, validityPeriod, packageCredits, packageName,
+        isShareable,
+        shareableCredits,
+        numberOfCreditsShared,
       });
       const data = response.data?.data;
       if (!data) return null;
@@ -954,6 +963,8 @@ export const usePackageManagement = () => {
       packageCredits?: number;
       validityPeriod?: number;
       expirationDate?: Dayjs;
+      numberOfSharedCreditsUsed?: number;
+      numberOfCreditsShared?: number;
     };
   }) => {
     try {

@@ -346,6 +346,11 @@ const EditClientForm = ({
         packageName: selectedPackage.title,
         validityPeriod: selectedPackage.validityPeriod,
         packageCredits: selectedPackage.packageCredits,
+        ...(selectedPackage.is_shareable === true && {
+          isShareable: selectedPackage.is_shareable,
+          shareableCredits: selectedPackage.shareable_credits,
+          numberOfCreditsShared: 0
+        }),
       });
 
       return response;
@@ -513,7 +518,7 @@ const EditClientForm = ({
           <Row className="w-full mb-[40px]" justify={"center"}>
             {initialValues?.clientPackage && (
 
-              <Row justify={"center"} className="gap-y-[10px]">
+              <Row justify={"center"} wrap={false} className="flex-col gap-y-[10px]">
                 <Row wrap={false} justify={'center'}>
                   <Button
                     className="bg-red-500 hover:!bg-red-600 hover:!text-white hover:!border-red-600 text-white"
