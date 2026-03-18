@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Typography, Button, Spin, Row } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
@@ -10,6 +10,20 @@ import axiosApi from "@/lib/axiosConfig";
 const { Title, Text } = Typography;
 
 export default function ClaimCreditsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <Spin size="large" />
+        </div>
+      }
+    >
+      <ClaimCreditsContent />
+    </Suspense>
+  );
+}
+
+function ClaimCreditsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
