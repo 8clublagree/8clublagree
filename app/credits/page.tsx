@@ -304,7 +304,7 @@ export default function CreditsPage() {
             </Col>
           </Row>
 
-          <Card className="shadow-sm" title="Package Purchase History">
+          <Card className="shadow-sm" title="Package History">
             <div className="overflow-y-auto pr-2 max-h-[60vh] sm:max-h-[70vh] md:max-h-[50vh]">
               <List
                 grid={{
