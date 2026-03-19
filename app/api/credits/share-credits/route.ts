@@ -54,23 +54,9 @@ export async function POST(req: NextRequest) {
     }
 
 
-
-    // const senderCredits = (senderResult.data as any).user_credits?.[0];
-    // const shareableRemaining = senderCredits?.shareable_credits ?? 0;
-
-    // console.log('shareableRemaining: ', shareableRemaining)
-    // console.log('creditsAmount: ', creditsAmount)
-
-    // if (shareableRemaining < creditsAmount) {
-    //   return NextResponse.json(
-    //     { error: "Not enough shareable credits" },
-    //     { status: 400 },
-    //   );
-    // }
-
     const { data: activePackage, error: pkgError } = await supabaseServer
       .from("client_packages")
-      .select("id, expiration_date, number_of_credits_shared")
+      .select("id, expiration_date, number_of_credits_shared, shareable_credits")
       .eq("user_id", senderID)
       .eq("status", "active")
       .single();
@@ -78,6 +64,20 @@ export async function POST(req: NextRequest) {
     if (pkgError || !activePackage) {
       return NextResponse.json(
         { error: "No active package found" },
+        { status: 400 },
+      );
+    }
+
+
+    // const senderCredits = (senderResult.data as any).user_credits?.[0];
+    // const shareableRemaining = senderCredits?.shareable_credits ?? 0;
+
+    // console.log('shareableRemaining: ', shareableRemaining)
+    // console.log('creditsAmount: ', creditsAmount)
+
+    if (activePackage.number_of_credits_shared >= activePackage.shareable_credits) {
+      return NextResponse.json(
+        { error: "Not enough shareable credits" },
         { status: 400 },
       );
     }
