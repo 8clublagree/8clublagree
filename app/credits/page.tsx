@@ -47,11 +47,9 @@ export default function CreditsPage() {
         clientID: user?.id as string,
       });
 
-      console.log('response: ', response)
 
       const findActivePackage = response?.find((data: any) => data.status === "active" && data.is_shareable);
 
-      console.log('findActivePackage: ', findActivePackage)
 
       if (response) {
         mapped = response?.map((data: any) => ({
@@ -136,11 +134,6 @@ export default function CreditsPage() {
       setSharing(false);
     }
   };
-
-  useEffect(() => {
-
-    console.log('activePackage: ', activePackage)
-  }, [activePackage])
 
 
   return (

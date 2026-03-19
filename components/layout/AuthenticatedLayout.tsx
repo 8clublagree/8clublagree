@@ -113,7 +113,6 @@ export default function AuthenticatedLayout({
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )[0];
 
-    // console.log('profile?.client_packages: ', profile?.client_packages)
 
     const activePackage: CurrentPackageProps = profile?.client_packages?.find(
       (p: any) => p.status === "active",
@@ -140,10 +139,6 @@ export default function AuthenticatedLayout({
         router.push("/instructor/assigned-schedules");
         return;
       }
-
-
-      // console.log('sharedPackages: ', sharedPackages)
-      // console.log('totalUsableSharedCredits: ', totalUsableSharedCredits)
 
       dispatch(
         setUser({
