@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Row, Col, Typography, Button, List, Spin, Modal, Input, InputNumber, Form, Descriptions } from "antd";
+import { Card, Row, Col, Typography, Button, List, Spin, Modal, Input, InputNumber, Form, Descriptions, Tooltip, Alert } from "antd";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useRouter } from "next/navigation";
 import { MdErrorOutline } from "react-icons/md";
@@ -154,6 +154,8 @@ export default function CreditsPage() {
 
       {!fetchingData && (
         <div className="space-y-6">
+          {/* <Alert message="Purchased credits and credits shared to you will now be shown as a total in your credit tracker." type="info" showIcon /> */}
+          <Alert message="Bought your package before March 18? Message us to unlock your shareable credits and bring a friend." type="success" showIcon />
           <Row gutter={[16, 16]} className="flex flex-wrap items-stretch">
             {/* Current Package */}
             <Col xs={24} sm={12} lg={6} className="flex">
@@ -275,6 +277,7 @@ export default function CreditsPage() {
             </Col> */}
 
             {/* Shareable Credits */}
+
             <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
@@ -302,6 +305,7 @@ export default function CreditsPage() {
                 </Row>
               </Card>
             </Col>
+
           </Row>
 
           <Card className="shadow-sm" title="Package History">
