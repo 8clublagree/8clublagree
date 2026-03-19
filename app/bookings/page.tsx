@@ -34,6 +34,7 @@ import {
   useClassManagement,
   useManageCredits,
   useManageImage,
+  usePackageManagement,
 } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
@@ -69,6 +70,7 @@ export default function BookingsPage() {
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   const { fetchImages } = useManageImage();
+  const { updateClientPackage } = usePackageManagement();
 
   useEffect(() => {
     const handleResize = () => {
@@ -106,19 +108,7 @@ export default function BookingsPage() {
         selectedDate: selectedDate as Dayjs,
       });
 
-      // console.log('data: ', data)
-
-      const parsedInstructors = instructorsState?.map((instructor: any) => {
-        return {
-          ...instructor,
-          id: instructor?.instructors?.[0]?.id,
-          key: instructor?.id,
-        }
-      });
-
-      // console.log('parsedInstructors: ', parsedInstructors)
       const parsed = data.map((lagreeClass: any) => {
-        // const instructors = parsedInstructors?.find((instructor: any) => instructor.id === lagreeClass.instructor_id);
         return {
           ...lagreeClass,
           key: lagreeClass.id,
@@ -206,25 +196,41 @@ export default function BookingsPage() {
     try {
       setIsSubmitting(true);
       if (user) {
-        const shouldDeductCredits = user.credits != null;
+        const hasPurchasedCredits = user.credits !== null && user.credits !== 0;
+        const hasUsableSharedCredits = user.totalUsableSharedCredits !== null && user?.totalUsableSharedCredits !== 0;
 
         await bookClass({
           classDate: dayjs(selectedDate).toISOString(),
           classId: selectedRecord.id,
           bookerId: user.id as string,
           isWalkIn: false,
-          deductCredits: shouldDeductCredits,
+          // deductCredits: shouldDeductCredits,
           method: 'client_account'
         });
 
-        await updateUserCredits({
-          userID: user?.id as string,
-          ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: user?.credits as number - 1 } }),
-        });
+        if (hasPurchasedCredits) {
+          await updateUserCredits({
+            userID: user?.id as string,
+            ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: user?.credits as number - 1 } }),
+          });
 
-        if (!isNaN(user?.credits as number) && Number(user?.credits) !== 0) {
+          dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
+        } else if (hasUsableSharedCredits) {
 
-          dispatch(setUser({ ...user, credits: Number(user?.credits) - 1 }));
+          const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
+            dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
+          );
+
+          await updateClientPackage({
+            clientPackageID: soonestExpiring?.id as string,
+            values: {
+              packageCredits: (soonestExpiring?.package_credits as number) - 1,
+              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) - 1,
+              numberOfCreditsShared: (soonestExpiring?.number_of_credits_shared as number) + 1,
+            },
+          });
+
+          dispatch(setUser({ ...user, totalUsableSharedCredits: user?.totalUsableSharedCredits as number - 1 }));
         }
 
 
@@ -251,7 +257,8 @@ export default function BookingsPage() {
   };
 
   const handleScheduleAction = (item: any) => {
-    if (user?.credits !== 0) {
+    if ((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0) !== 0) {
+
       handleOpenModal(item);
     }
   };
@@ -260,59 +267,9 @@ export default function BookingsPage() {
     setTermsModalOpen(true);
   };
 
-  // const renderActionButton = useMemo(
-  //   () => (item: any) => {
-  //     const now = dayjs()
-  //     const isCancelled =
-  //       item?.class_bookings?.[0]?.attendance_status === "cancelled";
-
-  //     const notEnded = dayjs(item.start_time).isSameOrAfter(now)
-  //     return (
-  //       <>
-  //         {!notEnded && (
-  //           <Button
-  //             type="primary"
-  //             className="bg-red-700 hover:!bg-red-700 !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm"
-  //           >
-  //             Ended
-  //           </Button>
-  //         )}
-  //         {notEnded && !!item?.class_bookings?.length && (
-  //           <Button
-  //             type="primary"
-  //             className={`${isCancelled
-  //               ? "bg-red-700 hover:!bg-red-700"
-  //               : "bg-green-600 hover:!bg-green-600"
-  //               } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
-  //           >
-  //             {isCancelled ? "You Cancelled" : "Joined"}
-  //           </Button>
-  //         )}
-  //         {notEnded && !item?.class_bookings?.length && (
-  //           <Button
-  //             type="primary"
-  //             disabled={
-  //               user?.credits === 0
-  //                 ? false
-  //                 : item?.taken_slots === item?.available_slots
-  //             }
-  //             onClick={() => handleScheduleAction(item)}
-  //             className={`bg-[#800020] ${user?.credits === 0
-  //               ? "hover:!bg-[#800020]"
-  //               : item?.taken_slots === item?.available_slots
-  //                 ? ""
-  //                 : "hover:!bg-[#800020]"
-  //               } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
-  //           >
-  //             {user?.credits === 0 ? "Get Credits" : "Join"}
-  //           </Button>
-  //         )}
-  //       </>
-  //     );
-  //   },
-  //   [classes, user?.credits, isSubmitting, loading, isProcessingData],
-  // );
-
+  const noPurchasedCredits = user?.credits === 0;
+  const noUsableSharedCredits = user?.totalUsableSharedCredits === 0;
+  const noCredits = noPurchasedCredits && noUsableSharedCredits;
   return (
     <AuthenticatedLayout>
       {contextHolder}
@@ -333,19 +290,19 @@ export default function BookingsPage() {
                 onClick={() => router.push("/credits")}
                 className="cursor-pointer items-center gap-[5px] sm:gap-3 md:gap-[10px] text-[16px] sm:text-[18px] md:text-[20px] font-[400] bg-white rounded-lg py-2 px-3 shadow-sm border border-slate-300 md:w-auto"
               >
-                {user?.credits && <LiaCoinsSolid size={24} />}
+                {((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0) > 0) && <LiaCoinsSolid size={24} />}
                 {user?.credits === null && <ImInfinite />}
 
                 <span className="flex flex-row flex-nowrap gap-x-[5px]">
                   <span>
-                    {user?.credits !== null &&
-                      user?.credits !== 0 &&
-                      user?.credits}
+                    {
+
+                      (user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)}
                   </span>
                   <span>
-                    {user?.credits && user?.credits >= 0 && user?.credits !== 1
+                    {((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)) > 1
                       ? "credits"
-                      : user?.credits === 1
+                      : ((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)) === 1
                         ? "credit"
                         : "credits"}
                   </span>
@@ -390,6 +347,10 @@ export default function BookingsPage() {
                     item?.class_bookings?.[0]?.attendance_status === "cancelled";
 
                   const notEnded = dayjs(item.start_time).isSameOrAfter(now)
+                  const noPurchasedCredits = user?.credits === 0;
+                  const noUsableSharedCredits = user?.totalUsableSharedCredits === 0;
+                  const noCredits = noPurchasedCredits && noUsableSharedCredits;
+
                   return (
                     <>
                       <List.Item
@@ -462,19 +423,19 @@ export default function BookingsPage() {
                               <Button
                                 type="primary"
                                 disabled={
-                                  user?.credits === 0
+                                  noCredits
                                     ? false
                                     : item?.taken_slots === item?.available_slots
                                 }
                                 onClick={() => handleScheduleAction(item)}
-                                className={`${user?.credits === 0
-                                  ? "!bg-slate-200 hover:!bg-slate-200"
+                                className={`bg-[#800020] ${noCredits
+                                  ? "hover:!bg-[#800020]"
                                   : item?.taken_slots === item?.available_slots
                                     ? ""
                                     : "!bg-[#800020] hover:!bg-[#800020]"
                                   } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
                               >
-                                {user?.credits === 0 ? "Get Credits" : "Join"}
+                                {noCredits ? "Get Credits" : "Join"}
                               </Button>
                             )}
                           </div>
@@ -576,9 +537,9 @@ export default function BookingsPage() {
               <Button
                 loading={loading || isSubmitting}
                 onClick={() => setConfirmBookingOpen(true)}
-                disabled={!acceptsTerms || loading || isSubmitting}
+                disabled={!acceptsTerms || loading || isSubmitting || noCredits}
                 className={`${acceptsTerms && "hover:!bg-[#800020] hover:scale-[1.03]"
-                  } ${!acceptsTerms || loading || isSubmitting
+                  } ${!acceptsTerms || loading || isSubmitting || noCredits
                     ? "!bg-slate-200"
                     : "!bg-[#800020]"
                   } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[40px]`}

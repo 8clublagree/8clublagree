@@ -113,9 +113,23 @@ export default function AuthenticatedLayout({
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )[0];
 
+
     const activePackage: CurrentPackageProps = profile?.client_packages?.find(
       (p: any) => p.status === "active",
     );
+
+    const sharedPackages: CurrentPackageProps[] = profile?.client_packages?.filter(
+      (p: any) => p.is_shared,
+    );
+
+
+    const totalUsableSharedCredits = sharedPackages?.reduce((acc: number, p: any) => {
+      if (p.is_shared && p.number_of_shared_credits_used > 0) {
+        const usableSharedCredits = p.package_credits - p.number_of_shared_credits_used;
+        acc += usableSharedCredits;
+      }
+      return acc;
+    }, 0);
 
     if (profile) {
       if (profile.user_type === "admin") {
@@ -126,15 +140,16 @@ export default function AuthenticatedLayout({
         return;
       }
 
-
-
       dispatch(
         setUser({
           ...omit(profile, ['user_type']),
           pendingPurchases: payments,
           avatar_url: signedUrl ?? undefined,
           currentPackage: activePackage,
-          credits: activePackage ? latestCredit.credits : 0,
+          sharedPackages: sharedPackages,
+          credits: activePackage ? latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0) : 0,
+          shareable_credits: activePackage ? latestCredit.shareable_credits : 0,
+          totalUsableSharedCredits: totalUsableSharedCredits < 0 ? 0 : totalUsableSharedCredits,
         }),
       );
     }
@@ -216,25 +231,6 @@ export default function AuthenticatedLayout({
       onClick: handleLogout,
     },
   ];
-
-  const renderUploadProofLoader = useCallback(() => {
-    return (
-      <Row
-        className="justify-center items-center bg-black/60 !h-full !w-full"
-      >
-        <Row
-          justify="center"
-          align="middle"
-          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
-        >
-          <div className="flex flex-row gap-x-[20px]">
-            <p className="mt-4 text-slate-600 animate-loading-shade">Warming Up</p>
-          </div>
-          <Spin spinning={true} />
-        </Row>
-      </Row>
-    );
-  }, [user]);
 
   return (
     <Layout className="h-screen min-h-screen flex !halyard">

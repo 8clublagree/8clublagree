@@ -12,6 +12,9 @@ export async function POST(req: Request) {
       validityPeriod,
       packageCredits,
       packageName,
+      isShareable,
+      shareableCredits,
+      numberOfCreditsShared
     } = await req.json();
 
     const today = dayjs();
@@ -28,6 +31,11 @@ export async function POST(req: Request) {
         package_name: packageName,
         payment_method: paymentMethod,
         expiration_date: getDateFromToday(validityPeriod),
+        ...(isShareable === true && {
+          is_shareable: isShareable,
+          shareable_credits: shareableCredits,
+          number_of_credits_shared: numberOfCreditsShared,
+        }),
       })
       .select();
 

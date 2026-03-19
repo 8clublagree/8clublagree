@@ -85,6 +85,9 @@ export interface ClientPackageProps {
   paymentMethod: "debit" | "credit" | string;
   packageCredits: number;
   validityPeriod: number;
+  isShareable: boolean;
+  shareableCredits: number;
+  numberOfCreditsShared: number;
   packages: {
     id: string;
     price: number;

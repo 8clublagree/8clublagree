@@ -51,6 +51,94 @@ async function expireOverduePackages() {
   return { expired: packageIds.length };
 }
 
+async function expireSharedCredits(endOfToday: string) {
+  // Mark pending (unclaimed) shared credits as expired when the package itself expires
+  const { error: pendingError } = await supabaseServer
+    .from("shared_credits")
+    .update({ status: "expired" })
+    .eq("status", "pending")
+    .lte("expiration_date", endOfToday);
+
+  if (pendingError) {
+    console.error("[expire-packages] Shared credits pending expire error:", pendingError.message);
+  }
+
+  // Deduct claimed shared credits whose expiration_date has passed
+  const { data: expiredShares, error: claimedFetchError } = await supabaseServer
+    .from("shared_credits")
+    .select("id, recipient_id, credits_amount")
+    .eq("status", "claimed")
+    .lte("expiration_date", endOfToday);
+
+  if (claimedFetchError) {
+    console.error("[expire-packages] Shared credits claimed fetch error:", claimedFetchError.message);
+    return;
+  }
+
+  if (!expiredShares?.length) return;
+
+  for (const share of expiredShares) {
+    const { data: credits } = await supabaseServer
+      .from("user_credits")
+      .select("credits")
+      .eq("user_id", share.recipient_id)
+      .single();
+
+    if (credits) {
+      const newCredits = Math.max(0, (credits.credits ?? 0) - share.credits_amount);
+      await supabaseServer
+        .from("user_credits")
+        .update({ credits: newCredits })
+        .eq("user_id", share.recipient_id);
+    }
+  }
+
+  const shareIds = expiredShares.map((s) => s.id);
+  await supabaseServer
+    .from("shared_credits")
+    .update({ status: "expired" })
+    .in("id", shareIds);
+
+  console.log(`[expire-packages] Expired ${expiredShares.length} shared credit records.`);
+}
+
+async function expireTokenExpiredShares() {
+  const now = dayjs().toISOString();
+
+  const { data: tokenExpired } = await supabaseServer
+    .from("shared_credits")
+    .select("id, client_package_id, credits_amount")
+    .eq("status", "pending")
+    .lte("token_expires_at", now);
+
+  if (!tokenExpired?.length) return;
+
+  for (const share of tokenExpired) {
+    const { data: pkg } = await supabaseServer
+      .from("client_packages")
+      .select("number_of_credits_shared")
+      .eq("id", share.client_package_id)
+      .single();
+
+    if (pkg) {
+      await supabaseServer
+        .from("client_packages")
+        .update({
+          number_of_credits_shared: Math.max(0, (pkg.number_of_credits_shared ?? 0) - share.credits_amount),
+        })
+        .eq("id", share.client_package_id);
+    }
+  }
+
+  const ids = tokenExpired.map((s) => s.id);
+  await supabaseServer
+    .from("shared_credits")
+    .update({ status: "expired" })
+    .in("id", ids);
+
+  console.log(`[expire-packages] Token-expired ${tokenExpired.length} pending share(s), refunded to sender packages.`);
+}
+
 export async function GET(request: Request) {
   // Vercel sends CRON_SECRET in Authorization header; reject if set and missing/wrong
   const cronSecret = process.env.CRON_SECRET;
@@ -63,6 +151,9 @@ export async function GET(request: Request) {
 
   try {
     const result = await expireOverduePackages();
+    const endOfToday = dayjs().endOf("day").toISOString();
+    await expireSharedCredits(endOfToday);
+    await expireTokenExpiredShares();
     return NextResponse.json({ status: "ok", ...result });
   } catch (err) {
     console.error("[expire-packages] Cron failed:", err);

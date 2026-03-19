@@ -23,7 +23,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { CreateClassProps } from "@/lib/props";
 import { IoMdPersonAdd } from "react-icons/io";
 import ManualBookingForm from "@/components/forms/ManualBookingForm";
-import { useClassManagement, useManageCredits } from "@/lib/api";
+import { useClassManagement, useManageCredits, usePackageManagement } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
 import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 import utc from "dayjs/plugin/utc";
@@ -71,6 +71,7 @@ export default function ClassManagementPage() {
   const [cannotRebook, setCannotRebook] = useState<boolean>(false);
   const [isProcessingData, setIsProcessingData] = useState<boolean>(false);
   const { updateUserCredits } = useManageCredits();
+  const { updateClientPackage } = usePackageManagement();
 
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -344,6 +345,9 @@ export default function ClassManagementPage() {
       const bookingType = formData.bookingType;
       const values = omit(formData, ["bookingType"]);
 
+      const hasPurchasedCredits = values.existingClientRecord.credits !== null;
+      const hasUsableSharedCredits = values.existingClientRecord.totalUsableSharedCredits !== null;
+
       // console.log('values: ', values)
 
       if (bookingType === "walk-in") {
@@ -370,10 +374,27 @@ export default function ClassManagementPage() {
           deductCredits: clientCredits != null,
         });
 
-        await updateUserCredits({
-          userID: clientID as string,
-          ...(clientCredits && clientCredits !== null && !isNaN(clientCredits as number) && { values: { credits: clientCredits as number - 1 } }),
-        });
+        if (hasPurchasedCredits) {
+
+          await updateUserCredits({
+            userID: clientID as string,
+            ...(clientCredits && clientCredits !== null && !isNaN(clientCredits as number) && { values: { credits: clientCredits as number - 1 } }),
+          });
+        } else if (hasUsableSharedCredits) {
+
+          const soonestExpiring = values.existingClientRecord.sharedPackages?.reduce((earliest: any, current: any) =>
+            dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
+          );
+
+          await updateClientPackage({
+            clientPackageID: soonestExpiring?.id as string,
+            values: {
+              packageCredits: (soonestExpiring?.package_credits as number) - 1,
+              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) - 1,
+            },
+          });
+        }
+
 
       }
 
