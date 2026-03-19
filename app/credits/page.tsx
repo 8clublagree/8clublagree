@@ -148,7 +148,7 @@ export default function CreditsPage() {
       {!fetchingData && (
         <div className="space-y-6">
           {/* <Alert message="Purchased credits and credits shared to you will now be shown as a total in your credit tracker." type="info" showIcon /> */}
-          <Alert message="Bought your package before March 18? Message us to unlock your shareable credits and bring a friend." type="success" showIcon />
+          <Alert message="Bought a shareable package before March 18? Message us to unlock your shareable credits and bring a friend." type="success" showIcon />
           <Row gutter={[16, 16]} className="flex flex-wrap items-stretch">
             {/* Current Package */}
             <Col xs={24} sm={12} lg={6} className="flex">
