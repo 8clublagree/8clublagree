@@ -44,7 +44,7 @@ export interface UserProfile {
   user_type?: "general" | "admin" | "instructor";
   created_at?: string;
   updated_at?: string;
-  credits?: number;
+  credits?: number | null;
   shareable_credits?: number;
   totalUsableSharedCredits?: number;
   deactivated?: boolean;

@@ -140,6 +140,13 @@ export default function AuthenticatedLayout({
         return;
       }
 
+      // console.log('activePackage: ', activePackage)
+      // console.log('latestCredit: ', latestCredit)
+      // console.log('totalUsableSharedCredits: ', totalUsableSharedCredits)
+      // console.log('credits: ', activePackage ? latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0) : 0)
+      // console.log('shareable_credits: ', activePackage ? latestCredit.shareable_credits : 0)
+
+      const credits = activePackage && activePackage.packages.package_credits === null ? null : latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0)
       dispatch(
         setUser({
           ...omit(profile, ['user_type']),
@@ -147,7 +154,7 @@ export default function AuthenticatedLayout({
           avatar_url: signedUrl ?? undefined,
           currentPackage: activePackage,
           sharedPackages: sharedPackages,
-          credits: activePackage ? latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0) : 0,
+          credits: credits,
           shareable_credits: activePackage ? latestCredit.shareable_credits : 0,
           totalUsableSharedCredits: totalUsableSharedCredits < 0 ? 0 : totalUsableSharedCredits,
         }),

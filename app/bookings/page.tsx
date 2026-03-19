@@ -257,8 +257,7 @@ export default function BookingsPage() {
   };
 
   const handleScheduleAction = (item: any) => {
-    if ((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0) !== 0) {
-
+    if (user?.credits === null || (user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0) !== 0) {
       handleOpenModal(item);
     }
   };
@@ -295,9 +294,7 @@ export default function BookingsPage() {
 
                 <span className="flex flex-row flex-nowrap gap-x-[5px]">
                   <span>
-                    {
-
-                      (user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)}
+                    {user?.credits === null ? null : (user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)}
                   </span>
                   <span>
                     {((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)) > 1
@@ -349,7 +346,11 @@ export default function BookingsPage() {
                   const notEnded = dayjs(item.start_time).isSameOrAfter(now)
                   const noPurchasedCredits = user?.credits === 0;
                   const noUsableSharedCredits = user?.totalUsableSharedCredits === 0;
-                  const noCredits = noPurchasedCredits && noUsableSharedCredits;
+
+
+
+                  const noCredits = user?.credits !== null && noPurchasedCredits && noUsableSharedCredits;
+
 
                   return (
                     <>
