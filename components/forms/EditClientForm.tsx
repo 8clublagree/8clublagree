@@ -360,6 +360,7 @@ const EditClientForm = ({
   };
 
   const handleExpirePackageConfirm = async (password: string) => {
+    console.log('initialValues: ', initialValues)
     const adminEmail = user?.email;
     if (!adminEmail) {
       throw new Error("Unable to verify: no admin email.");
@@ -377,10 +378,18 @@ const EditClientForm = ({
     if (!clientPackageId) {
       throw new Error("No active package to expire.");
     }
-    await updateClientPackage({
-      clientPackageID: clientPackageId,
-      values: { status: "expired", expirationDate: dayjs() },
-    });
+
+
+    await Promise.all([
+      updateClientPackage({
+        clientPackageID: clientPackageId,
+        values: { status: "expired", expirationDate: dayjs() },
+      }),
+      updateUserCredits({
+        userID: initialValues?.id as string,
+        values: { credits: 0 },
+      }),
+    ]);
 
     handleClose();
     refetch?.();
