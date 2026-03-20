@@ -404,7 +404,6 @@ export default function ClassManagementPage() {
       });
       handleCloseBookingModal();
     } catch (error) {
-      console.log('error: ', error)
       showMessage({ type: "error", content: "Error in manual booking" });
     }
   };
