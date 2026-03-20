@@ -345,8 +345,8 @@ export default function ClassManagementPage() {
       const bookingType = formData.bookingType;
       const values = omit(formData, ["bookingType"]);
 
-      const hasPurchasedCredits = values.existingClientRecord.credits !== null;
-      const hasUsableSharedCredits = values.existingClientRecord.totalUsableSharedCredits !== null;
+      const hasPurchasedCredits = values?.existingClientRecord?.credits !== null;
+      const hasUsableSharedCredits = values?.existingClientRecord?.totalUsableSharedCredits !== null;
 
       // console.log('values: ', values)
 
@@ -404,6 +404,7 @@ export default function ClassManagementPage() {
       });
       handleCloseBookingModal();
     } catch (error) {
+      console.log('error: ', error)
       showMessage({ type: "error", content: "Error in manual booking" });
     }
   };
