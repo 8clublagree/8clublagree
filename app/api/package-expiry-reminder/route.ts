@@ -11,7 +11,7 @@ async function checkExpiringPackages() {
   console.log("Checking package expiration warnings...");
 
   const now = dayjs();
-  const tenDays = now.add(10, "day");
+  const sevenDays = now.add(7, "day");
 
   const { data: packages, error }: any = await supabaseServer
     .from("client_packages")
@@ -36,7 +36,9 @@ async function checkExpiringPackages() {
     .eq("status", "active")
     .eq("sent_initial_expiration_email", false)
     .gte("expiration_date", now.startOf("day").toISOString())
-    .lte("expiration_date", tenDays.endOf("day").toISOString());
+    .lte("expiration_date", sevenDays.endOf("day").toISOString());
+
+  console.log('packages: ', packages)
 
   if (error) {
     console.error("Supabase error:", error);
@@ -68,7 +70,7 @@ async function checkExpiringPackages() {
         const expiry = dayjs(pkg.expiration_date).format("MMMM DD, YYYY");
 
         await transporter.sendMail({
-          from: '"8ClubLagree" <8clublagree@gmail.com>',
+          from: "8 Club Lagree <noreply@8clublagree.com>",
           to: user.email,
           subject: "Your package is expiring soon",
           html: `
@@ -128,7 +130,7 @@ async function checkExpiringPackages() {
         <tr style="text-align: center">
           <td>
             <a
-              href="https://lagree-booking-system.vercel.app/"
+              href="https://www.8clublagree.com"
               target="_blank"
               rel="noopener noreferrer"
               style="text-decoration: none;"
