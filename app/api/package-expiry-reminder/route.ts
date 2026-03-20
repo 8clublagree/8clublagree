@@ -38,8 +38,6 @@ async function checkExpiringPackages() {
     .gte("expiration_date", now.startOf("day").toISOString())
     .lte("expiration_date", sevenDays.endOf("day").toISOString());
 
-  console.log('packages: ', packages)
-
   if (error) {
     console.error("Supabase error:", error);
     return NextResponse.json({ error });
