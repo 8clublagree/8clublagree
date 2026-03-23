@@ -64,7 +64,7 @@ export default function AuthenticatedLayout({
   instructorsRef.current = instructorsState;
 
   useEffect(() => {
-    checkUser();
+
 
     const {
       data: { subscription },
