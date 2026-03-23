@@ -142,12 +142,6 @@ export default function AuthenticatedLayout({
         return;
       }
 
-      // console.log('activePackage: ', activePackage)
-      // console.log('latestCredit: ', latestCredit)
-      // console.log('totalUsableSharedCredits: ', totalUsableSharedCredits)
-      // console.log('credits: ', activePackage ? latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0) : 0)
-      // console.log('shareable_credits: ', activePackage ? latestCredit.shareable_credits : 0)
-
       const credits = activePackage && activePackage.packages.package_credits === null ? null : latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0)
       dispatch(
         setUser({
@@ -317,15 +311,15 @@ export default function AuthenticatedLayout({
           </Dropdown>
         </Header>
 
-        {user !== null &&
-          <Content className="justify-between flex flex-col h-screen pb-0 bg-slate-50 overflow-auto">
-            <div className={`${user === null ? undefined : 'py-[20px] px-4'} w-full mx-auto`}>
-              {children}
-            </div>
-          </Content>
-        }
 
-        {user === null &&
+        <Content className="justify-between flex flex-col h-screen pb-0 bg-slate-50 overflow-auto">
+          <div className={`${user === null ? undefined : 'py-[20px] px-4'} w-full mx-auto`}>
+            {children}
+          </div>
+        </Content>
+
+
+        {/* {user === null &&
           <Row
             className="justify-center items-center bg-black/30 !h-full !w-full"
           >
@@ -351,7 +345,7 @@ export default function AuthenticatedLayout({
 
             </Row>
           </Row>
-        }
+        } */}
 
       </Layout>
 
