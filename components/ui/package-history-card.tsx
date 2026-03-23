@@ -66,6 +66,11 @@ const PackageHistoryCard = ({ item }: { item: any }) => {
                 {item?.packageCredits ?? "Unlimited"}
               </span>{" "}
               Sessions
+              {item?.shareableCredits &&
+                <span style={{ fontWeight: 600 }}>
+                  {` (${item?.shareableCredits} Shareable)`}
+                </span>
+              }
             </Text>
             <Text style={{ fontSize: 16 }}>
               Valid for{" "}
