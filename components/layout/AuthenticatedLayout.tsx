@@ -121,13 +121,13 @@ export default function AuthenticatedLayout({
     );
 
     const sharedPackages: CurrentPackageProps[] = profile?.client_packages?.filter(
-      (p: any) => p.is_shared,
+      (p: any) => p?.is_shared,
     );
 
 
     const totalUsableSharedCredits = sharedPackages?.reduce((acc: number, p: any) => {
-      if (p.is_shared && p.number_of_shared_credits_used > 0) {
-        const usableSharedCredits = p.package_credits - p.number_of_shared_credits_used;
+      if (p?.is_shared && p?.number_of_shared_credits_used > 0) {
+        const usableSharedCredits = p?.package_credits - p?.number_of_shared_credits_used;
         acc += usableSharedCredits;
       }
       return acc;
@@ -142,7 +142,7 @@ export default function AuthenticatedLayout({
         return;
       }
 
-      const credits = activePackage && activePackage.packages.package_credits === null ? null : latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0)
+      const credits = activePackage && activePackage?.packages?.package_credits === null ? null : latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0)
       dispatch(
         setUser({
           ...omit(profile, ['user_type']),
