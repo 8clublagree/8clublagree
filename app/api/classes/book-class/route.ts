@@ -25,7 +25,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: classError.message }, { status: 400 });
     }
 
-    if (classData?.taken_slots >= classData?.available_slots) {
+    const currentBookings = classData?.class_bookings?.length ?? 0;
+
+    if (currentBookings >= classData?.available_slots) {
       return NextResponse.json({ error: "Class is full" }, { status: 400 });
     }
 
@@ -52,10 +54,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    const { count: actualBookings } = await supabaseServer
+      .from("class_bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("class_id", classId);
+
     const { data: updateClassData, error: updateClassError } = await supabaseServer
       .from("classes")
       .update({
-        taken_slots: (classData?.taken_slots || 0) + 1,
+        taken_slots: actualBookings ?? currentBookings + 1,
       })
       .eq("id", classId)
       .select();
