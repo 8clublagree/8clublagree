@@ -82,7 +82,7 @@ export default function AuthenticatedLayout({
     };
   }, [dispatch, router]);
 
-  const checkUser = async () => {
+  const checkUser = async (retries = 3) => {
     if (userRef.current !== null) return;
 
     const {
@@ -94,9 +94,19 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    const response = await axiosApi.get(`/user/initialize-user`, {
-      params: { userID: session.user.id },
-    });
+    let response;
+    try {
+      response = await axiosApi.get(`/user/initialize-user`, {
+        params: { userID: session.user.id },
+      });
+    } catch (err) {
+      console.error("[checkUser] Failed to initialize user:", err);
+      if (retries > 0) {
+        await new Promise((r) => setTimeout(r, 2000));
+        return checkUser(retries - 1);
+      }
+      return;
+    }
 
     if (!response) return;
 
