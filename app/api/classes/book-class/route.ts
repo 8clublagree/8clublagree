@@ -54,15 +54,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    const { count: actualBookings } = await supabaseServer
-      .from("class_bookings")
-      .select("id", { count: "exact", head: true })
-      .eq("class_id", classId);
 
     const { data: updateClassData, error: updateClassError } = await supabaseServer
       .from("classes")
       .update({
-        taken_slots: actualBookings ?? currentBookings + 1,
+        taken_slots: classData?.taken_slots ?? 0 + 1,
       })
       .eq("id", classId)
       .select();
