@@ -91,7 +91,7 @@ export async function POST(req: Request) {
 
     const { error: creditsError } = await supabaseServer
       .from("user_credits")
-      .insert({ user_id: authData.user.id });
+      .insert({ user_id: authData.user.id, credits: 0 });
 
     if (creditsError) {
       return NextResponse.json(
