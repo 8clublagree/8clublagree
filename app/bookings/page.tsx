@@ -209,6 +209,7 @@ export default function BookingsPage() {
         });
 
         if (hasPurchasedCredits) {
+
           await updateUserCredits({
             userID: user?.id as string,
             ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: user?.credits as number - 1 } }),
@@ -216,6 +217,7 @@ export default function BookingsPage() {
 
           dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
         } else if (hasUsableSharedCredits) {
+
 
           const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
             dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest

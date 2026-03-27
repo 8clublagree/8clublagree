@@ -152,7 +152,8 @@ export default function AuthenticatedLayout({
         return;
       }
 
-      const credits = activePackage && activePackage?.packages?.package_credits === null ? null : latestCredit.credits + (activePackage?.shareable_credits ?? 0) - (activePackage?.number_of_credits_shared ?? 0)
+
+      const credits = activePackage && activePackage?.packages?.package_credits === null ? null : latestCredit.credits
       dispatch(
         setUser({
           ...omit(profile, ['user_type']),
@@ -161,6 +162,7 @@ export default function AuthenticatedLayout({
           currentPackage: activePackage,
           sharedPackages: sharedPackages,
           credits: credits,
+          numberOfCreditsShared: activePackage?.number_of_credits_shared,
           shareable_credits: activePackage ? latestCredit.shareable_credits : 0,
           totalUsableSharedCredits: totalUsableSharedCredits < 0 ? 0 : totalUsableSharedCredits,
         }),

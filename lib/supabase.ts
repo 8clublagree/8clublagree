@@ -47,6 +47,7 @@ export interface UserProfile {
   credits?: number | null;
   shareable_credits?: number;
   totalUsableSharedCredits?: number;
+  numberOfCreditsShared?: number;
   deactivated?: boolean;
   emergency_contact_name?: string;
   emergency_contact_number?: string;

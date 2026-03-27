@@ -134,7 +134,6 @@ export default function CreditsPage() {
     }
   };
 
-
   return (
     <AuthenticatedLayout>
       {contextHolder}
