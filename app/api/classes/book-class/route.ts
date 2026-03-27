@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     const currentBookings = classData?.class_bookings?.length ?? 0;
 
-    if (currentBookings >= classData?.available_slots) {
+    if (classData?.taken_slots >= classData?.available_slots) {
       return NextResponse.json({ error: "Class is full" }, { status: 400 });
     }
 
