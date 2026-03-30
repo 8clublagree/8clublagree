@@ -6,6 +6,8 @@ import { EMAIL_TEMPLATE } from "@/lib/email-templates";
 import supabaseServer from "../supabase";
 
 const OTP_LENGTH = 6;
+const INSERT_RETRY_COUNT = 3;
+const INSERT_RETRY_DELAY_MS = 500;
 
 function generateOtp(): string {
   const digits = "0123456789";
@@ -43,18 +45,36 @@ export async function POST(req: NextRequest) {
 
     const otp = generateOtp();
 
-    const { error: insertError } = await supabaseServer
-      .from("password_reset_requests")
-      .insert({
-        email: email.trim().toLowerCase(),
-        requested_at: new Date().toISOString(),
-        otp,
-      });
+    let insertError: any = null;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    for (let attempt = 1; attempt <= INSERT_RETRY_COUNT; attempt++) {
+      const { error } = await supabaseServer
+        .from("password_reset_requests")
+        .insert({
+          email: normalizedEmail,
+          requested_at: new Date().toISOString(),
+          otp,
+        });
+
+      if (!error) {
+        insertError = null;
+        break;
+      }
+
+      insertError = error;
+
+      if (attempt < INSERT_RETRY_COUNT) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, INSERT_RETRY_DELAY_MS * attempt),
+        );
+      }
+    }
 
     if (insertError) {
       console.error("request-password-reset insert error:", insertError);
       return NextResponse.json(
-        { error: "Failed to create reset request" },
+        { error: "Please refresh and try again" },
         { status: 500 },
       );
     }
@@ -96,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     await transport.sendMail({
       from: "8 Club Lagree <noreply@8clublagree.com>",
-      to: [email],
+      to: [normalizedEmail],
       subject,
       html: body,
     });
