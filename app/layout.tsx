@@ -8,6 +8,13 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "8 Club Lagree",
+  description: "Lagree Megaformer classes in Cebu with coach-led, low-impact training.",
+  metadataBase: new URL(
+    (
+      process.env.SYSTEM_ORIGIN ??
+      "https://www.8clublagree.com"
+    ).replace(/\/$/, "")
+  ),
   icons: {
     icon: "/images/main-8-logo-white.png",
   },

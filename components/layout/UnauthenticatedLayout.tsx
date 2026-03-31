@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Drawer, Layout, Row, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
