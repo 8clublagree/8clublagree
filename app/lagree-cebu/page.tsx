@@ -90,7 +90,7 @@ export default function LagreeCebuPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
 
-        <div className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+        <div className="mx-auto max-w-3xl px-4 pt-[30px] pb-10 sm:py-14">
           <nav className="text-sm text-slate-500">
             <Link href="/" className="hover:text-slate-700">
               Home
