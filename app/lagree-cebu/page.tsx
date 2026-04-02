@@ -243,12 +243,12 @@ export default function LagreeCebuPage() {
                 >
                   Book a Class
                 </Link>
-                <Link
+                {/* <Link
                   href="/packages"
                   className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 hover:bg-slate-100"
                 >
                   View Packages
-                </Link>
+                </Link> */}
               </div>
               <p className="mt-4 text-sm text-slate-600">
                 New to Megaformer? Read our{" "}

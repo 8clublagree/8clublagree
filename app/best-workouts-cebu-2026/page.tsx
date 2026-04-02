@@ -278,12 +278,12 @@ export default function BestWorkoutsCebu2026Page() {
                 >
                   Book a Class
                 </Link>
-                <Link
+                {/* <Link
                   href="/packages"
                   className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 hover:bg-slate-100"
                 >
                   Compare Packages
-                </Link>
+                </Link> */}
               </div>
               <p className="mt-4 text-sm text-slate-600">
                 New to this method? Start with{" "}
