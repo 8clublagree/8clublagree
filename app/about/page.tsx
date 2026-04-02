@@ -400,7 +400,7 @@ export default function About() {
             fontWeight: 300,
           }}
         >
-          Join our club <a href="/signup" className="!text-red-400 cursor-pointer">for free</a> to book a
+          <a href="/signup" className="!text-red-400 cursor-pointer">Join our club</a> to book a
           class and view our future schedules
         </Paragraph>
 
