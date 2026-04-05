@@ -360,7 +360,7 @@ const EditClientForm = ({
   };
 
   const handleExpirePackageConfirm = async (password: string) => {
-    console.log('initialValues: ', initialValues)
+    // console.log('initialValues: ', initialValues)
     const adminEmail = user?.email;
     if (!adminEmail) {
       throw new Error("Unable to verify: no admin email.");
