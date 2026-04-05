@@ -92,7 +92,6 @@ export default function CreditsPage() {
         );
       }
 
-      // console.log('active: ', active)
       setActivePackage(active);
       setPackages(mapped);
     }
@@ -207,7 +206,7 @@ export default function CreditsPage() {
 
                       {activePackage.packages.packageCredits &&
                         <Title level={4} className="!mb-0 !font-normal">
-                          {`${(user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)} available credits`}
+                          {`${(user?.credits ?? 0) + (activePackage.shareableCredits - (activePackage?.numberOfCreditsShared ?? 0))} available credits`}
                         </Title>
                       }
                       {!activePackage.packages.packageCredits && (
