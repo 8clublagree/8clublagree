@@ -150,7 +150,7 @@ export default function DashboardPage() {
               <Card className="shadow-sm hover:shadow-md transition-shadow">
                 <Statistic
                   title="Total Credits"
-                  value={(user?.credits as number) ?? "Unlimited"}
+                  value={user?.credits === null ? "Unlimited" : (user?.credits as number) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))}
                   prefix={<CalendarOutlined className="text-blue-600" />}
                   valueStyle={{ color: "#1e293b", margin: 0, padding: 0 }}
                 />
