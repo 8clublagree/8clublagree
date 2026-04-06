@@ -171,6 +171,7 @@ export default function ClientManagementPage() {
               );
           }
 
+
           return {
             ...user,
             clientPackage,

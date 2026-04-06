@@ -576,7 +576,7 @@ const EditClientForm = ({
               )}
           </Row>
 
-          {initialValues?.clientPackage && (
+          {initialValues?.clientPackage && initialValuesRef?.current?.credits !== null && (
             <Col xs={24} sm={12}>
               <Tooltip
                 title={
