@@ -233,7 +233,6 @@ export default function PackagesPage() {
       };
     });
 
-    console.log('mapped: ', mapped)
     setPackages(mapped);
   };
 
