@@ -72,6 +72,7 @@ export interface PackageProps {
   packageType: string;
   packageCredits: number;
   validityPeriod: number;
+  shareable_credits?: number;
 }
 
 export interface ClientPackageProps {

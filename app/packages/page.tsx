@@ -233,6 +233,7 @@ export default function PackagesPage() {
       };
     });
 
+    console.log('mapped: ', mapped)
     setPackages(mapped);
   };
 
@@ -706,7 +707,7 @@ export default function PackagesPage() {
                       title={
                         <span className="halyard font-semibold text-2xl sm:text-3xl xl:text-4xl tracking-tight">
                           {item.packageCredits
-                            ? `${item.packageCredits}`
+                            ? `${item.packageCredits + (item?.shareable_credits ?? 0)}`
                             : "Unlimited"}
                         </span>
                       }
@@ -739,7 +740,7 @@ export default function PackagesPage() {
                           </p>
                           <p className="text-slate-600 text-sm sm:text-base font-light">
                             {item.packageCredits
-                              ? `${item.packageCredits} sessions`
+                              ? `${item.packageCredits + (item?.shareable_credits ?? 0)} sessions`
                               : "Unlimited Sessions"}
                           </p>
                           <p className="text-slate-600 text-sm sm:text-base font-light">
