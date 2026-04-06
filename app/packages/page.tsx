@@ -837,7 +837,7 @@ export default function PackagesPage() {
                   className="halyard !text-[60px] bg-[#0a0a0a] border w-full"
                   size={200}
                 >
-                  {selectedRecord?.packageCredits}
+                  {selectedRecord?.packageCredits + (selectedRecord?.shareable_credits ?? 0)}
                 </Avatar>
               </Row>
               <Divider />
@@ -853,7 +853,7 @@ export default function PackagesPage() {
                   <Title level={5} className="!mb-0">
                     Number of Sessions:{" "}
                     <span className="font-normal">
-                      {selectedRecord?.packageCredits ?? "Unlimited"}
+                      {selectedRecord?.packageCredits ? (selectedRecord?.packageCredits + (selectedRecord?.shareable_credits ?? 0)) : "Unlimited"}
                     </span>
                   </Title>
                 </Row>
