@@ -31,7 +31,10 @@ export async function GET(req: NextRequest) {
           purchase_date,
           package_credits,
           validity_period,
-          expiration_date
+          expiration_date,
+          shareable_credits,
+          number_of_credits_shared,
+          is_shareable
         )
         `,
         { count: "exact" },

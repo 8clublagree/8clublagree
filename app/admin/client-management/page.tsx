@@ -9,6 +9,7 @@ import {
   useDeleteUser,
   useManageCredits,
   useManageImage,
+  usePackageManagement,
   useSearchUser,
   useUpdateUser,
 } from "@/lib/api";
@@ -43,6 +44,7 @@ export default function ClientManagementPage() {
   const [searchValue, setSearchValue] = useState("");
   const ignoreNextPaginationChangeRef = useRef(false);
   const { updateUserCredits } = useManageCredits();
+  const { updateClientPackage } = usePackageManagement();
   const { fetchClients, loading } = useSearchUser();
   const { updateUser, loading: updating } = useUpdateUser();
   const { showMessage, contextHolder } = useAppMessage();
@@ -130,6 +132,7 @@ export default function ClientManagementPage() {
             ? urlMap.get(user.avatar_path) ?? ""
             : "";
 
+
           if (clientPackage) {
             clientPackage = {
               clientPackageID: clientPackage.id,
@@ -141,6 +144,9 @@ export default function ClientManagementPage() {
               validityPeriod: clientPackage.validity_period,
               purchaseDate: clientPackage.purchase_date,
               expirationDate: clientPackage.expiration_date,
+              shareableCredits: clientPackage.shareable_credits,
+              numberOfCreditsShared: clientPackage.number_of_credits_shared,
+              isShareable: clientPackage.is_shareable,
             };
           }
 
@@ -245,7 +251,7 @@ export default function ClientManagementPage() {
         let promises = [
           updateUser({
             id: selectedRecord.id,
-            values: omit(values, ["credits"]),
+            values: omit(values, ["credits", "number_of_credits_shared", "shareable_credits"]),
           }),
         ];
 
@@ -266,6 +272,14 @@ export default function ClientManagementPage() {
             updateUserCredits({
               userID: selectedRecord?.id as string,
               values: { credits: values.credits },
+            }),
+          );
+        }
+        if (!isNaN(values.shareable_credits)) {
+          promises.push(
+            updateClientPackage({
+              clientPackageID: selectedRecord?.clientPackage?.clientPackageID as string,
+              values: { numberOfCreditsShared: values.number_of_credits_shared },
             }),
           );
         }

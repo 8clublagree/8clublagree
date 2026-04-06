@@ -52,6 +52,10 @@ interface EditClientProps {
     avatar_url?: string;
     avatar_path?: string;
     credits?: number;
+    shareableCredits?: number;
+    numberOfCreditsShared?: number;
+    isShareable?: boolean;
+    maxShareableCredits?: number;
   } | null;
   isEdit?: boolean;
   refetch?: any;
@@ -121,15 +125,20 @@ const EditClientForm = ({
   useEffect(() => {
     if (initialValues) {
       // exclude avatar data since it's not part of the form
+      const maxShareable = initialValues?.clientPackage?.shareableCredits ?? 0;
       const initial = {
         first_name: initialValues.first_name,
         last_name: initialValues.last_name,
         contact_number: initialValues.contact_number,
         email: initialValues.email,
         credits: initialValues.credits,
+        maxShareableCredits: maxShareable,
+        shareable_credits: (maxShareable ?? 0) - (initialValues?.clientPackage?.numberOfCreditsShared ?? 0),
+        number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared,
+        is_shareable: initialValues?.clientPackage?.isShareable,
       };
 
-      form.setFieldsValue({ credits: initialValues.credits });
+      form.setFieldsValue({ maxShareableCredits: maxShareable, is_shareable: initialValues?.clientPackage?.isShareable, credits: initialValues.credits, shareable_credits: (maxShareable ?? 0) - (initialValues?.clientPackage?.numberOfCreditsShared ?? 0), number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared });
 
       if (!!initialValues?.avatar_url?.length) {
         setFile([
@@ -266,6 +275,8 @@ const EditClientForm = ({
         avatar_path: imageURL,
       }),
       full_name: `${values.first_name} ${values.last_name}`,
+      number_of_credits_shared: initialValuesRef.current.maxShareableCredits - values.shareable_credits,
+      shareable_credits: values.shareable_credits,
     };
 
     onSubmit(formData);
@@ -574,7 +585,7 @@ const EditClientForm = ({
                 }
               >
                 <Form.Item
-                  label={`Remaining Credits`}
+                  label={`Remaining Purchased Credits`}
                   name="credits"
                   rules={[
                     {
@@ -604,6 +615,41 @@ const EditClientForm = ({
                   />
                 </Form.Item>
               </Tooltip>
+
+              {initialValuesRef?.current?.is_shareable === true &&
+                <Form.Item
+                  label={`Remaining Shareable Credits`}
+                  name="shareable_credits"
+                  rules={[
+                    {
+                      required: initialValuesRef?.current?.is_shareable === true,
+                      message: "Please enter amount of shareable credits",
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    // disabled={initialValues.isShareable === false}
+                    placeholder="Enter shareable credits"
+                    // prefix={<TeamOutlined className="text-slate-400" />}
+                    className="w-full"
+                    min={0}
+                    max={Number(initialValuesRef?.current?.maxShareableCredits) ?? 0}
+                    precision={0}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && e.code !== "Backspace") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const paste = e.clipboardData.getData("text");
+                      if (!/^\d+$/.test(paste)) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                </Form.Item>
+              }
+
             </Col>
           )}
         </Row>
