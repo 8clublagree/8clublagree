@@ -54,7 +54,7 @@ const faqs = [
     id: "training-frequency",
     question: "How often should I train?",
     answer:
-      "For best results, we recommend at least 3 sessions per week. Lagree works all major muscle groups at once, so your body benefits most with consistency and proper recovery between classes.",
+      "For best results, we recommend 2-3 sessions per week. Lagree works all major muscle groups at once, so your body benefits most with consistency and proper recovery between classes.",
   },
   {
     id: "arrival-time",
