@@ -271,6 +271,7 @@ export default function BookingsPage() {
   const noPurchasedCredits = user?.credits === 0;
   const noUsableSharedCredits = user?.totalUsableSharedCredits === 0;
   const noCredits = noPurchasedCredits && noUsableSharedCredits;
+
   return (
     <AuthenticatedLayout>
       {contextHolder}
@@ -291,17 +292,17 @@ export default function BookingsPage() {
                 onClick={() => router.push("/credits")}
                 className="cursor-pointer items-center gap-[5px] sm:gap-3 md:gap-[10px] text-[16px] sm:text-[18px] md:text-[20px] font-[400] bg-white rounded-lg py-2 px-3 shadow-sm border border-slate-300 md:w-auto"
               >
-                {((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0) > 0) && <LiaCoinsSolid size={24} />}
+                {((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) > 0 && <LiaCoinsSolid size={24} />}
                 {user?.credits === null && <ImInfinite />}
 
                 <span className="flex flex-row flex-nowrap gap-x-[5px]">
                   <span>
-                    {user?.credits === null ? null : (user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)}
+                    {user?.credits === null ? null : (user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))}
                   </span>
                   <span>
-                    {((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)) > 1
+                    {((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) > 1
                       ? "credits"
-                      : ((user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0)) === 1
+                      : ((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) === 1
                         ? "credit"
                         : "credits"}
                   </span>

@@ -706,7 +706,7 @@ export default function PackagesPage() {
                       title={
                         <span className="halyard font-semibold text-2xl sm:text-3xl xl:text-4xl tracking-tight">
                           {item.packageCredits
-                            ? `${item.packageCredits}`
+                            ? `${item.packageCredits + (item?.shareable_credits ?? 0)}`
                             : "Unlimited"}
                         </span>
                       }
@@ -739,7 +739,7 @@ export default function PackagesPage() {
                           </p>
                           <p className="text-slate-600 text-sm sm:text-base font-light">
                             {item.packageCredits
-                              ? `${item.packageCredits} sessions`
+                              ? `${item.packageCredits + (item?.shareable_credits ?? 0)} sessions`
                               : "Unlimited Sessions"}
                           </p>
                           <p className="text-slate-600 text-sm sm:text-base font-light">
@@ -837,7 +837,7 @@ export default function PackagesPage() {
                   className="halyard !text-[60px] bg-[#0a0a0a] border w-full"
                   size={200}
                 >
-                  {selectedRecord?.packageCredits}
+                  {selectedRecord?.packageCredits + (selectedRecord?.shareable_credits ?? 0)}
                 </Avatar>
               </Row>
               <Divider />
@@ -853,7 +853,7 @@ export default function PackagesPage() {
                   <Title level={5} className="!mb-0">
                     Number of Sessions:{" "}
                     <span className="font-normal">
-                      {selectedRecord?.packageCredits ?? "Unlimited"}
+                      {selectedRecord?.packageCredits ? (selectedRecord?.packageCredits + (selectedRecord?.shareable_credits ?? 0)) : "Unlimited"}
                     </span>
                   </Title>
                 </Row>

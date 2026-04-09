@@ -15,7 +15,6 @@ const PackageHistoryCard = ({ item }: { item: any }) => {
   );
   const isShared = item.isShared;
 
-  // console.log('item: ', item)
   return (
     <Tooltip title={tooltipContent}>
       <div className="relative">
@@ -63,7 +62,9 @@ const PackageHistoryCard = ({ item }: { item: any }) => {
           <Row className="flex flex-col">
             <Text style={{ fontSize: 16 }}>
               <span style={{ fontWeight: 600 }}>
-                {item?.packageCredits ?? "Unlimited"}
+                {item?.packageCredits == null
+                  ? "Unlimited"
+                  : (item.packageCredits ?? 0) + (item?.shareableCredits ?? 0)}
               </span>{" "}
               Sessions
               {item?.shareableCredits &&

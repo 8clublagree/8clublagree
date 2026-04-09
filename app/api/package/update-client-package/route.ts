@@ -5,26 +5,28 @@ export async function PUT(req: Request) {
   try {
     const { clientPackageID, values } = await req.json();
 
+
+    const updateValues: Record<string, unknown> = {};
+    if (values?.status !== undefined) updateValues.status = values.status;
+    if (values?.expirationDate !== undefined) {
+      updateValues.expiration_date = values.expirationDate;
+    }
+    if (values?.packageCredits !== undefined) {
+      updateValues.package_credits = values.packageCredits;
+    }
+    if (values?.validityPeriod !== undefined) {
+      updateValues.validity_period = values.validityPeriod;
+    }
+    if (values?.numberOfSharedCreditsUsed !== undefined) {
+      updateValues.number_of_shared_credits_used =
+        values.numberOfSharedCreditsUsed;
+    }
+    if (values?.numberOfCreditsShared !== undefined) {
+      updateValues.number_of_credits_shared = values.numberOfCreditsShared;
+    }
     const { data, error } = await supabaseServer
       .from("client_packages")
-      .update({
-        ...(values?.status && { status: values.status }),
-        ...(values?.expirationDate && {
-          expiration_date: values.expirationDate,
-        }),
-        ...(values?.packageCredits && {
-          package_credits: values.packageCredits,
-        }),
-        ...(values?.validityPeriod && {
-          validity_period: values.validityPeriod,
-        }),
-        ...(values?.numberOfSharedCreditsUsed && {
-          number_of_shared_credits_used: values.numberOfSharedCreditsUsed,
-        }),
-        ...(values?.numberOfCreditsShared && {
-          number_of_credits_shared: values.numberOfCreditsShared,
-        }),
-      })
+      .update(updateValues)
       .eq("id", clientPackageID)
       .select();
 
