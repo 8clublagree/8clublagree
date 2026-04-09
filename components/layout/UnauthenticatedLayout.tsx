@@ -190,7 +190,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
                   Best Workouts in Cebu 2026
                 </a>
                 <a
-                  href="/studio-guidelines"
+                  href="/lagree-studio-guidelines-cebu"
                   className="block !text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
                 >
                   Studio Guidelines
