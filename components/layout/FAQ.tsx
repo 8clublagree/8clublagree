@@ -31,7 +31,7 @@ const FAQ = () => {
         <Text strong className="halyard text-[16px]" underline>How do I purchase sessions?</Text>
         <Paragraph>
           You can purchase sessions directly through our website or via our studio front desk.
-          If you choose to pay in-studio, our team will assist you with setting up your Supra8 account online to activate your class credits.
+          If you choose to pay in-studio, our team will assist you with setting up your 8ClubLagree account online to activate your class credits.
         </Paragraph>{" "}
         <Paragraph>
           Movements in Lagree are slow and with control, with little to no rest in between an exercise, all to maximize muscle tension and results (e.g. about 1 rep in 10 seconds), whereas Pilates generally focuses on smaller, faster movements (e.g. 10 reps in 10 seconds).
