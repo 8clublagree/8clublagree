@@ -16,8 +16,10 @@ export async function middleware(req: NextRequest) {
   const origin = req.nextUrl.origin;
   const pathname = nextUrl.pathname;
 
-
   if (pathname === "/api/signup") {
+    return NextResponse.next();
+  }
+  if (pathname === "/api/package/fetch-preview-packages") {
     return NextResponse.next();
   }
   if (pathname === "/api/send-class-reminders") {
