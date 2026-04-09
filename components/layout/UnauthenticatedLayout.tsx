@@ -157,51 +157,57 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
               </Paragraph>
             </div>
 
-            <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
+            <div className="flex-nowrap flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">
               <Title
                 level={5}
                 className="!text-white !mb-1 font-normal uppercase tracking-wide text-xs sm:text-sm"
               >
                 Guides &amp; Resources
               </Title>
-              <Paragraph className="text-white/80 text-xs sm:text-sm space-y-1 !mb-0 !mt-0">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1 !mb-0 !mt-0">
                 <a
                   href="/lagree-cebu"
-                  className="block !text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
                 >
                   Lagree Cebu Guide
                 </a>
                 <a
                   href="/beginner-lagree-cebu"
-                  className="block !text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
                 >
                   Beginner Lagree in Cebu
                 </a>
                 <a
                   href="/lagree-vs-pilates-cebu"
-                  className="block !text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
                 >
                   Lagree vs Pilates Cebu
                 </a>
                 <a
                   href="/best-workouts-cebu-2026"
-                  className="block !text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm flex-nowrap"
                 >
                   Best Workouts in Cebu 2026
                 </a>
                 <a
                   href="/lagree-studio-guidelines-cebu"
-                  className="block !text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
                 >
                   Studio Guidelines
                 </a>
                 <a
+                  href="/preview-packages"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                >
+                  View Packages
+                </a>
+                <a
                   href="/lagree-faq-cebu"
-                  className="block !text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
                 >
                   FAQ
                 </a>
-              </Paragraph>
+              </div>
             </div>
 
             {/* <div className="flex-1 flex flex-col items-center md:items-start mt-4 sm:mt-6 md:mt-0">

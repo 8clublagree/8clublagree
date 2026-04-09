@@ -873,6 +873,28 @@ export const usePackageManagement = () => {
       setLoading(false);
     }
   };
+  const fetchPreviewPackages = async ({
+    isAdmin = false,
+  }: {
+    isAdmin: boolean | undefined;
+  }) => {
+    // const cacheKey = `packages:${String(isAdmin)}`;
+    // const cached = getCached<unknown>(cacheKey, CACHE_TTL_MS.packages);
+    // if (cached) return cached;
+    try {
+      setLoading(true);
+      const response = await axiosApi.get("/package/fetch-preview-packages", { params: { isAdmin } });
+      const data = response.data?.data;
+      if (!data) return null;
+      // setCached(cacheKey, data, CACHE_TTL_MS.packages);
+      return data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const updatePackage = async ({
     id,
@@ -1013,6 +1035,7 @@ export const usePackageManagement = () => {
 
   return {
     loading,
+    fetchPreviewPackages,
     deletePackage,
     updateClientPackage,
     fetchClientPackages,
