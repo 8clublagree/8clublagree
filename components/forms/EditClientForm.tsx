@@ -50,8 +50,11 @@ interface EditClientProps {
     email: string;
     contact_number: string;
     avatar_url?: string;
+    purchaseDate?: string;
+    expirationDate?: string;
     avatar_path?: string;
     credits?: number;
+    days_until_expiration?: number;
     shareableCredits?: number;
     numberOfCreditsShared?: number;
     isShareable?: boolean;
@@ -124,6 +127,7 @@ const EditClientForm = ({
 
   useEffect(() => {
     if (initialValues) {
+      console.log('initialValues: ', initialValues)
       // exclude avatar data since it's not part of the form
       const maxShareable = initialValues?.clientPackage?.shareableCredits ?? 0;
       const initial = {
@@ -136,9 +140,11 @@ const EditClientForm = ({
         shareable_credits: (maxShareable ?? 0) - (initialValues?.clientPackage?.numberOfCreditsShared ?? 0),
         number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared,
         is_shareable: initialValues?.clientPackage?.isShareable,
+        purchaseDate: initialValues?.clientPackage?.purchaseDate,
+        days_until_expiration: dayjs(initialValues?.clientPackage?.expirationDate).diff(dayjs(initialValues?.clientPackage?.purchaseDate), 'days'),
       };
 
-      form.setFieldsValue({ maxShareableCredits: maxShareable, is_shareable: initialValues?.clientPackage?.isShareable, credits: initialValues.credits, shareable_credits: (maxShareable ?? 0) - (initialValues?.clientPackage?.numberOfCreditsShared ?? 0), number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared });
+      form.setFieldsValue({ days_until_expiration: dayjs(initialValues?.expirationDate).diff(dayjs(initialValues?.clientPackage?.purchaseDate), 'days'), maxShareableCredits: maxShareable, is_shareable: initialValues?.clientPackage?.isShareable, credits: initialValues.credits, shareable_credits: (maxShareable ?? 0) - (initialValues?.clientPackage?.numberOfCreditsShared ?? 0), number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared });
 
       if (!!initialValues?.avatar_url?.length) {
         setFile([
@@ -269,6 +275,8 @@ const EditClientForm = ({
       }
     }
 
+    console.log('values: ', values)
+
     const formData = {
       ...values,
       ...(clientFile?.name !== "existing_image.png" && {
@@ -277,7 +285,10 @@ const EditClientForm = ({
       full_name: `${values.first_name} ${values.last_name}`,
       number_of_credits_shared: initialValuesRef.current.maxShareableCredits - values.shareable_credits,
       shareable_credits: values.shareable_credits,
+      expiration_date: dayjs(initialValuesRef?.current?.purchaseDate).add(values.days_until_expiration, 'days').toISOString(),
     };
+
+    console.log('formData: ', formData)
 
     onSubmit(formData);
   };
@@ -597,6 +608,35 @@ const EditClientForm = ({
                   <InputNumber
                     disabled={initialValues.credits === null}
                     placeholder="Enter credits"
+                    // prefix={<TeamOutlined className="text-slate-400" />}
+                    className="w-full"
+                    min={0}
+                    precision={0}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && e.code !== "Backspace") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const paste = e.clipboardData.getData("text");
+                      if (!/^\d+$/.test(paste)) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label={`Days Until Expiration`}
+                  name="days_until_expiration"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter days until expiration",
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    placeholder="Enter days until expiration"
                     // prefix={<TeamOutlined className="text-slate-400" />}
                     className="w-full"
                     min={0}

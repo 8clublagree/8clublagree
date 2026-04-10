@@ -249,10 +249,13 @@ export default function ClientManagementPage() {
     try {
       setIsUpdating(true)
       if (selectedRecord) {
+        const EXCLUDE = ["credits", "number_of_credits_shared", "shareable_credits", "days_until_expiration", "expiration_date"]
+        const EXCLUDE_VALUES = omit(values, EXCLUDE);
+
         let promises = [
           updateUser({
             id: selectedRecord.id,
-            values: omit(values, ["credits", "number_of_credits_shared", "shareable_credits"]),
+            values: EXCLUDE_VALUES,
           }),
         ];
 
@@ -276,14 +279,16 @@ export default function ClientManagementPage() {
             }),
           );
         }
-        if (!isNaN(values.shareable_credits)) {
-          promises.push(
-            updateClientPackage({
-              clientPackageID: selectedRecord?.clientPackage?.clientPackageID as string,
-              values: { numberOfCreditsShared: values.number_of_credits_shared },
-            }),
-          );
-        }
+
+        console.log('values: ', values)
+
+        promises.push(
+          updateClientPackage({
+            clientPackageID: selectedRecord?.clientPackage?.clientPackageID as string,
+            values: { ...(!isNaN(values.shareable_credits) && { numberOfCreditsShared: values.number_of_credits_shared }), expirationDate: values.expiration_date },
+          }),
+        );
+
         await Promise.all(promises);
 
         setIsEditing(false);
