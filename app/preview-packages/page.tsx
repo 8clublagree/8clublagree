@@ -1,295 +1,217 @@
-"use client";
-
-import {
-    Card,
-    Row,
-    Col,
-    Typography,
-    Avatar,
-    Button,
-    Drawer,
-    Divider,
-    Carousel,
-    Spin,
-} from "antd";
-import { CalendarOutlined } from "@ant-design/icons";
 import UnauthenticatedLayout from "@/components/layout/UnauthenticatedLayout";
-import { formatPrice } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
-import { usePackageManagement } from "@/lib/api";
-import { PackageProps } from "@/lib/props";
-import { useRouter } from "next/navigation";
-const { Title } = Typography;
+import type { Metadata } from "next";
+import Link from "next/link";
+import PreviewPackagesClient from "./PreviewPackagesClient";
+
+const canonicalPath = "/preview-packages";
+const title = "Lagree Prices Cebu: Packages & Rates | 8CLUB Lagree";
+const description =
+    "See Lagree class prices in Cebu. 8CLUB Lagree offers flexible packages from single sessions to multi-class bundles — lower rates when you commit to more sessions.";
+
+export const metadata: Metadata = {
+    title,
+    description,
+    alternates: { canonical: canonicalPath },
+    keywords: [
+        "lagree prices cebu",
+        "lagree cost cebu",
+        "lagree packages cebu",
+        "megaformer class price cebu",
+        "8club lagree pricing",
+        "lagree session rates cebu",
+        "lagree membership cebu",
+    ],
+    openGraph: {
+        title,
+        description,
+        type: "website",
+        url: canonicalPath,
+        siteName: "8ClubLagree",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+    },
+};
 
 export default function PreviewPackagesPage() {
-    const carouselRef = useRef<any>(null);
-    const router = useRouter()
-
-    const {
-        loading: packageLoading,
-        fetchPreviewPackages,
-    } = usePackageManagement();
-
-    const [isMobile, setIsMobile] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [packages, setPackages] = useState<PackageProps[]>();
-    const [selectedRecord, setSelectedRecord] = useState<any>(null);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-
-        // rAF throttle
-        let rafId: number | null = null;
-        const onResize = () => {
-            if (rafId !== null) return;
-            rafId = window.requestAnimationFrame(() => {
-                rafId = null;
-                handleResize();
-            });
-        };
-
-        handleResize();
-        window.addEventListener("resize", onResize);
-        return () => {
-            if (rafId !== null) cancelAnimationFrame(rafId);
-            window.removeEventListener("resize", onResize);
-        };
-    }, []);
-
-
-    useEffect(() => {
-        handleFetchPackages();
-    }, []);
-
-    const handleFetchPackages = async () => {
-        const response = await fetchPreviewPackages({ isAdmin: false });
-
-        const mapped = response?.map((data: any) => {
-            return {
-                ...data,
-                validityPeriod: data.validity_period,
-                packageType: data.package_type,
-                packageCredits: data.package_credits,
-                offeredForClients: data.offered_for_clients,
-            };
-        });
-
-        setPackages(mapped);
+    const articleJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: title,
+        description,
+        mainEntityOfPage: canonicalPath,
+        provider: { "@type": "Organization", name: "8ClubLagree" },
+        about: [
+            "Lagree pricing",
+            "Lagree packages",
+            "Megaformer classes Cebu",
+            "Fitness studio pricing",
+        ],
     };
 
-    const handleOpenModal = (item: any) => {
-        setSelectedRecord(item);
-        setIsModalOpen(true);
+    const faqJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+            {
+                "@type": "Question",
+                name: "How much does Lagree cost in Cebu?",
+                acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Lagree classes in Cebu generally cost between ₱1,000 to ₱1,500 per session depending on the studio and package. At 8CLUB Lagree Cebu, pricing rewards consistency — the more sessions you take, the lower your cost per class.",
+                },
+            },
+            {
+                "@type": "Question",
+                name: "Which Lagree package should I choose?",
+                acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "If you're new, start with a single session or small package. For consistent training, mid-tier packages offer better value. If you're fully committed, larger packages give you the lowest cost per session.",
+                },
+            },
+        ],
     };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-    };
-
-    const PreviewPackageCard = ({
-        item,
-        onView,
-        ...props
-    }: {
-        item: any,
-        onView: () => void,
-        [key: string]: any
-    }) => {
-        return (
-            <Col
-                xs={24}
-                sm={12}
-                md={12}
-                lg={8}
-                xl={6}
-                className="flex justify-center"
-                {...props}
-            >
-                <Card
-                    title={
-                        <span className="halyard font-semibold text-2xl sm:text-3xl xl:text-4xl tracking-tight">
-                            {item.packageCredits
-                                ? `${item.packageCredits + (item?.shareable_credits ?? 0)}`
-                                : "Unlimited"}
-                        </span>
-                    }
-                    styles={{
-                        title: {
-                            textAlign: "center",
-                            marginInline: "auto",
-                        },
-                        header: {
-                            backgroundColor: "#0a0a0a",
-                            color: "white",
-                            textAlign: "center",
-                            minHeight: 100,
-                            paddingBlock: "20px",
-                            borderBottom: "none",
-                        },
-                        body: {
-                            padding: "20px 20px 24px",
-                            display: "flex",
-                            flexDirection: "column",
-                            minHeight: 220,
-                        },
-                    }}
-                    className="w-full border border-slate-200/80 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-0.5"
-                >
-                    <div className="flex flex-col flex-1 justify-between gap-4">
-                        <div className="space-y-1.5">
-                            <p className="halyard font-bold text-lg sm:text-xl text-slate-800 w-full truncate">
-                                {item.title}
-                            </p>
-                            <p className="text-slate-600 text-sm sm:text-base font-light">
-                                {item.packageCredits
-                                    ? `${item.packageCredits + (item?.shareable_credits ?? 0)} sessions`
-                                    : "Unlimited Sessions"}
-                            </p>
-                            <p className="text-slate-600 text-sm sm:text-base font-light">
-                                Valid for{" "}
-                                <span className="font-semibold text-slate-800">
-                                    {item.validityPeriod}
-                                </span>{" "}
-                                days
-                            </p>
-                            <p className="text-slate-800 text-base sm:text-lg font-medium pt-1">
-                                PHP {formatPrice(item.price)}
-                            </p>
-                        </div>
-
-                        <Button
-                            onClick={onView}
-                            className={`w-full h-11 rounded-xl font-medium text-base shadow-sm transition-all duration-200 !bg-[#800020] !border-[#800020] hover:!bg-[#800020] hover:!text-[white] text-[white] hover:scale-[1.02] active:scale-[0.99]"}`}
-                        >
-                            View
-                        </Button>
-                    </div>
-                </Card>
-            </Col>
-        );
-    }
 
     return (
-        <UnauthenticatedLayout>
-            {packageLoading && (
-                <Row wrap={false} className="justify-center py-[100px]">
-                    <Spin spinning={true} />
-                </Row>
-            )}
+        <main className="min-h-screen bg-white">
+            <UnauthenticatedLayout>
+                <script
+                    type="application/ld+json"
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+                />
+                <script
+                    type="application/ld+json"
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+                />
 
-            {!packageLoading && (
-                <div className="space-y-6 p-[20px]">
+                <div className="mx-[100px]">
 
-                    <Row gutter={[16, 24]} className="w-full">
-                        {packages &&
-                            packages.map((item, index) =>
-                                <PreviewPackageCard
-                                    key={index}
-                                    item={item}
-                                    onView={() => handleOpenModal(item)}
-                                />
-                            )}
-                    </Row>
+                    <div className="px-4 pt-[30px] pb-4 sm:py-14">
+                        <nav className="text-sm text-slate-500">
+                            <Link href="/" className="hover:text-slate-700">
+                                Home
+                            </Link>{" "}
+                            <span className="mx-2">/</span>
+                            <span className="text-slate-700">Packages</span>
+                        </nav>
 
-                    {packages && packages.length === 0 && (
-                        <Card className="shadow-sm">
-                            <div className="text-center py-12 text-slate-500">
-                                <CalendarOutlined className="text-4xl mb-4" />
-                                <p>No packages are being offered at this time.</p>
-                            </div>
-                        </Card>
-                    )}
+                        <header className="mt-5">
+                            <h1 className="halyard text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
+                                Lagree Prices in Cebu: Packages &amp; Rates
+                            </h1>
+                            <p className="mt-4 text-base sm:text-lg leading-relaxed text-slate-600">
+                                Looking for Lagree prices in Cebu? At 8CLUB Lagree, we offer flexible packages
+                                designed for consistency, progression, and real results.
+                            </p>
+                        </header>
+
+                        <article className="mt-10 space-y-10">
+                            <section>
+                                <p className="text-slate-700 leading-relaxed">
+                                    Our Lagree classes typically range from ₱1,200 per session, with lower rates
+                                    available when you commit to multi-session packages. Each class is a 45-minute,
+                                    full-body workout on the Megaformer, designed to build strength, endurance, and core
+                                    stability.
+                                </p>
+                                <p className="mt-4 text-slate-700 leading-relaxed">
+                                    Whether you&apos;re starting out or training consistently, our packages are
+                                    structured to help you get the most value per session.
+                                </p>
+                                <p className="mt-4 text-slate-700 leading-relaxed">
+                                    Lagree classes in Cebu generally cost between P1,000 to P1,500 per session depending on the studio and package.
+                                    At 8CLUB Lagree Cebu, pricing is designed to reward consistency — the more sessions you take, the lower your cost per class.
+                                </p>
+                                <p className="mt-4 text-slate-700 leading-relaxed">
+                                    Which Package Should You Choose?
+                                    New: start with a single session or small package
+                                </p>
+                                <p className="text-slate-700 leading-relaxed">
+                                    • Consistent: choose mid-tier packages for better value
+                                </p>
+                                <p className="text-slate-700 leading-relaxed">
+                                    • Committed: larger packages offer the lowest cost per session
+                                </p>
+                            </section>
+                        </article>
+                    </div>
+
+                    <PreviewPackagesClient />
                 </div>
-            )}
 
-            <Drawer
-                keyboard={false}
-                closeIcon={<X />}
-                maskClosable={false}
-                placement="right"
-                onClose={handleCloseModal}
-                open={isModalOpen}
-                width={isMobile ? "100%" : "33%"}
-                styles={{
-                    body: {
-                        paddingTop: 24,
-                        overflow: "auto",
-                    },
-                }}
-            >
-                <div className="flex-1 overflow-hidden">
-                    <Carousel
-                        ref={carouselRef}
-                        autoplay={false}
-                        infinite={false}
-                        dots={false}
-                        initialSlide={0}
-                        className="h-full"
-                        swipeToSlide={false}
-                        swipe={false}
-                        draggable={false}
-                        accessibility={false}
-                    >
-                        <div className="flex flex-col items-center h-full overflow-y-hidden">
-                            <Row className="w-full justify-center">
-                                <Avatar
-                                    className="halyard !text-[60px] bg-[#0a0a0a] border w-full"
-                                    size={200}
+                {/* <div className="mx-auto max-w-3xl px-4 pt-4 pb-10 sm:pb-14">
+                    <article className="space-y-10">
+                        <section>
+                            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
+                                How Much Does Lagree Cost in Cebu?
+                            </h2>
+                            <p className="mt-3 text-slate-700 leading-relaxed">
+                                Lagree classes in Cebu generally cost between ₱1,000 to ₱1,500 per session
+                                depending on the studio and package. At 8CLUB Lagree Cebu, pricing is designed to
+                                reward consistency — the more sessions you take, the lower your cost per class.
+                            </p>
+                        </section>
+
+                        <section>
+                            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
+                                Which Package Should You Choose?
+                            </h2>
+                            <div className="mt-5 space-y-4">
+                                <div className="rounded-2xl border border-slate-200 p-5">
+                                    <h3 className="font-semibold text-slate-900">New to Lagree</h3>
+                                    <p className="mt-2 text-slate-700 leading-relaxed">
+                                        Start with a single session or small package to experience the Megaformer and see
+                                        if Lagree is right for you.
+                                    </p>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200 p-5">
+                                    <h3 className="font-semibold text-slate-900">Consistent</h3>
+                                    <p className="mt-2 text-slate-700 leading-relaxed">
+                                        Choose mid-tier packages for better value per session. Ideal if you train 2–3
+                                        times per week.
+                                    </p>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200 p-5">
+                                    <h3 className="font-semibold text-slate-900">Committed</h3>
+                                    <p className="mt-2 text-slate-700 leading-relaxed">
+                                        Larger packages offer the lowest cost per session — best for those training
+                                        consistently and investing in long-term results.
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="rounded-3xl border border-slate-200 bg-slate-50 p-6 sm:p-8">
+                            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
+                                Ready to get started?
+                            </h2>
+                            <p className="mt-3 text-slate-700 leading-relaxed">
+                                Pick a package that matches your goals and start training at{" "}
+                                <strong>8CLUB Lagree Cebu</strong> — the city&apos;s dedicated Lagree studio on the
+                                Megaformer.
+                            </p>
+                            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                                <Link
+                                    href="/login"
+                                    className="inline-flex items-center justify-center rounded-xl bg-[#800020] px-5 py-3 font-semibold text-white hover:bg-[#800020]/90"
                                 >
-                                    {selectedRecord?.packageCredits + (selectedRecord?.shareable_credits ?? 0)}
-                                </Avatar>
-                            </Row>
-                            <Divider />
-
-                            <div className="items-start w-full">
-                                <Row wrap={false} className="mb-[10px] items-start w-full">
-                                    <Title level={5}>
-                                        Package:{" "}
-                                        <span className="font-normal">{selectedRecord?.title}</span>
-                                    </Title>
-                                </Row>
-                                <Row wrap={false} className="mb-[15px] items-center w-full">
-                                    <Title level={5} className="!mb-0">
-                                        Number of Sessions:{" "}
-                                        <span className="font-normal">
-                                            {selectedRecord?.packageCredits ? (selectedRecord?.packageCredits + (selectedRecord?.shareable_credits ?? 0)) : "Unlimited"}
-                                        </span>
-                                    </Title>
-                                </Row>
-
-                                <Row wrap={false} className="mb-[10px] items-start w-full">
-                                    <Title level={5}>
-                                        Validity Period:{" "}
-                                        <span className="font-normal">
-                                            {selectedRecord?.validityPeriod} days
-                                        </span>
-                                    </Title>
-                                </Row>
-                                <Row wrap={false} className="mb-[10px] items-start w-full">
-                                    <Title level={5}>
-                                        Price:{" "}
-                                        <span className="font-normal">
-                                            PHP {formatPrice(selectedRecord?.price)}
-                                        </span>
-                                    </Title>
-                                </Row>
+                                    Join the Club
+                                </Link>
                             </div>
-
-                            <Button
-                                onClick={() => router.push("/login")}
-                                className={`bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
-                            >
-                                Join the Club
-                            </Button>
-                        </div>
-                    </Carousel>
-                </div>
-            </Drawer>
-
-
-        </UnauthenticatedLayout >
+                            <p className="mt-4 text-sm text-slate-600">
+                                New to Lagree? Read our{" "}
+                                <Link href="/beginner-lagree-cebu" className="underline hover:no-underline">
+                                    Beginner Lagree Cebu guide
+                                </Link>{" "}
+                                to know what to expect in your first class.
+                            </p>
+                        </section>
+                    </article>
+                </div> */}
+            </UnauthenticatedLayout>
+        </main>
     );
 }
