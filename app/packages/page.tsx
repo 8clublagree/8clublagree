@@ -381,6 +381,7 @@ export default function PackagesPage() {
   };
 
   const handleCheckout = async () => {
+    console.log('selectedRecord: ', selectedRecord)
     try {
       setProcessingMaya(true);
       const totalAmount = calculateTotal();
@@ -462,6 +463,9 @@ export default function PackagesPage() {
             uploaded_at: dayjs().toISOString(),
             reference_id: uuid,
             previous_active_package_id: user?.currentPackage?.id ?? null,
+            is_shareable: selectedRecord.is_shareable,
+            shareable_credits: selectedRecord.shareable_credits,
+            number_of_credits_shared: 0,
           },
         });
 
@@ -616,7 +620,10 @@ export default function PackagesPage() {
             packagePrice: selectedRecord.price,
             packageValidityPeriod: selectedRecord.validityPeriod,
             uploadedAt: dayjs().toISOString(),
-            referenceId: uuid
+            referenceId: uuid,
+            isShareable: selectedRecord.is_shareable,
+            shareableCredits: selectedRecord.shareable_credits,
+            numberOfCreditsShared: 0,
           },
         });
         if (response?.status !== 200) {

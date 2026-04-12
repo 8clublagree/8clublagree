@@ -15,6 +15,9 @@ export async function PUT(req: Request) {
       packageName,
       validityPeriod,
       packageCredits,
+      isShareable,
+      shareableCredits,
+      numberOfCreditsShared,
     } = await req.json();
 
     const { error } = await supabaseServer.rpc("confirm_payment", {
@@ -29,6 +32,9 @@ export async function PUT(req: Request) {
       p_validity_period: validityPeriod,
       p_package_credits: packageCredits,
       p_expiration_date: getDateFromToday(validityPeriod),
+      p_is_shareable: isShareable ?? false,
+      p_shareable_credits: shareableCredits ?? 0,
+      p_number_of_credits_shared: numberOfCreditsShared ?? 0,
     });
 
     if (error) {

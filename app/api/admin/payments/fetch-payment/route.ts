@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       .eq("id", id)
       .single();
 
+
     if (error) {
       return NextResponse.json(
         { error: error.message },

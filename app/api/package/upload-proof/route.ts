@@ -27,7 +27,10 @@ export async function POST(req: Request) {
       packagePrice,
       packageCredits,
       packageValidityPeriod,
-      referenceId
+      referenceId,
+      isShareable,
+      shareableCredits,
+      numberOfCreditsShared
     } = values;
 
     const { data, error } = await supabaseServer.from("orders").insert({
@@ -41,7 +44,10 @@ export async function POST(req: Request) {
       package_credits: packageCredits,
       package_price: packagePrice,
       package_validity_period: packageValidityPeriod,
-      reference_id: referenceId
+      reference_id: referenceId,
+      is_shareable: isShareable,
+      shareable_credits: shareableCredits,
+      number_of_credits_shared: numberOfCreditsShared
     }).select()
 
     if (error) {

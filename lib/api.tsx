@@ -1161,7 +1161,10 @@ export const useManageOrders = () => {
     packageName,
     validityPeriod,
     packageCredits,
-    userCredits
+    userCredits,
+    isShareable,
+    shareableCredits,
+    numberOfCreditsShared
   }: {
     id: string;
     status: string;
@@ -1177,6 +1180,9 @@ export const useManageOrders = () => {
     validityPeriod: number;
     packageCredits: number;
     userCredits: number;
+    isShareable?: boolean;
+    shareableCredits?: number;
+    numberOfCreditsShared?: number;
   }) => {
     try {
       setLoading(true);
@@ -1193,6 +1199,9 @@ export const useManageOrders = () => {
         packageName,
         validityPeriod,
         packageCredits,
+        isShareable,
+        shareableCredits,
+        numberOfCreditsShared,
       });
 
       if (!response.data) return null;

@@ -127,7 +127,6 @@ const EditClientForm = ({
 
   useEffect(() => {
     if (initialValues) {
-      console.log('initialValues: ', initialValues)
       // exclude avatar data since it's not part of the form
       const maxShareable = initialValues?.clientPackage?.shareableCredits ?? 0;
       const initial = {
@@ -275,7 +274,6 @@ const EditClientForm = ({
       }
     }
 
-    console.log('values: ', values)
 
     const formData = {
       ...values,
@@ -288,7 +286,6 @@ const EditClientForm = ({
       expiration_date: dayjs(initialValuesRef?.current?.purchaseDate).add(values.days_until_expiration, 'days').toISOString(),
     };
 
-    console.log('formData: ', formData)
 
     onSubmit(formData);
   };

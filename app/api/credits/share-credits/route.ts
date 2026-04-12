@@ -68,13 +68,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-
-    // const senderCredits = (senderResult.data as any).user_credits?.[0];
-    // const shareableRemaining = senderCredits?.shareable_credits ?? 0;
-
-    // console.log('shareableRemaining: ', shareableRemaining)
-    // console.log('creditsAmount: ', creditsAmount)
-
     if (activePackage.number_of_credits_shared >= activePackage.shareable_credits) {
       return NextResponse.json(
         { error: "Not enough shareable credits" },

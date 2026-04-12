@@ -27,6 +27,9 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
       validityPeriod: orderData.package_validity_period,
       packageCredits: orderData.package_credits,
       packageName: orderData.package_title,
+      isShareable: orderData.is_shareable,
+      shareableCredits: orderData.shareable_credits,
+      numberOfCreditsShared: orderData.number_of_credits_shared,
     };
 
     const updateUserCredits = supabaseServer
@@ -58,6 +61,9 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
       package_name: orderObject.packageName,
       payment_method: "maya",
       expiration_date: getDateFromToday(orderObject.validityPeriod),
+      is_shareable: orderObject.isShareable,
+      shareable_credits: orderObject.shareableCredits,
+      number_of_credits_shared: orderObject.numberOfCreditsShared,
     });
   } catch (error) {
     throw error;
