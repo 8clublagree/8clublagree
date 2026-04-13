@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     ).replace(/\/$/, "")
   ),
   icons: {
-    icon: "/images/main-8-logo-white.png",
+    icon: "/images/main-8-logo.png",
   },
 };
 
