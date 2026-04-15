@@ -381,7 +381,7 @@ export default function PackagesPage() {
   };
 
   const handleCheckout = async () => {
-    console.log('selectedRecord: ', selectedRecord)
+
     try {
       setProcessingMaya(true);
       const totalAmount = calculateTotal();
@@ -694,10 +694,15 @@ export default function PackagesPage() {
             {packages &&
               packages.map((item, index) => {
                 const showToolTip = user?.currentPackage && user?.credits !== 0;
+                const stillHasShareableCredits = ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0)) > 0;
+
                 const disablePurchase =
-                  (user?.currentPackage !== null &&
-                    user?.currentPackage !== undefined) &&
-                  user?.credits !== 0;
+                  user?.currentPackage?.is_shareable === true ?
+                    (user?.currentPackage !== null ||
+                      user?.currentPackage !== undefined) &&
+                    user?.credits !== 0 && stillHasShareableCredits : (user?.currentPackage !== null ||
+                      user?.currentPackage !== undefined) &&
+                    user?.credits !== 0;
 
                 return (
                   <Col
