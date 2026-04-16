@@ -167,8 +167,6 @@ export default function CreateClassForm({
             <Input
               disabled={loadingForm}
               size="large"
-              maxLength={20}
-              showCount
               placeholder="Enter Class Name"
             />
           </Form.Item>
