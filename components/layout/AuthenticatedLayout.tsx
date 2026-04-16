@@ -136,7 +136,7 @@ export default function AuthenticatedLayout({
 
 
     const totalUsableSharedCredits = sharedPackages?.reduce((acc: number, p: any) => {
-      if (p?.is_shared && p?.number_of_shared_credits_used > 0) {
+      if (p?.is_shared) {
         const usableSharedCredits = p?.package_credits - p?.number_of_shared_credits_used;
         acc += usableSharedCredits;
       }
