@@ -345,8 +345,8 @@ export default function ClassManagementPage() {
       const bookingType = formData.bookingType;
       const values = omit(formData, ["bookingType"]);
 
-      const hasPurchasedCredits = values?.existingClientRecord?.credits !== null;
-      const hasUsableSharedCredits = values?.existingClientRecord?.totalUsableSharedCredits !== null;
+      const hasPurchasedCredits = values?.existingClientRecord?.credits !== null && values?.existingClientRecord?.credits !== 0;
+      const hasUsableSharedCredits = values?.existingClientRecord?.totalUsableSharedCredits !== null && values?.existingClientRecord?.totalUsableSharedCredits !== 0;
 
       // console.log('values: ', values)
 
@@ -366,13 +366,13 @@ export default function ClassManagementPage() {
         const clientID = values.existingClientRecord.id;
         const clientCredits = values.existingClientRecord.credits;
 
-        await bookClass({
-          classDate: dayjs(selectedDate).toISOString(),
-          classId: values.class_id,
-          bookerId: clientID,
-          isWalkIn: false,
-          deductCredits: clientCredits != null,
-        });
+        // await bookClass({
+        //   classDate: dayjs(selectedDate).toISOString(),
+        //   classId: values.class_id,
+        //   bookerId: clientID,
+        //   isWalkIn: false,
+        //   deductCredits: clientCredits != null,
+        // });
 
         if (hasPurchasedCredits) {
 
@@ -382,6 +382,7 @@ export default function ClassManagementPage() {
           });
         } else if (hasUsableSharedCredits) {
 
+          // console.log('values: ', values)
           const soonestExpiring = values.existingClientRecord.sharedPackages?.reduce((earliest: any, current: any) =>
             dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
           );
@@ -389,8 +390,7 @@ export default function ClassManagementPage() {
           await updateClientPackage({
             clientPackageID: soonestExpiring?.id as string,
             values: {
-              packageCredits: (soonestExpiring?.package_credits as number) - 1,
-              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) - 1,
+              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) + 1,
             },
           });
         }
