@@ -366,13 +366,13 @@ export default function ClassManagementPage() {
         const clientID = values.existingClientRecord.id;
         const clientCredits = values.existingClientRecord.credits;
 
-        // await bookClass({
-        //   classDate: dayjs(selectedDate).toISOString(),
-        //   classId: values.class_id,
-        //   bookerId: clientID,
-        //   isWalkIn: false,
-        //   deductCredits: clientCredits != null,
-        // });
+        await bookClass({
+          classDate: dayjs(selectedDate).toISOString(),
+          classId: values.class_id,
+          bookerId: clientID,
+          isWalkIn: false,
+          deductCredits: clientCredits != null,
+        });
 
         if (hasPurchasedCredits) {
 
