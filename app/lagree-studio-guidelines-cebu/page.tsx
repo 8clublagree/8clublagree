@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     "lagree private session cebu",
     "lagree cebu dress code",
     "lagree package freeze policy",
+    "best lagree cebu",
   ],
   openGraph: {
     title,

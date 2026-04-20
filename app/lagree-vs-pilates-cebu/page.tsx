@@ -9,7 +9,7 @@ function getSiteOrigin() {
   return (
     process.env.SYSTEM_ORIGIN ??
     process.env.NEXT_PUBLIC_APP_URL ??
-    "https://lagree-booking-system.vercel.app"
+    "https://www.8clublagree.com"
   ).replace(/\/$/, "");
 }
 

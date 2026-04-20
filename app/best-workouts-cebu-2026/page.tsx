@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     "gym vs pilates vs hiit",
     "lagree cebu",
     "low impact workout cebu",
+    "best lagree cebu",
   ],
   openGraph: {
     title,
