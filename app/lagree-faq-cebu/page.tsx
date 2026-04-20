@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     "lagree for beginners cebu",
     "lagree class duration",
     "lagree training frequency",
+    "best lagree cebu",
   ],
   openGraph: {
     title,
