@@ -67,7 +67,7 @@ const PackageHistoryCard = ({ item }: { item: any }) => {
                   : (item.packageCredits ?? 0) + (item?.shareableCredits ?? 0)}
               </span>{" "}
               Sessions
-              {item?.shareableCredits &&
+              {item?.isShareable &&
                 <span style={{ fontWeight: 600 }}>
                   {` (${item?.shareableCredits} Shareable)`}
                 </span>
