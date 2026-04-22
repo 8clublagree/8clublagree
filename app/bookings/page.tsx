@@ -256,7 +256,30 @@ export default function BookingsPage() {
 
           dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
 
-        } else if (hasUsableSharedCredits) {
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: selectedRecord.id,
+            bookerId: user.id as string,
+            isWalkIn: false,
+            // deductCredits: shouldDeductCredits,
+            method: 'client_account'
+          });
+
+
+          handleSendConfirmationEmail();
+
+          handleCloseModal();
+          showMessage({
+            type: "success",
+            content: "Successfully booked a class!",
+          });
+          await handleFetchClasses()
+
+          setIsSubmitting(false);
+          return
+
+        }
+        if (hasUsableSharedCredits) {
           const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
             dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
           );
@@ -271,27 +294,29 @@ export default function BookingsPage() {
           });
 
           dispatch(setUser({ ...user, totalUsableSharedCredits: user?.totalUsableSharedCredits as number - 1 }));
+
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: selectedRecord.id,
+            bookerId: user.id as string,
+            isWalkIn: false,
+            // deductCredits: shouldDeductCredits,
+            method: 'client_account'
+          });
+
+
+          handleSendConfirmationEmail();
+
+          handleCloseModal();
+          showMessage({
+            type: "success",
+            content: "Successfully booked a class!",
+          });
+          await handleFetchClasses()
+
+          setIsSubmitting(false);
+          return
         }
-
-        await bookClass({
-          classDate: dayjs(selectedDate).toISOString(),
-          classId: selectedRecord.id,
-          bookerId: user.id as string,
-          isWalkIn: false,
-          // deductCredits: shouldDeductCredits,
-          method: 'client_account'
-        });
-
-        handleSendConfirmationEmail();
-
-        handleCloseModal();
-        showMessage({
-          type: "success",
-          content: "Successfully booked a class!",
-        });
-        await handleFetchClasses()
-
-        setIsSubmitting(false);
 
       }
     } catch (error) {

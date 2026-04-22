@@ -120,10 +120,7 @@ export default function AuthenticatedLayout({
       avatarPath: profile?.avatar_path,
     });
 
-    const latestCredit = profile?.user_credits?.sort(
-      (a: any, b: any) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )[0];
+    const latestCredit = profile?.user_credits?.[0];
 
 
     const activePackage: CurrentPackageProps = profile?.client_packages?.find(
@@ -153,10 +150,15 @@ export default function AuthenticatedLayout({
         return;
       }
 
+      console.log('profile: ', profile)
+      console.log('latestCredit: ', latestCredit)
+      console.log('activePackage: ', activePackage)
+      console.log('shareableCreditsFromActivePackage: ', shareableCreditsFromActivePackage)
       const credits =
         activePackage && activePackage?.packages?.package_credits === null
           ? null
           : latestCredit.credits + shareableCreditsFromActivePackage
+      console.log('credits: ', credits)
 
 
       dispatch(
