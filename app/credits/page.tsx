@@ -92,6 +92,7 @@ export default function CreditsPage() {
         );
       }
 
+
       setActivePackage(active);
       setPackages(mapped);
     }
@@ -206,7 +207,8 @@ export default function CreditsPage() {
 
                       {activePackage.packages.packageCredits &&
                         <Title level={4} className="!mb-0 !font-normal">
-                          {`${(user?.credits ?? 0) + (activePackage.shareableCredits - (activePackage?.numberOfCreditsShared ?? 0))} available credits`}
+                          {/* {`${(user?.credits ?? 0) + (activePackage.shareableCredits - (activePackage?.numberOfCreditsShared ?? 0))} available credits`} */}
+                          {`${(user?.credits ?? 0)} available credits`}
                         </Title>
                       }
                       {!activePackage.packages.packageCredits && (
@@ -272,7 +274,7 @@ export default function CreditsPage() {
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
                   <Handshake size={30} className="flex-shrink-0" />
-                  <Title level={3} className="halyard !m-0">Share Credits</Title>
+                  <Title level={3} className="halyard !m-0">Credits to Share</Title>
                 </Row>
 
                 <Row
@@ -283,7 +285,7 @@ export default function CreditsPage() {
                   {activePackage && activePackage.isShareable && (
                     <Row wrap={false} className="flex-col justify-center w-full">
                       <Title level={4} className="!mb-0 !font-normal">
-                        {`${activePackage.shareableCredits - (activePackage?.numberOfCreditsShared ?? 0)} out of ${activePackage.shareableCredits} remaining`}
+                        {`${activePackage.shareableCredits - ((activePackage?.numberOfCreditsShared ?? 0) + (activePackage?.numberOfSharedCreditsUsed ?? 0))} out of ${activePackage.shareableCredits} remaining`}
                       </Title>
                       <Button disabled={((activePackage.shareableCredits ?? 0) - (activePackage?.numberOfCreditsShared ?? 0)) === 0} onClick={() => setShareModalOpen(true)} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03]">Share</Button>
                     </Row>
@@ -340,7 +342,7 @@ export default function CreditsPage() {
         </div>
       )}
       <Modal
-        title="Share Credits"
+        title="Credits to Share"
         open={shareModalOpen}
         onCancel={() => setShareModalOpen(false)}
         footer={null}

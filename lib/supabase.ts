@@ -19,6 +19,7 @@ export interface CurrentPackageProps {
     validity_period: number;
   };
   is_shareable?: boolean;
+  is_shared?: boolean
   created_at: string;
   package_id: string;
   purchase_date: string;

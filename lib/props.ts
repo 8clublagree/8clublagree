@@ -89,6 +89,7 @@ export interface ClientPackageProps {
   isShareable: boolean;
   shareableCredits: number;
   numberOfCreditsShared: number;
+  numberOfSharedCreditsUsed?: number;
   packages: {
     id: string;
     price: number;

@@ -134,7 +134,6 @@ export default function AuthenticatedLayout({
       (p: any) => p?.is_shared,
     );
 
-
     const totalUsableSharedCredits = sharedPackages?.reduce((acc: number, p: any) => {
       if (p?.is_shared) {
         const usableSharedCredits = p?.package_credits - p?.number_of_shared_credits_used;
@@ -142,6 +141,8 @@ export default function AuthenticatedLayout({
       }
       return acc;
     }, 0);
+
+    const shareableCreditsFromActivePackage = activePackage?.is_shared === false ? (activePackage?.shareable_credits ?? 0) - ((activePackage.number_of_credits_shared ?? 0) + (activePackage.number_of_shared_credits_used ?? 0)) : 0;
 
     if (profile) {
       if (profile.user_type === "admin") {
@@ -155,7 +156,7 @@ export default function AuthenticatedLayout({
       const credits =
         activePackage && activePackage?.packages?.package_credits === null
           ? null
-          : latestCredit.credits
+          : latestCredit.credits + shareableCreditsFromActivePackage
 
 
       dispatch(

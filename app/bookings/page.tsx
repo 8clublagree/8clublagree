@@ -196,8 +196,82 @@ export default function BookingsPage() {
     try {
       setIsSubmitting(true);
       if (user) {
+        const hasPurchasedShareableCredits = user?.currentPackage?.is_shared === false ? (user?.shareable_credits ?? 0) - (user.numberOfCreditsShared ?? 0) : null
         const hasPurchasedCredits = user.credits !== null && user.credits !== 0;
         const hasUsableSharedCredits = user.totalUsableSharedCredits !== null && user?.totalUsableSharedCredits !== 0;
+
+
+        if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
+          const updatedValue: number = (user.currentPackage?.number_of_shared_credits_used ?? 0) + 1
+
+          await updateClientPackage({
+            clientPackageID: user.currentPackage?.id as string,
+            values: {
+              ...(user.currentPackage?.shareable_credits && updatedValue >= user.currentPackage?.shareable_credits ? { status: "expired", expirationDate: dayjs() } : {}),
+              numberOfSharedCreditsUsed: updatedValue,
+            },
+          });
+
+          dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
+
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: selectedRecord.id,
+            bookerId: user.id as string,
+            isWalkIn: false,
+            // deductCredits: shouldDeductCredits,
+            method: 'client_account'
+          });
+
+
+          handleSendConfirmationEmail();
+
+          handleCloseModal();
+          showMessage({
+            type: "success",
+            content: "Successfully booked a class!",
+          });
+          await handleFetchClasses()
+
+          setIsSubmitting(false);
+          return
+        }
+
+        if (hasPurchasedCredits) {
+          const updatedValue: number = user?.credits as number - 1
+
+          await updateUserCredits({
+            userID: user?.id as string,
+            ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: updatedValue } }),
+          });
+
+          if (updatedValue === 0) {
+            await updateClientPackage({
+              clientPackageID: user.currentPackage?.id as string,
+              values: {
+                status: "expired", expirationDate: dayjs()
+              },
+            });
+          }
+
+          dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
+
+        } else if (hasUsableSharedCredits) {
+          const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
+            dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
+          );
+
+          await updateClientPackage({
+            clientPackageID: soonestExpiring?.id as string,
+            values: {
+              // packageCredits: (soonestExpiring?.package_credits as number) - 1,
+              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) + 1,
+              // numberOfCreditsShared: (soonestExpiring?.number_of_credits_shared as number) + 1,
+            },
+          });
+
+          dispatch(setUser({ ...user, totalUsableSharedCredits: user?.totalUsableSharedCredits as number - 1 }));
+        }
 
         await bookClass({
           classDate: dayjs(selectedDate).toISOString(),
@@ -208,51 +282,24 @@ export default function BookingsPage() {
           method: 'client_account'
         });
 
-        if (hasPurchasedCredits) {
-
-          await updateUserCredits({
-            userID: user?.id as string,
-            ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: user?.credits as number - 1 } }),
-          });
-
-          dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
-        } else if (hasUsableSharedCredits) {
-
-
-          const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
-            dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
-          );
-
-          await updateClientPackage({
-            clientPackageID: soonestExpiring?.id as string,
-            values: {
-              packageCredits: (soonestExpiring?.package_credits as number) - 1,
-              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) - 1,
-              numberOfCreditsShared: (soonestExpiring?.number_of_credits_shared as number) + 1,
-            },
-          });
-
-          dispatch(setUser({ ...user, totalUsableSharedCredits: user?.totalUsableSharedCredits as number - 1 }));
-        }
-
-
         handleSendConfirmationEmail();
 
-        setIsSubmitting(false);
         handleCloseModal();
         showMessage({
           type: "success",
           content: "Successfully booked a class!",
         });
-
         await handleFetchClasses()
-        // window.location.reload()
+
+        setIsSubmitting(false);
+
       }
     } catch (error) {
       setIsSubmitting(false);
       setTimeout(() => {
         window.location.reload()
       }, 3000)
+      console.log('error: ', error)
       showMessage({ type: "error", content: "Error while booking a class. Please try again after the page has refreshed" });
 
     }
@@ -292,17 +339,21 @@ export default function BookingsPage() {
                 onClick={() => router.push("/credits")}
                 className="cursor-pointer items-center gap-[5px] sm:gap-3 md:gap-[10px] text-[16px] sm:text-[18px] md:text-[20px] font-[400] bg-white rounded-lg py-2 px-3 shadow-sm border border-slate-300 md:w-auto"
               >
-                {((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) > 0 && <LiaCoinsSolid size={24} />}
+                {/* {((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) > 0 && <LiaCoinsSolid size={24} />} */}
+                {((user?.credits ?? 0)) > 0 && <LiaCoinsSolid size={24} />}
                 {user?.credits === null && <ImInfinite />}
 
                 <span className="flex flex-row flex-nowrap gap-x-[5px]">
                   <span>
-                    {user?.credits === null ? null : (user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))}
+                    {/* {user?.credits === null ? null : (user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))} */}
+                    {user?.credits === null ? null : (user?.credits ?? 0)}
                   </span>
                   <span>
-                    {((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) > 1
+                    {/* {((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) > 1 */}
+                    {((user?.credits ?? 0)) > 1
                       ? "credits"
-                      : ((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) === 1
+                      // : ((user?.credits ?? 0) + ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0))) === 1
+                      : ((user?.credits ?? 0)) === 1
                         ? "credit"
                         : "credits"}
                   </span>
@@ -350,11 +401,7 @@ export default function BookingsPage() {
                   const noPurchasedCredits = user?.credits === 0;
                   const noUsableSharedCredits = user?.totalUsableSharedCredits === 0;
 
-
-
                   const noCredits = user?.credits !== null && noPurchasedCredits && noUsableSharedCredits;
-
-
                   return (
                     <>
                       <List.Item
