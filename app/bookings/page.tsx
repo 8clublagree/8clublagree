@@ -318,6 +318,30 @@ export default function BookingsPage() {
           return
         }
 
+        if (user.credits !== null) {
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: selectedRecord.id,
+            bookerId: user.id as string,
+            isWalkIn: false,
+            // deductCredits: shouldDeductCredits,
+            method: 'client_account'
+          });
+
+
+          handleSendConfirmationEmail();
+
+          handleCloseModal();
+          showMessage({
+            type: "success",
+            content: "Successfully booked a class!",
+          });
+          await handleFetchClasses()
+
+          setIsSubmitting(false);
+          return
+        }
+
       }
     } catch (error) {
       setIsSubmitting(false);
