@@ -150,15 +150,12 @@ export default function AuthenticatedLayout({
         return;
       }
 
-      console.log('profile: ', profile)
-      console.log('latestCredit: ', latestCredit)
-      console.log('activePackage: ', activePackage)
-      console.log('shareableCreditsFromActivePackage: ', shareableCreditsFromActivePackage)
+
       const credits =
         activePackage && activePackage?.packages?.package_credits === null
           ? null
           : latestCredit.credits + shareableCreditsFromActivePackage
-      console.log('credits: ', credits)
+
 
 
       dispatch(
