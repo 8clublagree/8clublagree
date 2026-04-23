@@ -484,7 +484,7 @@ const EditClientForm = ({
                     message: "Please enter your contact number",
                   },
                   {
-                    pattern: /^[0-9]+$/,
+                    pattern: /^\+?[0-9]+$/,
                     message: "Contact number must be digits only",
                   },
                 ]}
