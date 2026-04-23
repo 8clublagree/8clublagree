@@ -201,7 +201,9 @@ export default function BookingsPage() {
         const hasUsableSharedCredits = user.totalUsableSharedCredits !== null && user?.totalUsableSharedCredits !== 0;
 
 
+
         if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
+
           const updatedValue: number = (user.currentPackage?.number_of_shared_credits_used ?? 0) + 1
 
           await updateClientPackage({
@@ -238,6 +240,7 @@ export default function BookingsPage() {
         }
 
         if (hasPurchasedCredits) {
+
           const updatedValue: number = user?.credits as number - 1
 
           await updateUserCredits({
@@ -280,6 +283,7 @@ export default function BookingsPage() {
 
         }
         if (hasUsableSharedCredits) {
+
           const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
             dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
           );
@@ -318,7 +322,7 @@ export default function BookingsPage() {
           return
         }
 
-        if (user.credits !== null) {
+        if (user.credits == null) {
           await bookClass({
             classDate: dayjs(selectedDate).toISOString(),
             classId: selectedRecord.id,
@@ -341,6 +345,7 @@ export default function BookingsPage() {
           setIsSubmitting(false);
           return
         }
+
 
       }
     } catch (error) {
