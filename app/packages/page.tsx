@@ -27,16 +27,15 @@ import { v4 as uuidv4 } from "uuid";
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { FileType, formatPHPhoneToE164, formatPrice } from "@/lib/utils";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
-  ChevronRight,
   CreditCard,
   Lock,
   User,
   X,
 } from "lucide-react";
-import { useManageCredits, usePackageManagement } from "@/lib/api";
+import { usePackageManagement } from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/features/authSlice";
@@ -46,8 +45,6 @@ import { Address, PackageProps, PurchaseFormData } from "@/lib/props";
 import dayjs from "dayjs";
 import { useAppMessage } from "@/components/ui/message-popup";
 import axiosApi from "@/lib/axiosConfig";
-
-import PackageHistoryCard from "@/components/ui/package-history-card";
 
 const { Title, Text } = Typography;
 const CAROUSEL_SLIDES = {
@@ -63,28 +60,20 @@ export default function PackagesPage() {
   const dispatch = useDispatch();
   const [processingMaya, setProcessingMaya] = useState(false);
   const carouselRef = useRef<any>(null);
-  const { updateUserCredits } = useManageCredits();
   const user = useAppSelector((state) => state.auth.user);
   const {
     loading: packageLoading,
-    fetchPackages,
-    purchasePackage,
-    updateClientPackage,
+    fetchPackages
   } = usePackageManagement();
   const { showMessage, contextHolder } = useAppMessage();
 
   const [isMobile, setIsMobile] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [carouselSlide, setCarouselSlide] = useState(0);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [packages, setPackages] = useState<PackageProps[]>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const [isSendingPending, setIsSendingPending] = useState<boolean>(false);
   const [file, setFile] = useState<UploadFile[] | null>(null);
@@ -215,6 +204,24 @@ export default function PackagesPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      const values = {
+        ...formData,
+        firstName: user?.first_name || "",
+        lastName: user?.last_name || "",
+        customerEmail: user?.email || "",
+        customerPhone: user?.contact_number || "",
+        billingAddress: {
+          ...formData.billingAddress,
+          line1: user?.location || "",
+        },
+      };
+
+      checkoutForm.setFieldsValue(values);
+      setFormData(values);
+    }
+  }, [user]);
 
   useEffect(() => {
     handleFetchPackages();
@@ -230,23 +237,11 @@ export default function PackagesPage() {
         packageType: data.package_type,
         packageCredits: data.package_credits,
         offeredForClients: data.offered_for_clients,
+        isTrialPackage: data.is_trial_package,
       };
     });
 
     setPackages(mapped);
-  };
-
-  const handleUpdateUserCredits = async ({ credits }: { credits: number }) => {
-    try {
-      await updateUserCredits({
-        userID: user?.id as string,
-        values: { credits },
-      });
-
-      dispatch(setUser({ ...user, credits, currentPackage: selectedRecord }));
-    } catch (error) {
-      throw (error);
-    }
   };
 
   const handleAcceptTermsChange = (e: any) => {
@@ -296,72 +291,21 @@ export default function PackagesPage() {
     }
   };
 
-  const handlePurchasePackage = async () => {
-    try {
-      if (user?.credits === 0) {
-        await updateClientPackage({
-          clientPackageID: user.currentPackage?.id as string,
-          values: { status: "expired", expirationDate: dayjs() },
-        });
-      }
-
-      const response = await purchasePackage({
-        userID: user?.id as string,
-        packageID: selectedRecord.id,
-        paymentMethod: "debit",
-        packageName: selectedRecord.title,
-        validityPeriod: selectedRecord.validityPeriod,
-        packageCredits: selectedRecord.packageCredits,
-      });
-
-      return response;
-    } catch (error) {
-      throw error
-    }
-  };
-
-  const handlePrev = () => {
-    setCarouselSlide(CAROUSEL_SLIDES.PACKAGE_DETAILS);
-    carouselRef.current.prev();
-  };
-
   const handleShowTermsAndConditions = () => {
     setTermsModalOpen(true);
   };
-
-  useEffect(() => {
-    if (user) {
-      const values = {
-        ...formData,
-        firstName: user?.first_name || "",
-        lastName: user?.last_name || "",
-        customerEmail: user?.email || "",
-        customerPhone: user?.contact_number || "",
-        billingAddress: {
-          ...formData.billingAddress,
-          line1: user?.location || "",
-        },
-      };
-
-      checkoutForm.setFieldsValue(values);
-      setFormData(values);
-    }
-  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
-  const [sameAsBilling, setSameAsBilling] = useState(true);
-
   const handleBillingAddressChange = (field: keyof Address, value: string) => {
     const newBillingAddress = { ...formData.billingAddress, [field]: value };
     setFormData((prev) => ({
       ...prev,
       billingAddress: newBillingAddress,
-      shippingAddress: sameAsBilling
+      shippingAddress: true
         ? {
           ...newBillingAddress,
           firstName: prev.firstName,
@@ -381,6 +325,7 @@ export default function PackagesPage() {
   };
 
   const handleCheckout = async () => {
+
     try {
       setProcessingMaya(true);
       const totalAmount = calculateTotal();
@@ -433,6 +378,7 @@ export default function PackagesPage() {
         packagePrice: selectedRecord.price,
         packageValidityPeriod: selectedRecord.validityPeriod,
         packageCredits: selectedRecord.packageCredits,
+        isTrialPackage: selectedRecord.isTrialPackage,
       };
 
       const response = await axiosApi.post(
@@ -462,6 +408,7 @@ export default function PackagesPage() {
             uploaded_at: dayjs().toISOString(),
             reference_id: uuid,
             previous_active_package_id: user?.currentPackage?.id ?? null,
+            is_trial_package: selectedRecord.isTrialPackage,
           },
         });
 
@@ -482,32 +429,6 @@ export default function PackagesPage() {
     }
     setProcessingMaya(false);
   };
-
-  const renderCheckoutLoader = useCallback(() => {
-    return (
-      <Row
-        justify="center"
-        align="middle"
-        className="fixed inset-0 z-[9999] bg-black/60 p-4"
-      >
-        <Row
-          justify="center"
-          align="middle"
-          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
-        >
-          <Row justify="center" align="middle">
-            <Text className="text-[red] font-semibold text-base text-center m-0 p-0">
-              Please do not exit or refresh the website
-            </Text>
-            <Text className="text-[#36013F] font-light text-base text-center">
-              You will be redirected to a checkout with Maya shortly
-            </Text>
-          </Row>
-          <Spin />
-        </Row>
-      </Row>
-    );
-  }, []);
 
   const uploadButton = (
     <button
@@ -542,32 +463,6 @@ export default function PackagesPage() {
       reader.onerror = (error) => reject(error);
     });
 
-  const renderUploadProofLoader = useCallback(() => {
-    return (
-      <Row
-        justify="center"
-        align="middle"
-        className="fixed inset-0 z-[9999] bg-black/60 p-4"
-      >
-        <Row
-          justify="center"
-          align="middle"
-          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
-        >
-          <Row justify="center" align="middle">
-            <Text className="text-[red] font-semibold text-base text-center m-0 p-0">
-              Please do not exit or refresh the website
-            </Text>
-            <Text className="text-[#36013F] font-light text-base text-center">
-              Your proof is uploading
-            </Text>
-          </Row>
-          <Spin />
-        </Row>
-      </Row>
-    );
-  }, []);
-
   const handleManualUploadProof = async (file: any) => {
     setIsSendingPending(true);
     try {
@@ -576,20 +471,6 @@ export default function PackagesPage() {
         const filePath = `${user?.id}_${dayjs().toDate().getTime()}`;
         const fileExt = (file[0] as File).name.split(".").pop();
         const fileName = `payment_proof_${filePath}.${fileExt}`;
-
-        // console.log({
-        //   userID: user?.id,
-        //   status: "PENDING",
-        //   manualPaymentMethod: selectedPaymentMethod,
-        //   paymentProofPath: fileName,
-        //   packageID: selectedRecord.id,
-        //   packageCredits: selectedRecord.packageCredits,
-        //   packageTitle: selectedRecord.title,
-        //   packagePrice: selectedRecord.price,
-        //   packageValidityPeriod: selectedRecord.validityPeriod,
-        //   uploadedAt: dayjs().toISOString(),
-        //   referenceId: uuid
-        // })
 
         const formData = new FormData();
         formData.append("file", file[0].originFileObj); // raw File
@@ -616,7 +497,8 @@ export default function PackagesPage() {
             packagePrice: selectedRecord.price,
             packageValidityPeriod: selectedRecord.validityPeriod,
             uploadedAt: dayjs().toISOString(),
-            referenceId: uuid
+            referenceId: uuid,
+            isTrialPackage: selectedRecord.isTrialPackage,
           },
         });
         if (response?.status !== 200) {
@@ -669,6 +551,58 @@ export default function PackagesPage() {
     setIsSendingPending(false);
 
   };
+
+  const renderUploadProofLoader = useCallback(() => {
+    return (
+      <Row
+        justify="center"
+        align="middle"
+        className="fixed inset-0 z-[9999] bg-black/60 p-4"
+      >
+        <Row
+          justify="center"
+          align="middle"
+          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
+        >
+          <Row justify="center" align="middle">
+            <Text className="text-[red] font-semibold text-base text-center m-0 p-0">
+              Please do not exit or refresh the website
+            </Text>
+            <Text className="text-[#36013F] font-light text-base text-center">
+              Your proof is uploading
+            </Text>
+          </Row>
+          <Spin />
+        </Row>
+      </Row>
+    );
+  }, []);
+
+  const renderCheckoutLoader = useCallback(() => {
+    return (
+      <Row
+        justify="center"
+        align="middle"
+        className="fixed inset-0 z-[9999] bg-black/60 p-4"
+      >
+        <Row
+          justify="center"
+          align="middle"
+          className="gap-y-[20px] bg-white rounded-lg w-full max-w-md items-center justify-center px-4 py-[40px]"
+        >
+          <Row justify="center" align="middle">
+            <Text className="text-[red] font-semibold text-base text-center m-0 p-0">
+              Please do not exit or refresh the website
+            </Text>
+            <Text className="text-[#36013F] font-light text-base text-center">
+              You will be redirected to a checkout with Maya shortly
+            </Text>
+          </Row>
+          <Spin />
+        </Row>
+      </Row>
+    );
+  }, []);
 
   return (
     <AuthenticatedLayout>
@@ -758,7 +692,7 @@ export default function PackagesPage() {
                           title={showToolTip && "You still have an active package"}
                         >
                           <Button
-                            disabled={disablePurchase}
+                            disabled={item.isTrialPackage ? user?.availedTrialPackage : disablePurchase}
                             onClick={() => handleOpenModal(item)}
                             className={`w-full h-11 rounded-xl font-medium text-base shadow-sm transition-all duration-200 ${!disablePurchase
                               ? "!bg-[#800020] !border-[#800020] hover:!bg-[#800020] hover:!text-[white] text-[white] hover:scale-[1.02] active:scale-[0.99]"
@@ -918,8 +852,7 @@ export default function PackagesPage() {
 
                   <Button
                     onClick={handleNext}
-                    loading={isSubmitting}
-                    disabled={!acceptsTerms || isSubmitting}
+                    disabled={!acceptsTerms}
                     className={`bg-[#36013F] ${acceptsTerms ? "hover:!bg-[#36013F]" : ""
                       } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
                   >

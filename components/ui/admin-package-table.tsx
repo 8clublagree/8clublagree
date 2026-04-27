@@ -188,6 +188,20 @@ const AdminPackageTable = ({
   const columns = useMemo<TableColumnsType<CreatePackageProps>>(
     () => [
       {
+        title: "Trial Package",
+        dataIndex: "is_trial_package",
+        key: "is_trial_package",
+        width: isMobile ? undefined : 90,
+        render: (value) => {
+          return (
+            <Row>
+              {value === true ? <CheckOutlined size={20} className="font-[700] text-green-500" /> : <CloseOutlined size={20} className="font-[700] text-red-500" />}
+
+            </Row>
+          )
+        },
+      },
+      {
         title: "Offered",
         dataIndex: "offered_for_clients",
         key: "offered_for_clients",

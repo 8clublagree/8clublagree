@@ -39,7 +39,7 @@ export default function CreatePackageForm({
   const [isShareable, setIsShareable] = useState<boolean>(false);
   const [isOffered, setIsOffered] = useState<boolean>(false);
   const [isUnlimited, setIsUnlimited] = useState<boolean>(false);
-
+  const [isTrialPackage, setIsTrialPackage] = useState<boolean>(false);
   useEffect(() => {
     if (initialRef.current) {
       form.setFieldsValue(initialRef.current);
@@ -52,7 +52,7 @@ export default function CreatePackageForm({
       setIsShareable(initialValues.is_shareable as boolean);
       setIsUnlimited(initialValues.package_credits ? false : true);
       setIsOffered(initialValues.offered_for_clients as boolean);
-
+      setIsTrialPackage(initialValues.is_trial_package as boolean);
       let initial = {
         name: initialValues.title,
         price: initialValues.price,
@@ -62,6 +62,7 @@ export default function CreatePackageForm({
         }),
         is_shareable: initialValues.is_shareable,
         shareable_credits: initialValues.shareable_credits,
+        is_trial_package: initialValues.is_trial_package,
       };
 
       initialRef.current = initial;
@@ -75,6 +76,7 @@ export default function CreatePackageForm({
       is_shareable: isShareable,
       offered_for_clients: isOffered,
       shareable_credits: isShareable ? values.shareable_credits : null,
+      is_trial_package: isTrialPackage,
     };
     // console.log('formattedValues: ', formattedValues)
     onSubmit(formattedValues);
@@ -242,6 +244,8 @@ export default function CreatePackageForm({
           </Checkbox>
         </Col>
 
+        <Divider>Package Options</Divider>
+
         <Col xs={24} sm={12}>
           <Row wrap={false} className="flex flex-col justify-center h-full">
             <Checkbox
@@ -252,6 +256,19 @@ export default function CreatePackageForm({
               }}
             >
               Make available to clients
+            </Checkbox>
+          </Row>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Row wrap={false} className="flex flex-col justify-center h-full">
+            <Checkbox
+              checked={isTrialPackage}
+              onChange={(e) => {
+                form.setFieldValue("is_trial_package", undefined);
+                setIsTrialPackage(e.target.checked);
+              }}
+            >
+              Is a trial package
             </Checkbox>
           </Row>
         </Col>

@@ -69,6 +69,7 @@ export default function PackageManagementPage() {
         offered_for_clients: pkg.offered_for_clients,
         is_shareable: pkg.is_shareable,
         shareable_credits: pkg.shareable_credits,
+        is_trial_package: pkg.is_trial_package,
       }));
 
 
@@ -101,6 +102,7 @@ export default function PackageManagementPage() {
       offered_for_clients: values.offered_for_clients,
       is_shareable: values.is_shareable,
       shareable_credits: values.shareable_credits,
+      is_trial_package: values.is_trial_package,
     };
     try {
       if (editingRecord) {

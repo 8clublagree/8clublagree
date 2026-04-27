@@ -55,6 +55,7 @@ export interface CreatePackageProps {
   offered_for_clients?: boolean;
   is_shareable?: boolean;
   shareable_credits?: number;
+  is_trial_package?: boolean;
 }
 
 export interface ChartData {
@@ -73,6 +74,9 @@ export interface PackageProps {
   packageCredits: number;
   validityPeriod: number;
   shareable_credits?: number;
+  is_trial_package?: boolean;
+  isTrialPackage?: boolean;
+  availedTrialPackage?: boolean;
 }
 
 export interface ClientPackageProps {
@@ -97,6 +101,7 @@ export interface ClientPackageProps {
     packageType: "regular" | "promo" | string;
     packageCredits: number;
     validityPeriod: number;
+    is_trial_package?: boolean;
   };
 }
 

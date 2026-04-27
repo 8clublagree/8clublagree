@@ -169,6 +169,7 @@ export default function AuthenticatedLayout({
           numberOfCreditsShared: activePackage?.number_of_credits_shared,
           shareable_credits: activePackage ? activePackage.shareable_credits : 0,
           totalUsableSharedCredits: totalUsableSharedCredits < 0 ? 0 : totalUsableSharedCredits,
+          availedTrialPackage: profile?.availed_trial_package,
         }),
       );
     }
