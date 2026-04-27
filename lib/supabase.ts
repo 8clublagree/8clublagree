@@ -28,6 +28,7 @@ export interface CurrentPackageProps {
   number_of_shared_credits_used?: number;
   number_of_credits_shared?: number;
   shareable_credits?: number;
+  is_trial_package?: boolean;
 }
 
 export interface UserProfile {
@@ -55,6 +56,7 @@ export interface UserProfile {
   sharedPackages?: CurrentPackageProps[];
   instructors?: any[];
   pendingPurchases?: any;
+  availedTrialPackage?: boolean;
 }
 
 export interface UpdateUserProfile {
@@ -69,4 +71,5 @@ export interface UpdateUserProfile {
   shareable_credits?: number;
   emergency_contact_name?: string;
   emergency_contact_number?: string;
+  availedTrialPackage?: boolean;
 }
