@@ -28,6 +28,9 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
       packageCredits: orderData.package_credits,
       packageName: orderData.package_title,
       isTrialPackage: orderData.is_trial_package,
+      isShareable: orderData.is_shareable,
+      shareableCredits: orderData.shareable_credits,
+      numberOfCreditsShared: orderData.number_of_credits_shared,
     };
 
     const promises = []
@@ -71,6 +74,9 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
       payment_method: "maya",
       expiration_date: getDateFromToday(orderObject.validityPeriod),
       is_trial_package: orderObject.isTrialPackage,
+      is_shareable: orderObject.isShareable,
+      shareable_credits: orderObject.shareableCredits,
+      number_of_credits_shared: orderObject.numberOfCreditsShared,
     });
   } catch (error) {
     throw error;

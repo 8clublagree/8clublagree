@@ -29,11 +29,20 @@ export async function PUT(req: Request) {
       .eq("id", classID)
       .select();
 
-    const { error: updateCreditsError } = await supabaseServer
-      .from("user_credits")
-      .update({ credits: (userCredits as number) + 1 })
-      .eq("user_id", userID)
-      .single();
+    if (userCredits !== null) {
+      const { error: updateCreditsError } = await supabaseServer
+        .from("user_credits")
+        .update({ credits: (userCredits as number) + 1 })
+        .eq("user_id", userID)
+        .single();
+
+      if (updateCreditsError) {
+        return NextResponse.json(
+          { error: updateCreditsError.message },
+          { status: 400 }
+        );
+      }
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -42,13 +51,6 @@ export async function PUT(req: Request) {
     if (updateClassError) {
       return NextResponse.json(
         { error: updateClassError.message },
-        { status: 400 }
-      );
-    }
-
-    if (updateCreditsError) {
-      return NextResponse.json(
-        { error: updateCreditsError.message },
         { status: 400 }
       );
     }

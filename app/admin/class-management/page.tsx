@@ -345,8 +345,9 @@ export default function ClassManagementPage() {
       const bookingType = formData.bookingType;
       const values = omit(formData, ["bookingType"]);
 
-      const hasPurchasedCredits = values?.existingClientRecord?.credits !== null;
-      const hasUsableSharedCredits = values?.existingClientRecord?.totalUsableSharedCredits !== null;
+      const hasPurchasedShareableCredits = values?.existingClientRecord?.currentPackage?.is_shared === false ? (values?.existingClientRecord?.shareable_credits ?? 0) - (values?.existingClientRecord.numberOfCreditsShared ?? 0) : null
+      const hasPurchasedCredits = values?.existingClientRecord?.credits !== null && values?.existingClientRecord?.credits !== 0;
+      const hasUsableSharedCredits = values?.existingClientRecord?.totalUsableSharedCredits !== null && values?.existingClientRecord?.totalUsableSharedCredits !== 0;
 
       // console.log('values: ', values)
 
@@ -366,13 +367,32 @@ export default function ClassManagementPage() {
         const clientID = values.existingClientRecord.id;
         const clientCredits = values.existingClientRecord.credits;
 
-        await bookClass({
-          classDate: dayjs(selectedDate).toISOString(),
-          classId: values.class_id,
-          bookerId: clientID,
-          isWalkIn: false,
-          deductCredits: clientCredits != null,
-        });
+        if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
+          const updatedValue: number = (values?.existingClientRecord?.currentPackage?.number_of_shared_credits_used ?? 0) + 1
+
+          await updateClientPackage({
+            clientPackageID: values?.existingClientRecord?.currentPackage?.id as string,
+            values: {
+              ...(values?.existingClientRecord?.currentPackage?.shareable_credits && updatedValue >= values?.existingClientRecord?.currentPackage?.shareable_credits ? { status: "expired", expirationDate: dayjs() } : {}),
+              numberOfSharedCreditsUsed: updatedValue,
+            },
+          });
+
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: values.class_id,
+            bookerId: clientID,
+            isWalkIn: false,
+            deductCredits: clientCredits != null,
+          });
+
+          showMessage({
+            type: "success",
+            content: "Successfully created manual booking",
+          });
+          handleCloseBookingModal();
+          return
+        }
 
         if (hasPurchasedCredits) {
 
@@ -380,7 +400,23 @@ export default function ClassManagementPage() {
             userID: clientID as string,
             ...(clientCredits && clientCredits !== null && !isNaN(clientCredits as number) && { values: { credits: clientCredits as number - 1 } }),
           });
-        } else if (hasUsableSharedCredits) {
+
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: values.class_id,
+            bookerId: clientID,
+            isWalkIn: false,
+            deductCredits: clientCredits != null,
+          });
+
+          showMessage({
+            type: "success",
+            content: "Successfully created manual booking",
+          });
+          handleCloseBookingModal();
+          return
+        }
+        if (hasUsableSharedCredits) {
 
           const soonestExpiring = values.existingClientRecord.sharedPackages?.reduce((earliest: any, current: any) =>
             dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
@@ -389,20 +425,28 @@ export default function ClassManagementPage() {
           await updateClientPackage({
             clientPackageID: soonestExpiring?.id as string,
             values: {
-              packageCredits: (soonestExpiring?.package_credits as number) - 1,
-              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) - 1,
+              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) + 1,
             },
           });
+
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: values.class_id,
+            bookerId: clientID,
+            isWalkIn: false,
+            deductCredits: clientCredits != null,
+          });
+          showMessage({
+            type: "success",
+            content: "Successfully created manual booking",
+          });
+          handleCloseBookingModal();
+
+          return
         }
-
-
       }
 
-      showMessage({
-        type: "success",
-        content: "Successfully created manual booking",
-      });
-      handleCloseBookingModal();
+
     } catch (error) {
       showMessage({ type: "error", content: "Error in manual booking" });
     }

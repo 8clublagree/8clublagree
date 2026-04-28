@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     "lagree for beginners",
     "megaformer beginner guide",
     "what to expect lagree",
+    "best lagree cebu",
   ],
   openGraph: {
     title,

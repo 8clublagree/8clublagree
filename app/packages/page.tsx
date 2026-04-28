@@ -409,6 +409,9 @@ export default function PackagesPage() {
             reference_id: uuid,
             previous_active_package_id: user?.currentPackage?.id ?? null,
             is_trial_package: selectedRecord.isTrialPackage,
+            is_shareable: selectedRecord.is_shareable,
+            shareable_credits: selectedRecord.shareable_credits,
+            number_of_credits_shared: 0,
           },
         });
 
@@ -499,6 +502,9 @@ export default function PackagesPage() {
             uploadedAt: dayjs().toISOString(),
             referenceId: uuid,
             isTrialPackage: selectedRecord.isTrialPackage,
+            isShareable: selectedRecord.is_shareable,
+            shareableCredits: selectedRecord.shareable_credits,
+            numberOfCreditsShared: 0,
           },
         });
         if (response?.status !== 200) {
@@ -621,10 +627,15 @@ export default function PackagesPage() {
             {packages &&
               packages.map((item, index) => {
                 const showToolTip = user?.currentPackage && user?.credits !== 0;
+                const stillHasShareableCredits = ((user?.shareable_credits ?? 0) - (user?.numberOfCreditsShared ?? 0)) > 0;
+
                 const disablePurchase =
-                  (user?.currentPackage !== null &&
-                    user?.currentPackage !== undefined) &&
-                  user?.credits !== 0;
+                  user?.currentPackage?.is_shareable === true ?
+                    (user?.currentPackage !== null ||
+                      user?.currentPackage !== undefined) &&
+                    user?.credits !== 0 && stillHasShareableCredits : (user?.currentPackage !== null ||
+                      user?.currentPackage !== undefined) &&
+                    user?.credits !== 0;
 
                 return (
                   <Col

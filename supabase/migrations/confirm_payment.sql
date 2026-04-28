@@ -9,7 +9,10 @@ CREATE OR REPLACE FUNCTION confirm_payment(
   p_package_name TEXT,
   p_validity_period INT,
   p_package_credits INT,
-  p_expiration_date TIMESTAMPTZ
+  p_expiration_date TIMESTAMPTZ,
+  p_is_shareable BOOLEAN DEFAULT FALSE,
+  p_shareable_credits INT DEFAULT 0,
+  p_number_of_credits_shared INT DEFAULT 0
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -31,11 +34,13 @@ BEGIN
   INSERT INTO client_packages (
     user_id, package_id, status, validity_period,
     package_credits, purchase_date, package_name,
-    payment_method, expiration_date
+    payment_method, expiration_date,
+    is_shareable, shareable_credits, number_of_credits_shared
   ) VALUES (
     p_user_id, p_package_id, 'active', p_validity_period,
     p_package_credits, NOW(), p_package_name,
-    p_payment_method, p_expiration_date
+    p_payment_method, p_expiration_date,
+    p_is_shareable, p_shareable_credits, p_number_of_credits_shared
   );
 
   -- 4. Update user credits

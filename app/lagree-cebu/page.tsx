@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     "lagree workout cebu",
     "lagree cebu price",
     "best lagree studio cebu",
+    "best lagree cebu",
   ],
   openGraph: {
     title,

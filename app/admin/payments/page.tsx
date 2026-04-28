@@ -58,6 +58,9 @@ interface OrdersTableType {
   package_credits?: number;
   user_profiles?: any;
   userCredits?: number;
+  is_shareable?: boolean;
+  shareable_credits?: number;
+  number_of_credits_shared?: number;
 }
 
 const PaymentsPage = () => {
@@ -460,6 +463,9 @@ const PaymentsPage = () => {
         packageName: selectedPayment.package_title as string,
         validityPeriod: Number(selectedPayment.package_validity_period),
         packageCredits: selectedPayment.package_credits as number,
+        isShareable: selectedPayment.is_shareable as boolean,
+        shareableCredits: selectedPayment.shareable_credits as number,
+        numberOfCreditsShared: selectedPayment.number_of_credits_shared as number,
       });
 
       if (!paymentStatusResponse?.data) {

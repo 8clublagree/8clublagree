@@ -303,7 +303,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
                   message: "Please enter your contact number",
                 },
                 {
-                  pattern: /^[0-9]+$/,
+                  pattern: /^\+?[0-9]+$/,
                   message: "Contact number must be digits only",
                 },
               ]}
@@ -367,7 +367,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
                   message: "Please enter emergency contact number",
                 },
                 {
-                  pattern: /^[0-9]+$/,
+                  pattern: /^\+?[0-9]+$/,
                   message: "Emergency contact must be digits only",
                 },
               ]}

@@ -32,12 +32,6 @@ const FAQ = () => {
         <Paragraph>
           You can purchase sessions directly through our website or via our studio front desk.
           If you choose to pay in-studio, our team will assist you with setting up your 8ClubLagree account online to activate your class credits.
-        </Paragraph>{" "}
-        <Paragraph>
-          Movements in Lagree are slow and with control, with little to no rest in between an exercise, all to maximize muscle tension and results (e.g. about 1 rep in 10 seconds), whereas Pilates generally focuses on smaller, faster movements (e.g. 10 reps in 10 seconds).
-        </Paragraph>
-        <Paragraph>
-          The Megaformer's look was inspired by the Pilates reformer, but is designed differently, to fit the purpose, methods, and goals of Lagree.
         </Paragraph>
         {/* <Text strong className="halyard text-[16px]" underline>Binding Effect</Text>
         <Paragraph>
