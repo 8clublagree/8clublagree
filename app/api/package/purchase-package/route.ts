@@ -14,7 +14,8 @@ export async function POST(req: Request) {
       packageName,
       isShareable,
       shareableCredits,
-      numberOfCreditsShared
+      numberOfCreditsShared,
+      isTrialPackage,
     } = await req.json();
 
     const today = dayjs();
@@ -39,8 +40,16 @@ export async function POST(req: Request) {
       })
       .select();
 
+
+
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    if (isTrialPackage === true) {
+      await supabaseServer.from("user_profiles").update({
+        availed_trial_package: true,
+      }).eq("id", userID);
     }
 
     return NextResponse.json({ data: data });

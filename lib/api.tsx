@@ -943,7 +943,8 @@ export const usePackageManagement = () => {
     packageName,
     isShareable = false,
     shareableCredits = 0,
-    numberOfCreditsShared = 0
+    numberOfCreditsShared = 0,
+    isTrialPackage = false,
   }: {
     userID: string;
     packageID: string;
@@ -954,6 +955,7 @@ export const usePackageManagement = () => {
     isShareable?: boolean;
     shareableCredits?: number;
     numberOfCreditsShared?: number;
+    isTrialPackage?: boolean;
   }) => {
     try {
       setLoading(true);
@@ -962,6 +964,7 @@ export const usePackageManagement = () => {
         isShareable,
         shareableCredits,
         numberOfCreditsShared,
+        isTrialPackage,
       });
       const data = response.data?.data;
       if (!data) return null;

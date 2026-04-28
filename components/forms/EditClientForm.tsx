@@ -127,7 +127,7 @@ const EditClientForm = ({
 
   useEffect(() => {
     if (initialValues) {
-      console.log('initialValues: ', initialValues)
+
       // exclude avatar data since it's not part of the form
       const maxShareable = initialValues?.clientPackage?.shareableCredits ?? 0;
       const initial = {
@@ -275,8 +275,6 @@ const EditClientForm = ({
       }
     }
 
-    console.log('values: ', values)
-
     const formData = {
       ...values,
       ...(clientFile?.name !== "existing_image.png" && {
@@ -287,8 +285,6 @@ const EditClientForm = ({
       shareable_credits: values.shareable_credits,
       expiration_date: dayjs(initialValuesRef?.current?.purchaseDate).add(values.days_until_expiration, 'days').toISOString(),
     };
-
-    console.log('formData: ', formData)
 
     onSubmit(formData);
   };
@@ -323,6 +319,7 @@ const EditClientForm = ({
         validityPeriod: data.validity_period,
         packageType: data.package_type,
         packageCredits: data.package_credits,
+        isTrialPackage: data.is_trial_package,
         key: data.id,
         value: data.id,
 
@@ -368,6 +365,7 @@ const EditClientForm = ({
         packageName: selectedPackage.title,
         validityPeriod: selectedPackage.validityPeriod,
         packageCredits: selectedPackage.packageCredits,
+        isTrialPackage: selectedPackage.isTrialPackage,
         ...(selectedPackage.is_shareable === true && {
           isShareable: selectedPackage.is_shareable,
           shareableCredits: selectedPackage.shareable_credits,
@@ -382,7 +380,7 @@ const EditClientForm = ({
   };
 
   const handleExpirePackageConfirm = async (password: string) => {
-    // console.log('initialValues: ', initialValues)
+
     const adminEmail = user?.email;
     if (!adminEmail) {
       throw new Error("Unable to verify: no admin email.");
