@@ -48,6 +48,7 @@ async function expireOverduePackages() {
   }
 
   console.log(`[expire-packages] Expired ${packageIds.length} packages for ${userIds.length} users.`);
+  console.log(`${packageIds.join(', ')}`);
   return { expired: packageIds.length };
 }
 

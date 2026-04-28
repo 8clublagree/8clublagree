@@ -227,15 +227,6 @@ async function checkExpiringPackages() {
     MailtrapTransport({ token: apiToken }),
   );
 
-  // const transporter = nodemailer.createTransport({
-  //   host: process.env.MAILTRAP_HOST,
-  //   port: Number(process.env.MAILTRAP_PORT) || 587,
-  //   auth: {
-  //     user: process.env.MAILTRAP_USERNAME,
-  //     pass: process.env.MAILTRAP_PASSWORD,
-  //   },
-  // });
-
   for (const pkg of packages) {
     const user: any = pkg.user_profiles;
     const currentCredits = user?.user_credits?.[0]?.credits;
