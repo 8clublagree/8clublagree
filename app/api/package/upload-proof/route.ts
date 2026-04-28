@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       packageCredits,
       packageValidityPeriod,
       referenceId,
-      isTrialPackage
+      isTrialPackage,
       isShareable,
       shareableCredits,
       numberOfCreditsShared
