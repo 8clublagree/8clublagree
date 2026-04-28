@@ -637,6 +637,8 @@ export default function PackagesPage() {
                       user?.currentPackage !== undefined) &&
                     user?.credits !== 0;
 
+                const toolTip = item.isTrialPackage ? user?.availedTrialPackage ? "You have already availed a trial package" : showToolTip && "You still have an active package" : ''
+
                 return (
                   <Col
                     key={index}
@@ -710,7 +712,7 @@ export default function PackagesPage() {
                         </div>
 
                         <Tooltip
-                          title={showToolTip && "You still have an active package"}
+                          title={toolTip}
                         >
                           <Button
                             disabled={item.isTrialPackage ? user?.availedTrialPackage : disablePurchase}
