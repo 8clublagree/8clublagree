@@ -649,11 +649,20 @@ export default function PackagesPage() {
                   >
                     <Card
                       title={
-                        <span className="halyard font-semibold text-2xl sm:text-3xl xl:text-4xl tracking-tight">
-                          {item.packageCredits
-                            ? `${item.packageCredits + (item?.shareable_credits ?? 0)}`
-                            : "Unlimited"}
-                        </span>
+                        <div>
+                          {item.is_trial_package === true &&
+                            <div className="flex justify-start">
+                              <p className="inline-block rounded-md bg-slate-100 px-1 py-[3px] text-[8px] font-medium uppercase tracking-wide text-slate-500">
+                                Trial Package
+                              </p>
+                            </div>
+                          }
+                          <span className="halyard font-semibold text-2xl sm:text-3xl xl:text-4xl tracking-tight">
+                            {item.packageCredits
+                              ? `${item.packageCredits + (item?.shareable_credits ?? 0)}`
+                              : "Unlimited"}
+                          </span>
+                        </div>
                       }
                       styles={{
                         title: {
@@ -678,6 +687,7 @@ export default function PackagesPage() {
                       className="w-full border border-slate-200/80 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-0.5"
                     >
                       <div className="flex flex-col flex-1 justify-between gap-4">
+
                         <div className="space-y-1.5">
                           <p className="halyard font-bold text-lg sm:text-xl text-slate-800 w-full truncate">
                             {item.title}
