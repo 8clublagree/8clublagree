@@ -717,7 +717,7 @@ export default function PackagesPage() {
                           <Button
                             disabled={item.isTrialPackage ? user?.availedTrialPackage : disablePurchase}
                             onClick={() => handleOpenModal(item)}
-                            className={`w-full h-11 rounded-xl font-medium text-base shadow-sm transition-all duration-200 ${!disablePurchase
+                            className={`w-full h-11 rounded-xl font-medium text-base shadow-sm transition-all duration-200 ${item.isTrialPackage ? !user?.availedTrialPackage && !disablePurchase : !disablePurchase
                               ? "!bg-[#800020] !border-[#800020] hover:!bg-[#800020] hover:!text-[white] text-[white] hover:scale-[1.02] active:scale-[0.99]"
                               : "!bg-slate-200 !border-slate-200 !text-slate-500 hover:!bg-slate-200"
                               }`}
