@@ -637,7 +637,7 @@ export default function PackagesPage() {
                       user?.currentPackage !== undefined) &&
                     user?.credits !== 0;
 
-                const toolTip = item.isTrialPackage ? user?.availedTrialPackage ? "You have already availed a trial package" : showToolTip && "You still have an active package" : ''
+                const toolTip = item.isTrialPackage ? user?.availedTrialPackage ? "You cannot avail of a trial package" : showToolTip && "You still have an active package" : ''
 
                 return (
                   <Col
