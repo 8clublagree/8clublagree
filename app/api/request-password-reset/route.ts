@@ -6,7 +6,7 @@ import { EMAIL_TEMPLATE } from "@/lib/email-templates";
 import supabaseServer from "../supabase";
 
 const OTP_LENGTH = 6;
-const INSERT_RETRY_COUNT = 3;
+const INSERT_RETRY_COUNT = 10;
 const INSERT_RETRY_DELAY_MS = 500;
 
 function generateOtp(): string {
