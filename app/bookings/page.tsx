@@ -248,14 +248,14 @@ export default function BookingsPage() {
             ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: updatedValue } }),
           });
 
-          if (updatedValue === 0) {
-            await updateClientPackage({
-              clientPackageID: user.currentPackage?.id as string,
-              values: {
-                status: "expired", expirationDate: dayjs()
-              },
-            });
-          }
+          // if (updatedValue === 0) {
+          //   await updateClientPackage({
+          //     clientPackageID: user.currentPackage?.id as string,
+          //     values: {
+          //       status: "expired", expirationDate: dayjs()
+          //     },
+          //   });
+          // }
 
           dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
 
