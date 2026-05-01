@@ -51,17 +51,6 @@ export async function GET(request: NextRequest) {
       userCredits: payment?.user_profiles?.user_credits?.[0]?.credits ?? null,
     };
 
-    // let avatarUrl: string | null = null;
-    // if (mapped.payment_proof_path) {
-    //   const { data } = await supabaseServer.storage
-    //     .from("payment-proof")
-    //     .createSignedUrl(mapped.payment_proof_path, 3600);
-
-    //   if (data?.signedUrl) {
-    //     avatarUrl = data.signedUrl;
-    //   }
-    // }
-
     let avatarUrl: string | null = null;
     if (mapped.payment_proof_path) {
       for (let attempt = 0; attempt < 3; attempt++) {
