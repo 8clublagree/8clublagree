@@ -530,9 +530,11 @@ export default function PackagesPage() {
       }
     } catch (err: any) {
       setIsSendingPending(false);
-      console.error(err);
-      showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page or ensure that you have a stable internet connection.` });
-      // showMessage({ type: "error", content: `${err}` });
+      if (err.includes('timeout')) {
+        showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page or ensure that you have a stable internet connection.` });
+      } else {
+        showMessage({ type: "error", content: `${err}` });
+      }
 
       return null
     }
