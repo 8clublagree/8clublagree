@@ -6,7 +6,7 @@ import { logout as logoutAction } from "./features/authSlice";
 const axiosApi = axios.create({
   baseURL: "/api",
   withCredentials: false,
-  timeout: 500_000, // Fail fast; avoid hanging requests (cost + UX)
+  timeout: 900_000, // Fail fast; avoid hanging requests (cost + UX)
 });
 
 axiosApi.interceptors.request.use(
