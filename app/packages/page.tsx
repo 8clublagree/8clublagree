@@ -473,7 +473,7 @@ export default function PackagesPage() {
         const uuid = uuidv4();
         const filePath = `${user?.id}_${dayjs().toDate().getTime()}`;
         const fileExt = (file[0] as File).name.split(".").pop();
-        const fileName = `payment_proof_${filePath}.${fileExt?.toLocaleLowerCase()}`;
+        const fileName = `payment_proof_${filePath}.${fileExt?.toLowerCase()}`;
 
         const formData = new FormData();
         formData.append("file", file[0].originFileObj); // raw File
