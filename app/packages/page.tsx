@@ -482,10 +482,11 @@ export default function PackagesPage() {
 
         const uploadRes = await axiosApi.post(
           "/orders/upload-screenshot",
-          formData,
+          formData
         );
         if (!uploadRes.data?.data) {
-          throw new Error("File upload failed");
+          console.error(uploadRes)
+          // throw new Error("File upload failed");
         }
 
         const response = await axiosApi.post("/package/upload-proof", {
@@ -530,7 +531,8 @@ export default function PackagesPage() {
     } catch (err: any) {
       setIsSendingPending(false);
       console.error(err);
-      showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page and submitting the proof again to the desired package.` });
+      showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page or ensure that you have a stable internet connection.` });
+      // showMessage({ type: "error", content: `${err}` });
 
       return null
     }

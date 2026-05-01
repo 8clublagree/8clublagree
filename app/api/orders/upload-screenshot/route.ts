@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 400 });
+      return NextResponse.json({ error: `Error: ${uploadError.message}` }, { status: 400 });
     }
 
     return NextResponse.json({ data });
