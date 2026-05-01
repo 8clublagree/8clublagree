@@ -63,10 +63,10 @@ export default function PackagesPage() {
   const user = useAppSelector((state) => state.auth.user);
   const {
     loading: packageLoading,
-    fetchPackages
+    fetchPackages,
+    updateClientPackage
   } = usePackageManagement();
   const { showMessage, contextHolder } = useAppMessage();
-
   const [isMobile, setIsMobile] = useState(false);
   const [carouselSlide, setCarouselSlide] = useState(0);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
@@ -511,8 +511,16 @@ export default function PackagesPage() {
           throw new Error("Order creation failed");
         } else {
 
-          handleSendConfirmationEmail().catch(console.error);
+          if (user?.currentPackage !== null && user?.currentPackage !== undefined) {
+            await updateClientPackage({
+              clientPackageID: user?.currentPackage?.id as string,
+              values: {
+                status: "expired",
+              },
+            });
+          }
 
+          handleSendConfirmationEmail().catch(console.error);
           setIsSendingPending(false);
           // return 200;
         }

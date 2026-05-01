@@ -200,11 +200,57 @@ export default function BookingsPage() {
         const hasPurchasedCredits = user.credits !== null && user.credits !== 0;
         const hasUsableSharedCredits = user.totalUsableSharedCredits !== null && user?.totalUsableSharedCredits !== 0;
 
+        const remainingCredits = ((user.credits as number) - (user.currentPackage?.shareable_credits ?? 0) - (user?.currentPackage?.number_of_shared_credits_used ?? 0))
 
+        if (hasPurchasedCredits && remainingCredits > 0) {
+
+          const updatedValue: number = (user?.credits as number - (hasPurchasedShareableCredits ?? 0)) - 1
+
+
+
+          await updateUserCredits({
+            userID: user?.id as string,
+            ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: updatedValue } }),
+          });
+
+          if (user?.currentPackage?.is_shareable === false && updatedValue === 0) {
+            await updateClientPackage({
+              clientPackageID: user.currentPackage?.id as string,
+              values: {
+                status: "expired", expirationDate: dayjs()
+              },
+            });
+          }
+
+          dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
+
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: selectedRecord.id,
+            bookerId: user.id as string,
+            isWalkIn: false,
+            // deductCredits: shouldDeductCredits,
+            method: 'client_account'
+          });
+
+
+          handleSendConfirmationEmail();
+
+          handleCloseModal();
+          showMessage({
+            type: "success",
+            content: "Successfully booked a class!",
+          });
+          await handleFetchClasses()
+
+          setIsSubmitting(false);
+          return
+        }
 
         if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
-
           const updatedValue: number = (user.currentPackage?.number_of_shared_credits_used ?? 0) + 1
+
+
 
           await updateClientPackage({
             clientPackageID: user.currentPackage?.id as string,
@@ -239,54 +285,11 @@ export default function BookingsPage() {
           return
         }
 
-        if (hasPurchasedCredits) {
-
-          const updatedValue: number = user?.credits as number - 1
-
-          await updateUserCredits({
-            userID: user?.id as string,
-            ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: updatedValue } }),
-          });
-
-          // if (updatedValue === 0) {
-          //   await updateClientPackage({
-          //     clientPackageID: user.currentPackage?.id as string,
-          //     values: {
-          //       status: "expired", expirationDate: dayjs()
-          //     },
-          //   });
-          // }
-
-          dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
-
-          await bookClass({
-            classDate: dayjs(selectedDate).toISOString(),
-            classId: selectedRecord.id,
-            bookerId: user.id as string,
-            isWalkIn: false,
-            // deductCredits: shouldDeductCredits,
-            method: 'client_account'
-          });
-
-
-          handleSendConfirmationEmail();
-
-          handleCloseModal();
-          showMessage({
-            type: "success",
-            content: "Successfully booked a class!",
-          });
-          await handleFetchClasses()
-
-          setIsSubmitting(false);
-          return
-
-        }
         if (hasUsableSharedCredits) {
-
           const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
             dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
           );
+
 
           await updateClientPackage({
             clientPackageID: soonestExpiring?.id as string,
@@ -323,6 +326,7 @@ export default function BookingsPage() {
         }
 
         if (user.credits == null) {
+
           await bookClass({
             classDate: dayjs(selectedDate).toISOString(),
             classId: selectedRecord.id,

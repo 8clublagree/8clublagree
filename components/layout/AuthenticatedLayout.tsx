@@ -139,7 +139,7 @@ export default function AuthenticatedLayout({
       return acc;
     }, 0);
 
-    const shareableCreditsFromActivePackage = activePackage?.is_shared === false ? (activePackage?.shareable_credits ?? 0) - ((activePackage.number_of_credits_shared ?? 0) + (activePackage.number_of_shared_credits_used ?? 0)) : 0;
+    const shareableCreditsFromActivePackage = activePackage?.is_shared === false ? (activePackage?.shareable_credits ?? 0) - ((activePackage.number_of_credits_shared ?? 0) + (activePackage.number_of_shared_credits_used ?? 0)) : (activePackage?.package_credits ?? 0) - (activePackage?.number_of_shared_credits_used ?? 0);
 
     if (profile) {
       if (profile.user_type === "admin") {
