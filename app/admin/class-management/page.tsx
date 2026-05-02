@@ -366,6 +366,41 @@ export default function ClassManagementPage() {
       if (bookingType === "existing") {
         const clientID = values.existingClientRecord.id;
         const clientCredits = values.existingClientRecord.credits;
+        const remainingCredits = ((values.existingClientRecord.credits as number) - (values.existingClientRecord.currentPackage?.shareable_credits ?? 0) - (values.existingClientRecord?.currentPackage?.number_of_shared_credits_used ?? 0))
+
+        // CHECK CREDITS DEDUCTION AND PACKAGE EXPIRY HERE
+        if (hasPurchasedCredits && remainingCredits > 0) {
+          const updatedValue: number = (values.existingClientRecord?.credits as number - (hasPurchasedShareableCredits ?? 0)) - 1
+
+          await updateUserCredits({
+            userID: clientID as string,
+            ...(clientCredits && clientCredits !== null && !isNaN(clientCredits as number) && { values: { credits: clientCredits as number - 1 } }),
+          });
+
+          if (values.existingClientRecord?.currentPackage?.is_shareable === false && updatedValue === 0) {
+            await updateClientPackage({
+              clientPackageID: values.existingClientRecord.currentPackage?.id as string,
+              values: {
+                status: "expired", expirationDate: dayjs()
+              },
+            });
+          }
+
+          await bookClass({
+            classDate: dayjs(selectedDate).toISOString(),
+            classId: values.class_id,
+            bookerId: clientID,
+            isWalkIn: false,
+            deductCredits: clientCredits != null,
+          });
+
+          showMessage({
+            type: "success",
+            content: "Successfully created manual booking",
+          });
+          handleCloseBookingModal();
+          return
+        }
 
         if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
           const updatedValue: number = (values?.existingClientRecord?.currentPackage?.number_of_shared_credits_used ?? 0) + 1
@@ -394,28 +429,6 @@ export default function ClassManagementPage() {
           return
         }
 
-        if (hasPurchasedCredits) {
-
-          await updateUserCredits({
-            userID: clientID as string,
-            ...(clientCredits && clientCredits !== null && !isNaN(clientCredits as number) && { values: { credits: clientCredits as number - 1 } }),
-          });
-
-          await bookClass({
-            classDate: dayjs(selectedDate).toISOString(),
-            classId: values.class_id,
-            bookerId: clientID,
-            isWalkIn: false,
-            deductCredits: clientCredits != null,
-          });
-
-          showMessage({
-            type: "success",
-            content: "Successfully created manual booking",
-          });
-          handleCloseBookingModal();
-          return
-        }
         if (hasUsableSharedCredits) {
 
           const soonestExpiring = values.existingClientRecord.sharedPackages?.reduce((earliest: any, current: any) =>

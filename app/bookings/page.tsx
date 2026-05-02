@@ -206,8 +206,6 @@ export default function BookingsPage() {
 
           const updatedValue: number = (user?.credits as number - (hasPurchasedShareableCredits ?? 0)) - 1
 
-
-
           await updateUserCredits({
             userID: user?.id as string,
             ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: updatedValue } }),
