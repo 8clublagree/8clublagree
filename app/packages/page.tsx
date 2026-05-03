@@ -83,6 +83,9 @@ export default function PackagesPage() {
   const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<
     boolean | null
   >(null);
+  const uploadScreenshotAbortControllerRef = useRef<AbortController | null>(
+    null
+  );
 
   const [checkoutForm] = Form.useForm();
   const [formData, setFormData] = useState<PurchaseFormData>({
@@ -480,10 +483,23 @@ export default function PackagesPage() {
         formData.append("fileName", fileName);
         formData.append("action", "upload-proof");
 
-        const uploadRes = await axiosApi.post(
-          "/orders/upload-screenshot",
-          formData
-        );
+        uploadScreenshotAbortControllerRef.current?.abort();
+        const uploadScreenshotController = new AbortController();
+        uploadScreenshotAbortControllerRef.current = uploadScreenshotController;
+
+        let uploadRes;
+        try {
+          uploadRes = await axiosApi.post("/orders/upload-screenshot", formData, {
+            signal: uploadScreenshotController.signal,
+          });
+        } finally {
+          if (
+            uploadScreenshotAbortControllerRef.current ===
+            uploadScreenshotController
+          ) {
+            uploadScreenshotAbortControllerRef.current = null;
+          }
+        }
         if (!uploadRes.data?.data) {
           console.error(uploadRes)
           // throw new Error("File upload failed");
