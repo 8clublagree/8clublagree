@@ -934,6 +934,19 @@ export const usePackageManagement = () => {
     }
   };
 
+  const validatePromoCode = async ({ promoCode }: { promoCode: string }) => {
+    try {
+      // setLoading(true);
+      const response = await axiosApi.post("/package/validate-promo-code", { promoCode });
+      const data = response.data?.data;
+      if (!data) return null;
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+
+  };
+
   const purchasePackage = async ({
     userID,
     packageID,
@@ -1038,6 +1051,7 @@ export const usePackageManagement = () => {
 
   return {
     loading,
+    validatePromoCode,
     fetchPreviewPackages,
     deletePackage,
     updateClientPackage,
