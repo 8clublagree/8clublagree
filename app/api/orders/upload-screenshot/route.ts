@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const maxAttempts = 5;
+    const maxAttempts = 10;
     let data: any = null;
     let uploadError: any = null;
 
