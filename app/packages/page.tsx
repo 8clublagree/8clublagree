@@ -30,6 +30,7 @@ import { FileType, formatPHPhoneToE164, formatPrice } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
+  CircleCheck,
   CreditCard,
   Lock,
   User,
@@ -64,7 +65,8 @@ export default function PackagesPage() {
   const {
     loading: packageLoading,
     fetchPackages,
-    updateClientPackage
+    updateClientPackage,
+    validatePromoCode
   } = usePackageManagement();
   const { showMessage, contextHolder } = useAppMessage();
   const [isMobile, setIsMobile] = useState(false);
@@ -83,9 +85,7 @@ export default function PackagesPage() {
   const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<
     boolean | null
   >(null);
-  const uploadScreenshotAbortControllerRef = useRef<AbortController | null>(
-    null
-  );
+
 
   const [checkoutForm] = Form.useForm();
   const [formData, setFormData] = useState<PurchaseFormData>({
@@ -120,6 +120,8 @@ export default function PackagesPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "gcash" | "bank_transfer" | "maya"
   >("bank_transfer");
+
+
 
   const items: any["items"] = useMemo(
     () => [
@@ -270,6 +272,7 @@ export default function PackagesPage() {
       carouselRef.current?.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       return;
     }
+    handleRemovePromoCode()
     setIsModalOpen(false);
   };
 
@@ -378,7 +381,7 @@ export default function PackagesPage() {
         userID: user?.id,
         packageID: selectedRecord.id,
         packageTitle: selectedRecord.title,
-        packagePrice: selectedRecord.price,
+        packagePrice: promoDetails ? promoDetails.newPrice : selectedRecord.price,
         packageValidityPeriod: selectedRecord.validityPeriod,
         packageCredits: selectedRecord.packageCredits,
         isTrialPackage: selectedRecord.isTrialPackage,
@@ -483,26 +486,13 @@ export default function PackagesPage() {
         formData.append("fileName", fileName);
         formData.append("action", "upload-proof");
 
-        uploadScreenshotAbortControllerRef.current?.abort();
-        const uploadScreenshotController = new AbortController();
-        uploadScreenshotAbortControllerRef.current = uploadScreenshotController;
-
         let uploadRes;
-        try {
-          uploadRes = await axiosApi.post("/orders/upload-screenshot", formData, {
-            signal: uploadScreenshotController.signal,
-          });
-        } finally {
-          if (
-            uploadScreenshotAbortControllerRef.current ===
-            uploadScreenshotController
-          ) {
-            uploadScreenshotAbortControllerRef.current = null;
-          }
-        }
+
+        uploadRes = await axiosApi.post("/orders/upload-screenshot", formData);
+
         if (!uploadRes.data?.data) {
-          console.error(uploadRes)
-          // throw new Error("File upload failed");
+          // console.error(uploadRes)
+          throw new Error("File upload failed");
         }
 
         const response = await axiosApi.post("/package/upload-proof", {
@@ -522,6 +512,8 @@ export default function PackagesPage() {
             isShareable: selectedRecord.is_shareable,
             shareableCredits: selectedRecord.shareable_credits,
             numberOfCreditsShared: 0,
+            discounted: promoDetails ? true : false,
+            discountPercentage: promoDetails?.discount ?? 0,
           },
         });
         if (response?.status !== 200) {
@@ -546,11 +538,12 @@ export default function PackagesPage() {
       }
     } catch (err: any) {
       setIsSendingPending(false);
-      if (err.includes('timeout')) {
-        showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page or ensure that you have a stable internet connection.` });
-      } else {
-        showMessage({ type: "error", content: `${err}` });
+      if (err?.code === "ERR_CANCELED") {
+        return null;
       }
+      console.error(err);
+      showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page or ensure that you have a stable internet connection.` });
+      // showMessage({ type: "error", content: `${err}` });
 
       return null
     }
@@ -638,6 +631,44 @@ export default function PackagesPage() {
     );
   }, []);
 
+  const promoCode = useRef<string>('');
+  const [validatingPromoCode, setValidatingPromoCode] = useState(false);
+  const [promoDetails, setPromoDetails] = useState<{ error: string | null, originalPrice: number, discount: number, newPrice: number } | null>(null);
+
+  // Finisg this
+  const handleValidatePromoCode = async () => {
+    try {
+      setValidatingPromoCode(true);
+      const response = await validatePromoCode({ promoCode: promoCode.current });
+      if (response) {
+        const percentage = response.discount / 100;
+        const newPrice = selectedRecord.price - (selectedRecord.price * percentage)
+
+        setPromoDetails({
+          newPrice,
+          error: null,
+          originalPrice: selectedRecord.price,
+          discount: response.discount,
+        });
+      } else {
+        setPromoDetails({
+          error: "Invalid promo code",
+          newPrice: selectedRecord.price,
+          originalPrice: selectedRecord.price,
+          discount: 0,
+        });
+      }
+    } catch (error) {
+      showMessage({ type: "error", content: `Failed to validate promo code. Please try again.` });
+    } finally {
+      setValidatingPromoCode(false);
+    }
+  };
+
+  const handleRemovePromoCode = () => {
+    setSelectedRecord((prev: any) => ({ ...prev, price: promoDetails?.originalPrice }))
+    setPromoDetails(null);
+  };
   return (
     <AuthenticatedLayout>
       {contextHolder}
@@ -853,12 +884,44 @@ export default function PackagesPage() {
                 </Row>
                 <Row wrap={false} className="mb-[10px] items-start w-full">
                   <Title level={5}>
-                    Price:{" "}
-                    <span className="font-normal">
-                      PHP {formatPrice(selectedRecord?.price)}
+                    Price: PHP{" "}
+                    <span className={`font-normal ${promoDetails && promoDetails.error === null ? 'line-through text-slate-400' : ''}`}>
+                      {formatPrice(selectedRecord?.price)}
                     </span>
+                    {' '}
+                    {promoDetails && promoDetails.error === null &&
+                      <span className="font-medium text-green-500">
+                        {formatPrice(promoDetails.newPrice)}
+                      </span>
+                    }
                   </Title>
                 </Row>
+                <Row wrap={false} className="gap-x-[10px] items-start w-full">
+                  <Input disabled={promoDetails?.error === null} placeholder="Enter promo code" className="w-[50%]" onChange={(e) => promoCode.current = e.target.value} />
+                  <Row wrap={false} className="gap-x-[10px] items-center">
+                    {promoDetails &&
+                      <Button type="primary" onClick={handleRemovePromoCode} className="!bg-red-600 hover:!bg-red-600 hover:!border-red-600 hover:!text-white !text-white">Remove</Button>
+                    }
+                    {promoDetails === null &&
+                      <Button loading={validatingPromoCode} type="primary" onClick={handleValidatePromoCode} className="!bg-[#800020] hover:!bg-[#800020] hover:!border-[#800020] hover:!text-white !text-white">Apply</Button>
+                    }
+                  </Row>
+                </Row>
+                {promoDetails && promoDetails.error === null &&
+                  <Row wrap={false} className="gap-x-[5px] items-center">
+                    <CircleCheck className="w-4 h-4 text-green-500" />
+                    <Text className="text-green-500 font-medium">
+                      {promoDetails.discount}% applied
+                    </Text>
+                  </Row>
+                }
+                {promoDetails && promoDetails.error !== null &&
+                  <Row wrap={false} className="gap-x-[5px] items-center">
+                    <Text className="text-red-500 font-medium">
+                      {promoDetails.error}
+                    </Text>
+                  </Row>
+                }
               </div>
 
               {user?.pendingPurchases && (
