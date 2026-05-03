@@ -54,6 +54,8 @@ const CAROUSEL_SLIDES = {
 };
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phPhoneRegex = /^(\+63|0)9\d{9}$/;
+const MAX_PAYMENT_PROOF_SIZE_MB = 8;
+const MAX_PAYMENT_PROOF_SIZE_BYTES = MAX_PAYMENT_PROOF_SIZE_MB * 1024 * 1024;
 
 type PaymentMethod = "card" | "paymaya" | "gcash";
 
@@ -272,7 +274,7 @@ export default function PackagesPage() {
       carouselRef.current?.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       return;
     }
-    handleRemovePromoCode()
+    // handleRemovePromoCode()
     setIsModalOpen(false);
   };
 
@@ -464,6 +466,24 @@ export default function PackagesPage() {
     setFile(newFileList);
   };
 
+  const handleBeforeUpload: UploadProps["beforeUpload"] = (selectedFile) => {
+    if (!selectedFile.type?.toLowerCase().startsWith("image/")) {
+      showMessage({ type: "error", content: "Only image files are allowed." });
+      return Upload.LIST_IGNORE;
+    }
+
+    if (selectedFile.size > MAX_PAYMENT_PROOF_SIZE_BYTES) {
+      showMessage({
+        type: "error",
+        content: `Image is too large. Maximum allowed size is ${MAX_PAYMENT_PROOF_SIZE_MB}MB.`,
+      });
+      return Upload.LIST_IGNORE;
+    }
+
+    // Keep manual upload flow (prevent auto-upload by antd).
+    return false;
+  };
+
   const getBase64 = (file: FileType): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -476,13 +496,30 @@ export default function PackagesPage() {
     setIsSendingPending(true);
     try {
       if (user && !!file.length) {
+        const rawFile = file?.[0]?.originFileObj as File | undefined;
+        if (!rawFile) {
+          showMessage({ type: "error", content: "Please select an image to upload." });
+          return null;
+        }
+        if (!rawFile.type?.toLowerCase().startsWith("image/")) {
+          showMessage({ type: "error", content: "Only image files are allowed." });
+          return null;
+        }
+        if (rawFile.size > MAX_PAYMENT_PROOF_SIZE_BYTES) {
+          showMessage({
+            type: "error",
+            content: `Image is too large. Maximum allowed size is ${MAX_PAYMENT_PROOF_SIZE_MB}MB.`,
+          });
+          return null;
+        }
+
         const uuid = uuidv4();
         const filePath = `${user?.id}_${dayjs().toDate().getTime()}`;
-        const fileExt = (file[0] as File).name.split(".").pop();
+        const fileExt = rawFile.name.split(".").pop();
         const fileName = `payment_proof_${filePath}.${fileExt?.toLowerCase()}`;
 
         const formData = new FormData();
-        formData.append("file", file[0].originFileObj); // raw File
+        formData.append("file", rawFile); // raw File
         formData.append("fileName", fileName);
         formData.append("action", "upload-proof");
 
@@ -542,7 +579,12 @@ export default function PackagesPage() {
         return null;
       }
       console.error(err);
-      showMessage({ type: "error", content: `Failed to upload image. Please retry refreshing the page or ensure that you have a stable internet connection.` });
+      const uploadErrorMessage =
+        err?.response?.data?.details ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Please retry refreshing the page or ensure that you have a stable internet connection.";
+      showMessage({ type: "error", content: `Failed to upload image. ${uploadErrorMessage}` });
       // showMessage({ type: "error", content: `${err}` });
 
       return null
@@ -889,14 +931,15 @@ export default function PackagesPage() {
                       {formatPrice(selectedRecord?.price)}
                     </span>
                     {' '}
-                    {promoDetails && promoDetails.error === null &&
+                    {/* {promoDetails && promoDetails.error === null &&
                       <span className="font-medium text-green-500">
                         {formatPrice(promoDetails.newPrice)}
                       </span>
-                    }
+                    } */}
                   </Title>
                 </Row>
-                <Row wrap={false} className="gap-x-[10px] items-start w-full">
+
+                {/* <Row wrap={false} className="gap-x-[10px] items-start w-full">
                   <Input disabled={promoDetails?.error === null} placeholder="Enter promo code" className="w-[50%]" onChange={(e) => promoCode.current = e.target.value} />
                   <Row wrap={false} className="gap-x-[10px] items-center">
                     {promoDetails &&
@@ -921,7 +964,7 @@ export default function PackagesPage() {
                       {promoDetails.error}
                     </Text>
                   </Row>
-                }
+                } */}
               </div>
 
               {user?.pendingPurchases && (
@@ -1049,7 +1092,7 @@ export default function PackagesPage() {
                           fileList={file as UploadFile[]}
                           onPreview={handlePreview}
                           onChange={handleChange}
-                          beforeUpload={() => false}
+                          beforeUpload={handleBeforeUpload}
                           accept="image/*"
                           disabled={paymentUploadSuccess === true}
                         >
