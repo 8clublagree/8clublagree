@@ -257,10 +257,12 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          window.location.reload()
           // await handleFetchClasses()
 
           setIsSubmitting(false);
+          setTimeout(() => {
+            window.location.reload()
+          }, 5000)
           return
         }
 
@@ -295,9 +297,11 @@ export default function BookingsPage() {
             content: "Successfully booked a class!",
           });
           // await handleFetchClasses()
-          window.location.reload()
 
           setIsSubmitting(false);
+          setTimeout(() => {
+            window.location.reload()
+          }, 5000)
           return
         }
 
@@ -336,9 +340,11 @@ export default function BookingsPage() {
             content: "Successfully booked a class!",
           });
           // await handleFetchClasses()
-          window.location.reload()
 
           setIsSubmitting(false);
+          setTimeout(() => {
+            window.location.reload()
+          }, 5000)
           return
         }
 
@@ -362,9 +368,12 @@ export default function BookingsPage() {
             content: "Successfully booked a class!",
           });
           // await handleFetchClasses()
-          window.location.reload()
 
           setIsSubmitting(false);
+
+          setTimeout(() => {
+            window.location.reload()
+          }, 5000)
           return
         }
 
