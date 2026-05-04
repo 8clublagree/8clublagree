@@ -69,7 +69,10 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
   // ⏪ Previous week
   const handlePrev = () => {
     const newDate = currentDate.subtract(daysToShow, "day"); // move back by visible range
-    if (!isAdmin && newDate.isBefore(today, "day")) return;
+    // console.log("newDate", newDate);
+    // console.log("!isAdmin", !isAdmin);
+    // console.log("newDate.isBefore(today, )", newDate.isBefore(today, "day"));
+    // if (!isAdmin && newDate.isBefore(today, "day")) return;
     setCurrentDate(newDate);
     setSelectedDate(newDate.startOf("day")); // select first date in new range
   };
@@ -124,8 +127,8 @@ const DatePickerCarousel: React.FC<DatePickerCarouselProps> = ({
                 "w-20 sm:w-24 md:w-28",
                 isSelected ? "bg-[#800020] text-white" : "bg-white text-black",
                 !isAdmin &&
-                  isPast &&
-                  "opacity-40 cursor-not-allowed hover:shadow-none",
+                isPast &&
+                "opacity-40 cursor-not-allowed hover:shadow-none",
               )}
             >
               <span

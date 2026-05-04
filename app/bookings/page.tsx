@@ -44,6 +44,7 @@ import { ContentModal } from "@/components/modals/ContentModal";
 import { Calendar, Clock, User } from "lucide-react";
 import { useAppMessage } from "@/components/ui/message-popup";
 import axiosApi from "@/lib/axiosConfig";
+import { setSelectedBookingDate } from "@/lib/features/paramSlice";
 
 const { Title, Text } = Typography;
 
@@ -66,11 +67,28 @@ export default function BookingsPage() {
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [confirmBookingOpen, setConfirmBookingOpen] = useState(false);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Dayjs>();
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("bookingDate");
+
+      if (saved && dayjs(saved, "YYYY-MM-DD").isValid()) {
+        return dayjs(saved, "YYYY-MM-DD");
+      }
+    }
+    return dayjs();
+  });
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   const { fetchImages } = useManageImage();
   const { updateClientPackage } = usePackageManagement();
+  const { selectedBookingDate } = useAppSelector((state) => state.param);
+
+
+  useEffect(() => {
+    return () => {
+      sessionStorage.removeItem("bookingDate");
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -94,6 +112,8 @@ export default function BookingsPage() {
       window.removeEventListener("resize", onResize);
     };
   }, []);
+
+
   useEffect(() => {
     if (selectedDate && user) {
       handleFetchClasses();
@@ -173,9 +193,7 @@ export default function BookingsPage() {
 
   const handleSendConfirmationEmail = async () => {
     try {
-      const classDate = `${dayjs(selectedDate).format("MMMM")} ${dayjs(
-        selectedDate,
-      ).format("DD")} ${dayjs(selectedDate).format("YYYY")}`;
+      const classDate = `${dayjs(selectedDate).format("MMMM")} ${dayjs(selectedDate).format("DD")} ${dayjs(selectedDate).format("YYYY")}`;
 
       const classTime = dayjs(selectedRecord?.start_time).format("hh:mm A");
 
@@ -239,7 +257,8 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          await handleFetchClasses()
+          window.location.reload()
+          // await handleFetchClasses()
 
           setIsSubmitting(false);
           return
@@ -247,8 +266,6 @@ export default function BookingsPage() {
 
         if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
           const updatedValue: number = (user.currentPackage?.number_of_shared_credits_used ?? 0) + 1
-
-
 
           await updateClientPackage({
             clientPackageID: user.currentPackage?.id as string,
@@ -277,7 +294,8 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          await handleFetchClasses()
+          // await handleFetchClasses()
+          window.location.reload()
 
           setIsSubmitting(false);
           return
@@ -317,7 +335,8 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          await handleFetchClasses()
+          // await handleFetchClasses()
+          window.location.reload()
 
           setIsSubmitting(false);
           return
@@ -342,7 +361,8 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          await handleFetchClasses()
+          // await handleFetchClasses()
+          window.location.reload()
 
           setIsSubmitting(false);
           return
@@ -419,7 +439,13 @@ export default function BookingsPage() {
             <Divider className="my-[20px] pb-0 md:m-0" />
             <DatePickerCarousel
               isAdmin={false}
-              onDateSelect={(e) => setSelectedDate(dayjs(e))}
+              initialDate={selectedDate}
+              onDateSelect={(e) => {
+                const picked = dayjs(e);
+                setSelectedDate(picked);
+                dispatch(setSelectedBookingDate(e as string));
+                sessionStorage.setItem("bookingDate", picked.format("YYYY-MM-DD"));
+              }}
               maxDaysAhead={14}
             />
             <Row justify={"center"}>
