@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const res = await supabaseServer.storage.from("payment-proof").upload(fileName, buffer, {
         contentType: file.type.toLowerCase() || 'image/png',
-        upsert: true
+        // upsert: true
       });
 
       data = res.data;

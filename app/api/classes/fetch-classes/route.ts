@@ -126,9 +126,9 @@ export async function GET(req: NextRequest) {
 
     const res = NextResponse.json({ data: classData });
 
-    if (isAdmin || isInstructor) {
-      res.headers.set("Cache-Control", "private, max-age=10, stale-while-revalidate=15");
-    }
+    // if (isAdmin || isInstructor) {
+    //   res.headers.set("Cache-Control", "private, max-age=10, stale-while-revalidate=15");
+    // }
 
     return res;
   } catch (err: any) {
