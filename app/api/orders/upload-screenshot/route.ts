@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
-import supabaseServer from "../../supabase";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024;
 
-function isRetryableUploadError(err: unknown): boolean {
-  const msg = (err as any)?.message;
-  if (typeof msg !== "string") return true;
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const STORAGE_BUCKET = "payment-proof";
+
+function isRetryableUploadError(statusCode: number, msg: string): boolean {
   const m = msg.toLowerCase();
-  // Retry likely transient/network-ish errors
   if (
+    statusCode === 502 ||
+    statusCode === 503 ||
     m.includes("timeout") ||
     m.includes("timed out") ||
     m.includes("network") ||
-    m.includes("fetch") ||
-    m.includes("503") ||
-    m.includes("502") ||
     m.includes("gateway") ||
     m.includes("temporar") ||
     m.includes("rate") ||
@@ -69,40 +68,49 @@ export async function POST(req: Request) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    const contentType = file.type.toLowerCase() || "image/png";
+
+    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${encodeURIComponent(fileName)}`;
 
     const maxAttempts = 10;
-    let data: any = null;
-    let uploadError: any = null;
+    let lastStatus = 0;
+    let lastBody: any = null;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const res = await supabaseServer.storage.from("payment-proof").upload(fileName, buffer, {
-        contentType: file.type.toLowerCase() || 'image/png',
-        // upsert: true
+      const res = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          "Content-Type": contentType,
+          "x-upsert": "false",
+        },
+        body: buffer,
       });
 
-      data = res.data;
-      uploadError = res.error;
+      lastStatus = res.status;
+      lastBody = await res.json().catch(() => ({}));
 
-      if (!uploadError) break;
+      if (res.ok) {
+        return NextResponse.json({ data: lastBody });
+      }
+
       if (attempt === maxAttempts) break;
-      if (!isRetryableUploadError(uploadError)) break;
 
-      // Exponential backoff: 250ms, 500ms
+      const errMsg = lastBody?.message ?? lastBody?.error ?? "";
+      if (!isRetryableUploadError(lastStatus, errMsg)) break;
+
       await sleep(250 * 2 ** (attempt - 1));
     }
 
-    if (uploadError) {
-      return NextResponse.json(
-        {
-          error: "Failed to upload payment screenshot.",
-          details: uploadError.message ?? "Unknown upload error",
-          code: uploadError.statusCode ?? uploadError.code ?? "UPLOAD_FAILED",
-        },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({ data });
+    return NextResponse.json(
+      {
+        error: "Failed to upload payment screenshot.",
+        details: lastBody?.message ?? lastBody?.error ?? "Unknown upload error",
+        code: lastBody?.statusCode ?? lastBody?.error ?? "UPLOAD_FAILED",
+      },
+      { status: 400 }
+    );
   } catch (err: any) {
     return NextResponse.json(
       {
