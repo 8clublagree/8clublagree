@@ -123,24 +123,24 @@ export default function AuthenticatedLayout({
     {
       key: "2",
       icon: <LuUserPen size={15} />,
-      label: <Link href="/admin/client-management">Client Management</Link>,
+      label: <Link href="/admin/client-management">Clients</Link>,
     },
     {
       key: "3",
       icon: <UserOutlined />,
       label: (
-        <Link href="/admin/instructor-management">Instructor Management</Link>
+        <Link href="/admin/instructor-management">Instructors</Link>
       ),
     },
     {
       key: "4",
       icon: <FaBook />,
-      label: <Link href="/admin/class-management">Class Management</Link>,
+      label: <Link href="/admin/class-management">Classes</Link>,
     },
     {
       key: "5",
       icon: <LuPackage />,
-      label: <Link href="/admin/package-management">Package Management</Link>,
+      label: <Link href="/admin/package-management">Packages & Promos</Link>,
     },
     {
       key: "6",
