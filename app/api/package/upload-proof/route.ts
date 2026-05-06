@@ -22,7 +22,8 @@ export async function POST(req: Request) {
       shareableCredits,
       numberOfCreditsShared,
       discounted,
-      discountPercentage
+      discountPercentage,
+      discountCode
     } = values;
 
     const { data, error } = await supabaseServer.from("orders").insert({
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       uploaded_at: uploadedAt,
       package_title: packageTitle,
       package_credits: packageCredits,
-      package_price: packagePrice,
+      package_price: discounted ? parseFloat(packagePrice.toString()) - (parseFloat(packagePrice.toString()) * (discountPercentage / 100)) : packagePrice,
       package_validity_period: packageValidityPeriod,
       reference_id: referenceId,
       is_trial_package: isTrialPackage,
@@ -42,7 +43,8 @@ export async function POST(req: Request) {
       shareable_credits: shareableCredits,
       number_of_credits_shared: numberOfCreditsShared,
       discounted: discounted,
-      discount_percentage: discountPercentage
+      discount_percentage: discountPercentage,
+      discount_code: discountCode
     }).select()
 
     if (error) {

@@ -16,6 +16,8 @@ export async function POST(req: Request) {
       shareableCredits,
       numberOfCreditsShared,
       isTrialPackage,
+      discounted,
+      discountPercentage,
     } = await req.json();
 
     const today = dayjs();
@@ -37,9 +39,10 @@ export async function POST(req: Request) {
           shareable_credits: shareableCredits,
           number_of_credits_shared: numberOfCreditsShared,
         }),
+        discounted: discounted === true ? discounted : false,
+        discount_percentage: discountPercentage ? discountPercentage : null,
       })
       .select();
-
 
 
     if (error) {

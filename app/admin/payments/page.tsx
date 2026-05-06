@@ -10,7 +10,6 @@ import {
   usePackageManagement,
 } from "@/lib/api";
 import axiosApi from "@/lib/axiosConfig";
-import { setUser } from "@/lib/features/authSlice";
 import { useAppSelector } from "@/lib/hooks";
 
 import { formatPrice } from "@/lib/utils";
@@ -27,15 +26,14 @@ import {
   Input,
   Space,
 } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { CheckOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef } from "antd";
-import type { FilterDropdownProps } from "antd/es/table/interface";
 import { ColumnsType } from "antd/es/table";
 import Highlighter from "react-highlight-words";
 import dayjs from "dayjs";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IoEye } from "react-icons/io5";
-import { useDispatch } from "react-redux";
+import { X } from "lucide-react";
 
 const { Title } = Typography;
 
@@ -320,6 +318,37 @@ const PaymentsPage = () => {
           (Number(a.package_price) || 0) - (Number(b.package_price) || 0),
         render: (value) => {
           return value !== undefined ? `${formatPrice(value)}` : "";
+        },
+      },
+      {
+        title: "Discounted",
+        dataIndex: "discounted",
+        key: "discounted",
+        width: "12%",
+        ellipsis: true,
+        render: (value) => {
+          return value === true ? <CheckOutlined /> : <X />
+        },
+      },
+      {
+        title: "Discount Percentage",
+        dataIndex: "discount_percentage",
+        key: "discount_percentage",
+        width: "10%",
+        ellipsis: true,
+        render: (value) => {
+          return value ? `${value}%` : "-";
+        },
+      },
+
+      {
+        title: "Discount Code",
+        dataIndex: "discount_code",
+        key: "discount_code",
+        width: "10%",
+        ellipsis: true,
+        render: (value) => {
+          return value ? `${value}` : "-";
         },
       },
       {

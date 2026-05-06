@@ -123,8 +123,6 @@ export default function PackagesPage() {
     "gcash" | "bank_transfer" | "maya"
   >("bank_transfer");
 
-
-
   const items: any["items"] = useMemo(
     () => [
       {
@@ -274,7 +272,7 @@ export default function PackagesPage() {
       carouselRef.current?.goTo(CAROUSEL_SLIDES.PACKAGE_DETAILS);
       return;
     }
-    // handleRemovePromoCode()
+    handleRemovePromoCode()
     setIsModalOpen(false);
   };
 
@@ -350,7 +348,7 @@ export default function PackagesPage() {
           billingAddress: formData.billingAddress,
         },
         totalAmount: {
-          value: parseFloat(totalAmount),
+          value: promoDetails !== null ? parseFloat(promoDetails.newPrice.toString()) : parseFloat(totalAmount),
           currency: "PHP",
         },
         items: [
@@ -358,10 +356,10 @@ export default function PackagesPage() {
             name: selectedRecord.title,
             quantity: 1,
             amount: {
-              value: parseFloat(selectedRecord.price),
+              value: promoDetails !== null ? parseFloat(promoDetails.newPrice.toString()) : parseFloat(selectedRecord.price),
             },
             totalAmount: {
-              value: parseFloat(totalAmount),
+              value: promoDetails !== null ? parseFloat(promoDetails.newPrice.toString()) : parseFloat(selectedRecord.price),
             },
           },
         ],
@@ -409,7 +407,7 @@ export default function PackagesPage() {
             package_id: selectedRecord.id,
             package_credits: selectedRecord.packageCredits,
             package_title: selectedRecord.title,
-            package_price: selectedRecord.price,
+            package_price: promoDetails ? promoDetails.newPrice : selectedRecord.price,
             package_validity_period: selectedRecord.validityPeriod,
             status: "MAYA CHECKOUT",
             payment_method: "maya",
@@ -420,6 +418,9 @@ export default function PackagesPage() {
             is_shareable: selectedRecord.is_shareable,
             shareable_credits: selectedRecord.shareable_credits,
             number_of_credits_shared: 0,
+            discounted: promoDetails ? true : false,
+            discount_percentage: promoDetails?.discount ?? 0,
+            discount_code: promoCode.current
           },
         });
 
@@ -551,6 +552,7 @@ export default function PackagesPage() {
             numberOfCreditsShared: 0,
             discounted: promoDetails ? true : false,
             discountPercentage: promoDetails?.discount ?? 0,
+            discountCode: promoCode.current
           },
         });
         if (response?.status !== 200) {
@@ -862,13 +864,11 @@ export default function PackagesPage() {
               <X /> :
               <ChevronLeft />
         }
-        // closable={carouselSlide === CAROUSEL_SLIDES.CHECKOUT ? false : true}
         maskClosable={false}
         placement="right"
         onClose={handleCloseModal}
         open={isModalOpen}
         width={isMobile ? "100%" : "33%"}
-        // destroyOnHidden={true}
         styles={{
           body: {
             paddingTop: 24,
@@ -931,16 +931,16 @@ export default function PackagesPage() {
                       {formatPrice(selectedRecord?.price)}
                     </span>
                     {' '}
-                    {/* {promoDetails && promoDetails.error === null &&
+                    {promoDetails && promoDetails.error === null &&
                       <span className="font-medium text-green-500">
                         {formatPrice(promoDetails.newPrice)}
                       </span>
-                    } */}
+                    }
                   </Title>
                 </Row>
 
-                {/* <Row wrap={false} className="gap-x-[10px] items-start w-full">
-                  <Input disabled={promoDetails?.error === null} placeholder="Enter promo code" className="w-[50%]" onChange={(e) => promoCode.current = e.target.value} />
+                <Row wrap={false} className="gap-x-[10px] items-start w-full">
+                  <Input disabled={promoDetails !== null} placeholder="Enter promo code" className="w-[50%]" onChange={(e) => promoCode.current = e.target.value} />
                   <Row wrap={false} className="gap-x-[10px] items-center">
                     {promoDetails &&
                       <Button type="primary" onClick={handleRemovePromoCode} className="!bg-red-600 hover:!bg-red-600 hover:!border-red-600 hover:!text-white !text-white">Remove</Button>
@@ -964,7 +964,7 @@ export default function PackagesPage() {
                       {promoDetails.error}
                     </Text>
                   </Row>
-                } */}
+                }
               </div>
 
               {user?.pendingPurchases && (
@@ -994,7 +994,6 @@ export default function PackagesPage() {
                     <Checkbox
                       defaultChecked={acceptsTerms}
                       checked={acceptsTerms}
-                      // value={acceptsTerms}
                       onChange={handleAcceptTermsChange}
                     >
                       I have read the
@@ -1009,8 +1008,8 @@ export default function PackagesPage() {
 
                   <Button
                     onClick={handleNext}
-                    disabled={!acceptsTerms}
-                    className={`bg-[#36013F] ${acceptsTerms ? "hover:!bg-[#36013F]" : ""
+                    disabled={!acceptsTerms || validatingPromoCode}
+                    className={`bg-[#110c12] ${acceptsTerms ? "hover:!bg-[#36013F]" : ""
                       } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
                   >
                     Continue
@@ -1177,23 +1176,42 @@ export default function PackagesPage() {
                           <div className="space-y-2 text-sm text-gray-600">
                             <div className="flex justify-between">
                               <span>Subtotal</span>
-                              <span>
-                                ₱
-                                {formatPrice(selectedRecord.price, {
-                                  decimals: 2,
-                                })}
-                              </span>
+                              {promoDetails === null &&
+                                <span>
+                                  PHP{formatPrice(selectedRecord.price, {
+                                    decimals: 2,
+                                  })}
+                                </span>
+                              }
+                              {promoDetails !== null &&
+                                <span>
+                                  PHP
+                                  {formatPrice(promoDetails.newPrice, {
+                                    decimals: 2,
+                                  })}
+                                </span>
+                              }
                             </div>
 
                             <div className="border-t border-gray-200 pt-2 mt-2">
                               <div className="flex justify-between text-lg font-bold text-gray-900">
                                 <span>Total</span>
-                                <span>
-                                  ₱
-                                  {formatPrice(selectedRecord.price, {
-                                    decimals: 2,
-                                  })}
-                                </span>
+                                {promoDetails === null &&
+                                  <span>
+                                    PHP
+                                    {formatPrice(selectedRecord.price, {
+                                      decimals: 2,
+                                    })}
+                                  </span>
+                                }
+                                {promoDetails !== null &&
+                                  <span>
+                                    PHP
+                                    {formatPrice(promoDetails.newPrice, {
+                                      decimals: 2,
+                                    })}
+                                  </span>
+                                }
                               </div>
                             </div>
                           </div>

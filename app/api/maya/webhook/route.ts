@@ -31,6 +31,8 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
       isShareable: orderData.is_shareable,
       shareableCredits: orderData.shareable_credits,
       numberOfCreditsShared: orderData.number_of_credits_shared,
+      discounted: orderData.discounted,
+      discountPercentage: orderData.discount_percentage,
     };
 
     const promises = []
@@ -77,6 +79,8 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
       is_shareable: orderObject.isShareable,
       shareable_credits: orderObject.shareableCredits,
       number_of_credits_shared: orderObject.numberOfCreditsShared,
+      discounted: orderObject.discounted,
+      discount_percentage: orderObject.discountPercentage,
     });
   } catch (error) {
     throw error;
