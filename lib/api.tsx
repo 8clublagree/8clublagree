@@ -7,6 +7,7 @@ import {
   CreateInstructorProps,
   CreatePackageProps,
   CreateUserCredits,
+  PromoCodeProps,
 } from "./props";
 import dayjs, { Dayjs } from "dayjs";
 import { getDateFromToday } from "./utils";
@@ -934,15 +935,28 @@ export const usePackageManagement = () => {
     }
   };
 
-  const validatePromoCode = async ({ promoCode }: { promoCode: string }) => {
+  const validatePromoCode = async ({
+    promoCode,
+    userID,
+  }: {
+    promoCode: string;
+    userID: string;
+  }) => {
     try {
       // setLoading(true);
-      const response = await axiosApi.post("/package/validate-promo-code", { promoCode });
+      const response = await axiosApi.post("/package/validate-promo-code", {
+        promoCode,
+        userID,
+      });
       const data = response.data?.data;
-      if (!data) return null;
-      return data;
-    } catch (error) {
+      if (!data) return { data: null, error: "Promo code is invalid." };
+      return { data, error: null };
+    } catch (error: any) {
       console.error(error);
+      return {
+        data: null,
+        error: error?.response?.data?.error ?? "Failed to validate promo code.",
+      };
     }
 
   };
@@ -1060,6 +1074,76 @@ export const usePackageManagement = () => {
     updatePackage,
     createPackage,
     fetchPackages,
+  };
+};
+
+export const usePromoCodeManagement = () => {
+  const [loading, setLoading] = useState(false);
+
+  const fetchPromoCodes = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.get("/promo-code/fetch-promo-codes");
+      return response?.data?.data ?? null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createPromoCode = async ({ values }: { values: PromoCodeProps }) => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.post("/promo-code/create-promo-code", { values });
+      return response?.data?.data ?? null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePromoCode = async ({
+    id,
+    values,
+  }: {
+    id: string;
+    values: PromoCodeProps;
+  }) => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.put("/promo-code/update-promo-code", { id, values });
+      return response?.data?.data ?? null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePromoCode = async ({ id }: { id: string }) => {
+    try {
+      setLoading(true);
+      const response = await axiosApi.post("/promo-code/delete-promo-code", { id });
+      return response?.data?.data ?? null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    loading,
+    fetchPromoCodes,
+    createPromoCode,
+    updatePromoCode,
+    deletePromoCode,
   };
 };
 
@@ -1181,7 +1265,9 @@ export const useManageOrders = () => {
     userCredits,
     isShareable,
     shareableCredits,
-    numberOfCreditsShared
+    numberOfCreditsShared,
+    isTrialPackage,
+    discountCode,
   }: {
     id: string;
     status: string;
@@ -1200,6 +1286,8 @@ export const useManageOrders = () => {
     isShareable?: boolean;
     shareableCredits?: number;
     numberOfCreditsShared?: number;
+    isTrialPackage?: boolean;
+    discountCode?: string | null;
   }) => {
     try {
       setLoading(true);
@@ -1219,6 +1307,8 @@ export const useManageOrders = () => {
         isShareable,
         shareableCredits,
         numberOfCreditsShared,
+        isTrialPackage,
+        discountCode,
       });
 
       if (!response.data) return null;

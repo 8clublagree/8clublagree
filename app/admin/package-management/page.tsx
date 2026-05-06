@@ -1,33 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Row, Typography, Button, Modal, Drawer, Form } from "antd";
+import { useState, useEffect, useCallback } from "react";
+import { Row, Button, Modal, Drawer, Form, Tabs } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import AdminAuthenticatedLayout from "@/components/layout/AdminAuthenticatedLayout";
-import { CreatePackageProps } from "@/lib/props";
+import { CreatePackageProps, PromoCodeProps } from "@/lib/props";
 import AdminPackageTable from "@/components/ui/admin-package-table";
+import AdminPromoCodeTable from "@/components/ui/admin-promo-code-table";
 import CreatePackageForm from "@/components/forms/CreatePackageForm";
-import { usePackageManagement } from "@/lib/api";
+import CreatePromoCodeForm from "@/components/forms/CreatePromoCodeForm";
+import { usePackageManagement, usePromoCodeManagement } from "@/lib/api";
 import { useAppMessage } from "@/components/ui/message-popup";
-
-const { Title } = Typography;
+type ActiveManagementTab = "packages" | "promo-codes";
 
 export default function PackageManagementPage() {
   const [packageForm] = Form.useForm();
+  const [promoCodeForm] = Form.useForm();
+  const [activeTab, setActiveTab] = useState<ActiveManagementTab>("packages");
   const [packages, setPackages] = useState<any[]>([]);
+  const [promoCodes, setPromoCodes] = useState<PromoCodeProps[]>([]);
   const { showMessage, contextHolder } = useAppMessage();
   const {
     createPackage,
     updatePackage,
     fetchPackages,
     deletePackage,
-    loading,
+    loading: packageLoading,
   } = usePackageManagement();
+  const {
+    createPromoCode,
+    updatePromoCode,
+    fetchPromoCodes,
+    deletePromoCode,
+    loading: promoCodeLoading,
+  } = usePromoCodeManagement();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [editingRecord, setEditingRecord] = useState<CreatePackageProps | null>(
     null,
   );
+  const [editingPromoCodeRecord, setEditingPromoCodeRecord] =
+    useState<PromoCodeProps | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -54,6 +67,7 @@ export default function PackageManagementPage() {
 
   useEffect(() => {
     handleFetchPackages();
+    handleFetchPromoCodes();
   }, []);
 
   const handleFetchPackages = async () => {
@@ -78,7 +92,11 @@ export default function PackageManagementPage() {
   };
 
   const handleOpenModal = () => {
-    setEditingRecord(null);
+    if (activeTab === "packages") {
+      setEditingRecord(null);
+    } else {
+      setEditingPromoCodeRecord(null);
+    }
     setIsModalOpen(true);
   };
 
@@ -90,6 +108,7 @@ export default function PackageManagementPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingRecord(null);
+    setEditingPromoCodeRecord(null);
   };
 
   const handleSubmit = async (values: CreatePackageProps) => {
@@ -135,6 +154,58 @@ export default function PackageManagementPage() {
     }
   };
 
+  const handleFetchPromoCodes = async () => {
+    const response = await fetchPromoCodes();
+    if (response) {
+      const mapped: PromoCodeProps[] = response.map((promo: any) => ({
+        key: promo.id,
+        id: promo.id,
+        code: promo.code,
+        expiration_date: promo.expiration_date,
+        status: promo.status,
+        discount: Number(promo.discount),
+        created_at: promo.created_at,
+      }));
+      setPromoCodes(mapped);
+    }
+  };
+
+  const handleEditPromoCode = (record: PromoCodeProps) => {
+    setEditingPromoCodeRecord(record);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmitPromoCode = async (values: PromoCodeProps) => {
+    try {
+      if (editingPromoCodeRecord?.id) {
+        await updatePromoCode({
+          id: editingPromoCodeRecord.id,
+          values,
+        });
+      } else {
+        await createPromoCode({ values });
+      }
+
+      setIsModalOpen(false);
+      setEditingPromoCodeRecord(null);
+      handleFetchPromoCodes();
+
+      showMessage({
+        type: "success",
+        content: editingPromoCodeRecord
+          ? "Successfully updated promo code"
+          : "Successfully created promo code",
+      });
+    } catch {
+      showMessage({
+        type: "error",
+        content: editingPromoCodeRecord
+          ? "Error updating promo code"
+          : "Error creating promo code",
+      });
+    }
+  };
+
   const handleConfirmDelete = async (id: string) => {
     try {
       await deletePackage({ id: id as string });
@@ -150,6 +221,51 @@ export default function PackageManagementPage() {
     }
   };
 
+  const renderPromoCodeTable = useCallback(() => {
+    return (
+      <AdminPromoCodeTable
+        loading={promoCodeLoading}
+        data={[...promoCodes]}
+        onEdit={handleEditPromoCode}
+        onDelete={handleConfirmDeletePromoCode}
+      />
+    );
+  }, [promoCodeLoading, promoCodes]);
+
+  const renderPackageTable = useCallback(() => {
+    return (
+      <AdminPackageTable
+        loading={packageLoading}
+        data={[...packages]}
+        onEdit={handleEdit}
+        onDelete={handleConfirmDelete}
+      />
+    );
+  }, [packageLoading, packages, handleEdit, handleConfirmDelete]);
+
+  const handleConfirmDeletePromoCode = async (id: string) => {
+    try {
+      await deletePromoCode({ id });
+      showMessage({
+        type: "success",
+        content: "Successfully deleted the promo code!",
+      });
+      handleFetchPromoCodes();
+    } catch {
+      showMessage({ type: "error", content: "Failed to delete the promo code" });
+    }
+  };
+
+  const isLoading = packageLoading || promoCodeLoading;
+  const modalTitle =
+    activeTab === "packages"
+      ? editingRecord
+        ? "Edit Package"
+        : "Create New Package"
+      : editingPromoCodeRecord
+        ? "Edit Promo Code"
+        : "Create New Promo Code";
+
   return (
     <AdminAuthenticatedLayout>
       {contextHolder}
@@ -162,19 +278,29 @@ export default function PackageManagementPage() {
               onClick={handleOpenModal}
               className={`bg-[#36013F] hover:!bg-[#36013F] !border-none !text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:scale-[1.03]`}
             >
-              Create
+              {activeTab === "packages" ? "Create Package" : "Create Promo Code"}
             </Button>
           </Row>
-          <AdminPackageTable
-            loading={loading}
-            data={[...packages]}
-            onEdit={handleEdit}
-            onDelete={handleConfirmDelete}
+          <Tabs
+            defaultActiveKey="packages"
+            onChange={(key) => setActiveTab(key as ActiveManagementTab)}
+            items={[
+              {
+                key: "packages",
+                label: "Packages",
+                children: renderPackageTable(),
+              },
+              {
+                key: "promo-codes",
+                label: "Promo Codes",
+                children: renderPromoCodeTable(),
+              },
+            ]}
           />
         </div>
         {isMobile ? (
           <Drawer
-            title={editingRecord ? "Edit Package" : "Create New Package"}
+            title={modalTitle}
             placement="right"
             onClose={handleCloseModal}
             open={isModalOpen}
@@ -184,19 +310,31 @@ export default function PackageManagementPage() {
             }}
             destroyOnHidden={true}
           >
-            <CreatePackageForm
-              clearSignal={isModalOpen}
-              form={packageForm}
-              loading={loading}
-              onSubmit={handleSubmit}
-              onCancel={handleCloseModal}
-              initialValues={editingRecord}
-              isEdit={!!editingRecord}
-            />
+            {activeTab === "packages" ? (
+              <CreatePackageForm
+                clearSignal={isModalOpen}
+                form={packageForm}
+                loading={isLoading}
+                onSubmit={handleSubmit}
+                onCancel={handleCloseModal}
+                initialValues={editingRecord}
+                isEdit={!!editingRecord}
+              />
+            ) : (
+              <CreatePromoCodeForm
+                clearSignal={isModalOpen}
+                form={promoCodeForm}
+                loading={isLoading}
+                onSubmit={handleSubmitPromoCode}
+                onCancel={handleCloseModal}
+                initialValues={editingPromoCodeRecord}
+                isEdit={!!editingPromoCodeRecord}
+              />
+            )}
           </Drawer>
         ) : (
           <Modal
-            title={editingRecord ? "Edit Package" : "Create New Package"}
+            title={modalTitle}
             open={isModalOpen}
             onCancel={handleCloseModal}
             footer={null}
@@ -204,15 +342,27 @@ export default function PackageManagementPage() {
             destroyOnHidden={true}
           >
             <div className="pt-4">
-              <CreatePackageForm
-                clearSignal={isModalOpen}
-                form={packageForm}
-                loading={loading}
-                onSubmit={handleSubmit}
-                onCancel={handleCloseModal}
-                initialValues={editingRecord}
-                isEdit={!!editingRecord}
-              />
+              {activeTab === "packages" ? (
+                <CreatePackageForm
+                  clearSignal={isModalOpen}
+                  form={packageForm}
+                  loading={isLoading}
+                  onSubmit={handleSubmit}
+                  onCancel={handleCloseModal}
+                  initialValues={editingRecord}
+                  isEdit={!!editingRecord}
+                />
+              ) : (
+                <CreatePromoCodeForm
+                  clearSignal={isModalOpen}
+                  form={promoCodeForm}
+                  loading={isLoading}
+                  onSubmit={handleSubmitPromoCode}
+                  onCancel={handleCloseModal}
+                  initialValues={editingPromoCodeRecord}
+                  isEdit={!!editingPromoCodeRecord}
+                />
+              )}
             </div>
           </Modal>
         )}

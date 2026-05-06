@@ -58,6 +58,16 @@ export interface CreatePackageProps {
   is_trial_package?: boolean;
 }
 
+export interface PromoCodeProps {
+  key?: string;
+  id?: string;
+  code?: string;
+  expiration_date?: string;
+  status?: string;
+  discount?: number;
+  created_at?: string;
+}
+
 export interface ChartData {
   label: string;
   start: number;

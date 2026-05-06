@@ -59,6 +59,8 @@ interface OrdersTableType {
   is_shareable?: boolean;
   shareable_credits?: number;
   number_of_credits_shared?: number;
+  is_trial_package?: boolean;
+  discount_code?: string;
 }
 
 const PaymentsPage = () => {
@@ -495,6 +497,8 @@ const PaymentsPage = () => {
         isShareable: selectedPayment.is_shareable as boolean,
         shareableCredits: selectedPayment.shareable_credits as number,
         numberOfCreditsShared: selectedPayment.number_of_credits_shared as number,
+        isTrialPackage: selectedPayment.is_trial_package as boolean,
+        discountCode: (selectedPayment.discount_code as string) ?? null,
       });
 
       if (!paymentStatusResponse?.data) {

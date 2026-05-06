@@ -18,6 +18,8 @@ export async function PUT(req: Request) {
       isShareable,
       shareableCredits,
       numberOfCreditsShared,
+      isTrialPackage,
+      discountCode,
     } = await req.json();
 
     const { error } = await supabaseServer.rpc("confirm_payment", {
@@ -35,6 +37,8 @@ export async function PUT(req: Request) {
       p_is_shareable: isShareable ?? false,
       p_shareable_credits: shareableCredits ?? 0,
       p_number_of_credits_shared: numberOfCreditsShared ?? 0,
+      p_is_trial_package: isTrialPackage ?? false,
+      p_discount_code: discountCode ?? null,
     });
 
     if (error) {

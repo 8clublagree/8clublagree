@@ -702,20 +702,23 @@ export default function PackagesPage() {
   const handleValidatePromoCode = async () => {
     try {
       setValidatingPromoCode(true);
-      const response = await validatePromoCode({ promoCode: promoCode.current });
-      if (response) {
-        const percentage = response.discount / 100;
+      const response = await validatePromoCode({
+        promoCode: promoCode.current,
+        userID: user?.id as string,
+      });
+      if (response?.data) {
+        const percentage = response.data.discount / 100;
         const newPrice = selectedRecord.price - (selectedRecord.price * percentage)
 
         setPromoDetails({
           newPrice,
           error: null,
           originalPrice: selectedRecord.price,
-          discount: response.discount,
+          discount: response.data.discount,
         });
       } else {
         setPromoDetails({
-          error: "Invalid promo code",
+          error: response?.error ?? "Invalid promo code",
           newPrice: selectedRecord.price,
           originalPrice: selectedRecord.price,
           discount: 0,
@@ -958,17 +961,20 @@ export default function PackagesPage() {
                   </Title>
                 </Row>
 
-                <Row wrap={false} className="gap-x-[10px] items-start w-full">
-                  <Input disabled={promoDetails !== null} placeholder="Enter promo code" className="w-[50%]" onChange={(e) => promoCode.current = e.target.value} />
-                  <Row wrap={false} className="gap-x-[10px] items-center">
-                    {promoDetails &&
-                      <Button type="primary" onClick={handleRemovePromoCode} className="!bg-red-600 hover:!bg-red-600 hover:!border-red-600 hover:!text-white !text-white">Remove</Button>
-                    }
-                    {promoDetails === null &&
-                      <Button loading={validatingPromoCode} type="primary" onClick={handleValidatePromoCode} className="!bg-[#800020] hover:!bg-[#800020] hover:!border-[#800020] hover:!text-white !text-white">Apply</Button>
-                    }
+                {!user?.pendingPurchases && (
+                  <Row wrap={false} className="gap-x-[10px] items-start w-full">
+                    <Input disabled={promoDetails !== null} placeholder="Enter promo code" className="w-[50%]" onChange={(e) => promoCode.current = e.target.value} />
+                    <Row wrap={false} className="gap-x-[10px] items-center">
+                      {promoDetails &&
+                        <Button type="primary" onClick={handleRemovePromoCode} className="!bg-red-600 hover:!bg-red-600 hover:!border-red-600 hover:!text-white !text-white">Remove</Button>
+                      }
+                      {promoDetails === null &&
+                        <Button loading={validatingPromoCode} type="primary" onClick={handleValidatePromoCode} className="!bg-[#800020] hover:!bg-[#800020] hover:!border-[#800020] hover:!text-white !text-white">Apply</Button>
+                      }
+                    </Row>
                   </Row>
-                </Row>
+                )}
+
                 {promoDetails && promoDetails.error === null &&
                   <Row wrap={false} className="gap-x-[5px] items-center">
                     <CircleCheck className="w-4 h-4 text-green-500" />

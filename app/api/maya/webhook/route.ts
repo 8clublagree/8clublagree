@@ -20,68 +20,38 @@ const handleAssignCredits = async ({ referenceId }: { referenceId: string }) => 
 
     if (!orderData) return;
 
-    const orderObject = {
-      userID: orderData.user_id,
-      packageID: orderData.package_id,
-      paymentMethod: orderData.payment_method,
-      validityPeriod: orderData.package_validity_period,
-      packageCredits: orderData.package_credits,
-      packageName: orderData.package_title,
-      isTrialPackage: orderData.is_trial_package,
-      isShareable: orderData.is_shareable,
-      shareableCredits: orderData.shareable_credits,
-      numberOfCreditsShared: orderData.number_of_credits_shared,
-      discounted: orderData.discounted,
-      discountPercentage: orderData.discount_percentage,
-    };
-
-    const promises = []
-
-    promises.push(supabaseServer
+    const { data: userCreditsData, error: userCreditsError } = await supabaseServer
       .from("user_credits")
-      .update({ credits: orderObject.packageCredits })
-      .eq("user_id", orderObject.userID)
-      .select()
-      .single()
-    );
+      .select("credits")
+      .eq("user_id", orderData.user_id)
+      .single();
 
-    orderData.previous_active_package_id
-      ? promises.push(supabaseServer
-        .from("client_packages")
-        .update({
-          status: "expired",
-          expiration_date: dayjs().toISOString(),
-        })
-        .eq("id", orderData.previous_active_package_id)
-        .select()
-        .single()
-      ) : Promise.resolve({ error: null });
-
-    if (orderObject.isTrialPackage === true) {
-      promises.push(supabaseServer.from("user_profiles").update({
-        availed_trial_package: true,
-      }).eq("id", orderObject.userID));
+    if (userCreditsError) {
+      throw userCreditsError;
     }
 
-    await Promise.all(promises);
-
-    await supabaseServer.from("client_packages").insert({
-      user_id: orderObject.userID,
-      package_id: orderObject.packageID,
-      status: "active",
-      validity_period: orderObject.validityPeriod,
-      package_credits: orderObject.packageCredits,
-      purchase_date: dayjs().toISOString(),
-      package_name: orderObject.packageName,
-      payment_method: "maya",
-      expiration_date: getDateFromToday(orderObject.validityPeriod),
-      is_trial_package: orderObject.isTrialPackage,
-      is_shareable: orderObject.isShareable,
-      shareable_credits: orderObject.shareableCredits,
-      number_of_credits_shared: orderObject.numberOfCreditsShared,
-      discounted: orderObject.discounted,
-      discount_percentage: orderObject.discountPercentage,
+    const { error: confirmError } = await supabaseServer.rpc("confirm_payment", {
+      p_order_id: orderData.id,
+      p_user_id: orderData.user_id,
+      p_credits: orderData.package_credits,
+      p_user_credits: userCreditsData?.credits ?? 0,
+      p_client_package_id: orderData.previous_active_package_id ?? null,
+      p_package_id: orderData.package_id,
+      p_payment_method: orderData.payment_method,
+      p_package_name: orderData.package_title,
+      p_validity_period: orderData.package_validity_period,
+      p_package_credits: orderData.package_credits,
+      p_expiration_date: getDateFromToday(orderData.package_validity_period),
+      p_is_shareable: orderData.is_shareable ?? false,
+      p_shareable_credits: orderData.shareable_credits ?? 0,
+      p_number_of_credits_shared: orderData.number_of_credits_shared ?? 0,
+      p_is_trial_package: orderData.is_trial_package ?? false,
+      p_discount_code: orderData.discount_code ?? null,
     });
+
+    if (confirmError) {
+      throw confirmError;
+    }
   } catch (error) {
     throw error;
   }
@@ -152,18 +122,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (status === WEBHOOK_STATUS.PAYMENT_SUCCESS) {
-      await Promise.all([
-        handleAssignCredits({ referenceId: requestReferenceNumber }).catch(
-          (err) => console.error("Assign credits failed:", err),
-        ),
-        supabaseServer
-          .from("orders")
-          .update({
-            status: "SUCCESSFUL",
-            approved_at: dayjs().toISOString(),
-          })
-          .eq("reference_id", requestReferenceNumber),
-      ]);
+      try {
+        await handleAssignCredits({ referenceId: requestReferenceNumber });
+      } catch (err) {
+        console.error("Assign credits failed:", err);
+        return NextResponse.json(
+          { error: "Failed to finalize successful payment." },
+          { status: 500 },
+        );
+      }
     }
 
     return NextResponse.json(nextResponse);
