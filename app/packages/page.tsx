@@ -568,8 +568,8 @@ export default function PackagesPage() {
             isShareable: selectedRecord.is_shareable,
             shareableCredits: selectedRecord.shareable_credits,
             numberOfCreditsShared: 0,
-            discounted: promoDetails ? true : false,
-            discountPercentage: promoDetails?.discount ?? 0,
+            // discounted: promoDetails ? true : false,
+            // discountPercentage: promoDetails?.discount ?? 0,
           },
         });
         if (response?.status !== 200) {
