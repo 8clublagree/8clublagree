@@ -34,10 +34,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Promo code not found." }, { status: 404 });
     }
 
-    if (String(promoCodeData.status ?? "").toLowerCase() !== "active") {
-      return NextResponse.json({ error: "Promo code is inactive." }, { status: 400 });
-    }
-
     if (
       promoCodeData.expiration_date &&
       dayjs(promoCodeData.expiration_date).isValid() &&

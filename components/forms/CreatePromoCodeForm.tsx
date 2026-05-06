@@ -132,7 +132,6 @@ export default function CreatePromoCodeForm({
               size="large"
               options={[
                 { label: "Active", value: "active" },
-                { label: "Inactive", value: "inactive" },
                 { label: "Expired", value: "expired" },
               ]}
             />

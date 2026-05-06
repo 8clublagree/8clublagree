@@ -95,7 +95,7 @@ export interface ClientPackageProps {
   packageId: string;
   userId: string;
   expirationDate: string;
-  status: "active" | "expired" | "inactive" | string;
+  status: "active" | "expired";
   purchaseDate: string;
   paymentMethod: "debit" | "credit" | string;
   packageCredits: number;
