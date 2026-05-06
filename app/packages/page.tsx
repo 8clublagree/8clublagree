@@ -59,6 +59,25 @@ const MAX_PAYMENT_PROOF_SIZE_BYTES = MAX_PAYMENT_PROOF_SIZE_MB * 1024 * 1024;
 
 type PaymentMethod = "card" | "paymaya" | "gcash";
 
+const toReadableErrorMessage = (value: unknown): string => {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    return value.map((item) => toReadableErrorMessage(item)).filter(Boolean).join(", ");
+  }
+  if (typeof value === "object") {
+    const maybeMessage = (value as { message?: unknown }).message;
+    if (typeof maybeMessage === "string") return maybeMessage;
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+};
+
 export default function PackagesPage() {
   const dispatch = useDispatch();
   const [processingMaya, setProcessingMaya] = useState(false);
@@ -580,11 +599,11 @@ export default function PackagesPage() {
       if (err?.code === "ERR_CANCELED") {
         return null;
       }
-      console.error(err);
+      // console.log('Error: ', err);
       const uploadErrorMessage =
-        err?.response?.data?.details ||
-        err?.response?.data?.error ||
-        err?.message ||
+        toReadableErrorMessage(err?.response?.data?.details) ||
+        toReadableErrorMessage(err?.response?.data?.error) ||
+        toReadableErrorMessage(err?.message) ||
         "Please retry refreshing the page or ensure that you have a stable internet connection.";
       showMessage({ type: "error", content: `Failed to upload image. ${uploadErrorMessage}` });
       // showMessage({ type: "error", content: `${err}` });

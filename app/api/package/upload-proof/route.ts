@@ -48,7 +48,11 @@ export async function POST(req: Request) {
     }).select()
 
     if (error) {
-      return NextResponse.json({ error: error }, { status: 400 });
+      console.error("[package/upload-proof] Supabase insert failed:", error);
+      return NextResponse.json(
+        { error: error.message ?? "Failed to upload payment proof." },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({
@@ -57,6 +61,10 @@ export async function POST(req: Request) {
       message: "Proof uploaded successfully",
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err }, { status: 500 });
+    console.error("[package/upload-proof] Unexpected error:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error while uploading proof." },
+      { status: 500 }
+    );
   }
 }
