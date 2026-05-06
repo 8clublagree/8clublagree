@@ -578,7 +578,7 @@ export default function PackagesPage() {
       if (err?.code === "ERR_CANCELED") {
         return null;
       }
-      console.error(err);
+      console.log('Error: ', err);
       const uploadErrorMessage =
         err?.response?.data?.details ||
         err?.response?.data?.error ||
