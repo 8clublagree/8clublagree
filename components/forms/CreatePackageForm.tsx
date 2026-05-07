@@ -15,6 +15,7 @@ import { TeamOutlined } from "@ant-design/icons";
 import { LuCalendarDays, LuPackage } from "react-icons/lu";
 import { useEffect, useRef, useState } from "react";
 import { CreatePackageProps } from "@/lib/props";
+import { trim } from "lodash";
 
 interface CreatePackageFormProps {
   onSubmit: (values: any) => void;
@@ -74,6 +75,7 @@ export default function CreatePackageForm({
   const handleFinish = (values: any) => {
     const formattedValues = {
       ...values,
+      description: !trim(values.description).length ? null : values.description,
       is_shareable: isShareable,
       offered_for_clients: isOffered,
       shareable_credits: isShareable ? values.shareable_credits : null,
