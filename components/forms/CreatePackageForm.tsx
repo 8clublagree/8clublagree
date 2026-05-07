@@ -78,6 +78,7 @@ export default function CreatePackageForm({
       offered_for_clients: isOffered,
       shareable_credits: isShareable ? values.shareable_credits : null,
       is_trial_package: isTrialPackage,
+
     };
     // console.log('formattedValues: ', formattedValues)
     onSubmit(formattedValues);
@@ -121,12 +122,6 @@ export default function CreatePackageForm({
             name="description"
             className="!mb-[5px] !pb-[5px]"
             label="Description"
-            rules={[
-              {
-                required: true,
-                message: "Please enter the package description",
-              },
-            ]}
           >
             <Input.TextArea
               placeholder="Enter package description"
