@@ -63,6 +63,7 @@ export default function CreatePackageForm({
         is_shareable: initialValues.is_shareable,
         shareable_credits: initialValues.shareable_credits,
         is_trial_package: initialValues.is_trial_package,
+        description: initialValues.description,
       };
 
       initialRef.current = initial;
@@ -110,6 +111,26 @@ export default function CreatePackageForm({
               size="large"
               placeholder="Package Name"
               prefix={<LuPackage className="text-slate-400" />}
+            />
+          </Form.Item>
+        </Col>
+
+        <Col xs={24} sm={24}>
+          <Form.Item
+            required
+            name="description"
+            className="!mb-[5px] !pb-[5px]"
+            label="Description"
+            rules={[
+              {
+                required: true,
+                message: "Please enter the package description",
+              },
+            ]}
+          >
+            <Input.TextArea
+              placeholder="Enter package description"
+              autoSize={{ minRows: 3, maxRows: 6 }}
             />
           </Form.Item>
         </Col>

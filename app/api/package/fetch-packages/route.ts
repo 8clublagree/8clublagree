@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const data = Object.fromEntries(new URL(req.url).searchParams.entries());
     const { isAdmin } = data;
 
-    let query = supabaseServer.from("packages").select("*");
+    let query = supabaseServer.from("packages").select("*").order("created_at", { ascending: false });
 
     if (JSON.parse(isAdmin) !== true) {
       query = query.eq("offered_for_clients", true);

@@ -80,35 +80,46 @@ const toReadableErrorMessage = (value: unknown): string => {
 
 export default function PackagesPage() {
   const dispatch = useDispatch();
-  const [processingMaya, setProcessingMaya] = useState(false);
-  const carouselRef = useRef<any>(null);
   const user = useAppSelector((state) => state.auth.user);
   const {
     loading: packageLoading,
     fetchPackages,
     updateClientPackage,
-    validatePromoCode
+    validatePromoCode,
   } = usePackageManagement();
   const { showMessage, contextHolder } = useAppMessage();
-  const [isMobile, setIsMobile] = useState(false);
-  const [carouselSlide, setCarouselSlide] = useState(0);
-  const [termsModalOpen, setTermsModalOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [acceptsTerms, setAcceptsTerms] = useState(false);
+
+  const carouselRef = useRef<any>(null);
+  const promoCode = useRef<string>("");
+  const [checkoutForm] = Form.useForm();
+
+  const [processingMaya, setProcessingMaya] = useState(false);
   const [packages, setPackages] = useState<PackageProps[]>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
+  const [carouselSlide, setCarouselSlide] = useState(0);
+  const [acceptsTerms, setAcceptsTerms] = useState(false);
+
+  const [validatingPromoCode, setValidatingPromoCode] = useState(false);
+  const [promoDetails, setPromoDetails] = useState<{
+    error: string | null;
+    originalPrice: number;
+    discount: number;
+    newPrice: number;
+  } | null>(null);
+
   const [isSendingPending, setIsSendingPending] = useState<boolean>(false);
+  const [uploadingPayment, setUploadingPayment] = useState(false);
+  const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<boolean | null>(
+    null,
+  );
   const [file, setFile] = useState<UploadFile[] | null>(null);
   const [previewImage, setPreviewImage] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [uploadingPayment, setUploadingPayment] = useState(false);
-  const [paymentUploadSuccess, setPaymentUploadSuccess] = useState<
-    boolean | null
-  >(null);
 
-
-  const [checkoutForm] = Form.useForm();
   const [formData, setFormData] = useState<PurchaseFormData>({
     productName: "Premium Subscription",
     productPrice: "1500.00",
@@ -694,10 +705,6 @@ export default function PackagesPage() {
     );
   }, []);
 
-  const promoCode = useRef<string>('');
-  const [validatingPromoCode, setValidatingPromoCode] = useState(false);
-  const [promoDetails, setPromoDetails] = useState<{ error: string | null, originalPrice: number, discount: number, newPrice: number } | null>(null);
-
   // Finisg this
   const handleValidatePromoCode = async () => {
     try {
@@ -847,7 +854,7 @@ export default function PackagesPage() {
                               : "!bg-slate-200 !border-slate-200 !text-slate-500 hover:!bg-slate-200"
                               }`}
                           >
-                            Purchase
+                            View Details
                           </Button>
                         </Tooltip>
                       </div>
@@ -920,8 +927,18 @@ export default function PackagesPage() {
                   {selectedRecord?.packageCredits + (selectedRecord?.shareable_credits ?? 0)}
                 </Avatar>
               </Row>
-              <Divider />
 
+              {selectedRecord?.description && !!selectedRecord?.description.length &&
+                <Divider />
+              }
+              {selectedRecord?.description && !!selectedRecord?.description.length &&
+                <Row>
+                  <Text>
+                    {selectedRecord?.description}
+                  </Text>
+                </Row>
+              }
+              <Divider />
               <div className="items-start w-full">
                 <Row wrap={false} className="mb-[10px] items-start w-full">
                   <Title level={5}>

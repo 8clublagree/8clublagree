@@ -41,6 +41,15 @@ export default function PackageManagementPage() {
   );
   const [editingPromoCodeRecord, setEditingPromoCodeRecord] =
     useState<PromoCodeProps | null>(null);
+  const isLoading = packageLoading || promoCodeLoading;
+  const modalTitle =
+    activeTab === "packages"
+      ? editingRecord
+        ? "Edit Package"
+        : "Create New Package"
+      : editingPromoCodeRecord
+        ? "Edit Promo Code"
+        : "Create New Promo Code";
 
   useEffect(() => {
     const handleResize = () => {
@@ -72,11 +81,13 @@ export default function PackageManagementPage() {
 
   const handleFetchPackages = async () => {
     const response = await fetchPackages({ isAdmin: true });
+
     if (response) {
       const mapped = response.map((pkg: any, index: number) => ({
         key: pkg.id,
         id: pkg.id,
         title: pkg.title,
+        description: pkg.description,
         price: pkg.price,
         validity_period: pkg.validity_period,
         package_credits: pkg.package_credits,
@@ -116,6 +127,7 @@ export default function PackageManagementPage() {
       title: values.name,
       price: values.price,
       package_type: "regular",
+      description: values.description,
       package_credits: values.package_credits ?? null,
       validity_period: values.validity_period,
       offered_for_clients: values.offered_for_clients,
@@ -135,7 +147,6 @@ export default function PackageManagementPage() {
 
       setIsModalOpen(false);
       setEditingRecord(null);
-      handleFetchPackages();
 
       showMessage({
         type: "success",
@@ -151,6 +162,8 @@ export default function PackageManagementPage() {
           : "Error creating new package",
       });
       console.error("Error submitting package:", error);
+    } finally {
+      handleFetchPackages();
     }
   };
 
@@ -255,16 +268,6 @@ export default function PackageManagementPage() {
       showMessage({ type: "error", content: "Failed to delete the promo code" });
     }
   };
-
-  const isLoading = packageLoading || promoCodeLoading;
-  const modalTitle =
-    activeTab === "packages"
-      ? editingRecord
-        ? "Edit Package"
-        : "Create New Package"
-      : editingPromoCodeRecord
-        ? "Edit Promo Code"
-        : "Create New Promo Code";
 
   return (
     <AdminAuthenticatedLayout>

@@ -228,6 +228,19 @@ const AdminPackageTable = ({
         ),
       },
       {
+        title: "Description",
+        dataIndex: "description",
+        key: "description",
+        width: isMobile ? undefined : undefined,
+        ...getColumnSearchProps("description"),
+        ellipsis: true,
+        render: (value) => (
+          <Row>
+            <Text className={`${!value && 'text-slate-300 italic'}`} ellipsis={{ tooltip: value }}>{value ?? 'No Description'}</Text>
+          </Row>
+        ),
+      },
+      {
         title: "Price (PHP)",
         dataIndex: "price",
         key: "price",
@@ -291,7 +304,7 @@ const AdminPackageTable = ({
         loading={loading}
         columns={columns}
         dataSource={data}
-        scroll={{ x: isMobile ? 600 : undefined }}
+        scroll={{ x: isMobile ? 800 : undefined }}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,

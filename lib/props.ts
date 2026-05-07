@@ -48,6 +48,7 @@ export interface CreatePackageProps {
   key?: string;
   name?: string;
   title?: string;
+  description?: string;
   price?: number;
   promo?: boolean;
   validity_period?: number;
