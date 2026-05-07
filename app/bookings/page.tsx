@@ -67,16 +67,7 @@ export default function BookingsPage() {
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [confirmBookingOpen, setConfirmBookingOpen] = useState(false);
   const [acceptsTerms, setAcceptsTerms] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
-    if (typeof window !== "undefined") {
-      const saved = sessionStorage.getItem("bookingDate");
-
-      if (saved && dayjs(saved, "YYYY-MM-DD").isValid()) {
-        return dayjs(saved, "YYYY-MM-DD");
-      }
-    }
-    return dayjs();
-  });
+  const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   const { fetchImages } = useManageImage();
@@ -260,9 +251,9 @@ export default function BookingsPage() {
           // await handleFetchClasses()
 
           setIsSubmitting(false);
-          setTimeout(() => {
-            window.location.reload()
-          }, 5000)
+          // setTimeout(() => {
+          //   window.location.reload()
+          // }, 5000)
           return
         }
 
@@ -299,9 +290,9 @@ export default function BookingsPage() {
           // await handleFetchClasses()
 
           setIsSubmitting(false);
-          setTimeout(() => {
-            window.location.reload()
-          }, 5000)
+          // setTimeout(() => {
+          //   window.location.reload()
+          // }, 5000)
           return
         }
 
@@ -342,9 +333,9 @@ export default function BookingsPage() {
           // await handleFetchClasses()
 
           setIsSubmitting(false);
-          setTimeout(() => {
-            window.location.reload()
-          }, 5000)
+          // setTimeout(() => {
+          //   window.location.reload()
+          // }, 5000)
           return
         }
 
@@ -371,9 +362,9 @@ export default function BookingsPage() {
 
           setIsSubmitting(false);
 
-          setTimeout(() => {
-            window.location.reload()
-          }, 5000)
+          // setTimeout(() => {
+          //   window.location.reload()
+          // }, 5000)
           return
         }
 
@@ -381,9 +372,9 @@ export default function BookingsPage() {
       }
     } catch (error) {
       setIsSubmitting(false);
-      setTimeout(() => {
-        window.location.reload()
-      }, 3000)
+      // setTimeout(() => {
+      //   window.location.reload()
+      // }, 3000)
       console.log('error: ', error)
       showMessage({ type: "error", content: "Error while booking a class. Please try again after the page has refreshed" });
 
@@ -449,12 +440,7 @@ export default function BookingsPage() {
             <DatePickerCarousel
               isAdmin={false}
               initialDate={selectedDate}
-              onDateSelect={(e) => {
-                const picked = dayjs(e);
-                setSelectedDate(picked);
-                dispatch(setSelectedBookingDate(e as string));
-                sessionStorage.setItem("bookingDate", picked.format("YYYY-MM-DD"));
-              }}
+              onDateSelect={(e) => setSelectedDate(dayjs(e))}
               maxDaysAhead={14}
             />
             <Row justify={"center"}>
