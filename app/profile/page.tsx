@@ -31,8 +31,6 @@ export default function ProfilePage() {
 
   const handleSubmit = async (values: UpdateUserProfile) => {
     try {
-
-
       await axiosApi.post('/request-email-change', {
         userId: user?.id,
         email: values.email

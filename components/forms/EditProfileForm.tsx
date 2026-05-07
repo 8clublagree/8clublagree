@@ -74,6 +74,7 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
         emergency_contact_name: user.emergency_contact_name,
         emergency_contact_number: user.emergency_contact_number,
         avatar_url: user?.avatar_url,
+        instagram: user?.instagram ?? '',
       };
 
       const values = omit(initial, ["avatar_url"]);
@@ -326,6 +327,16 @@ const EditProfileForm = ({ loading, clearSignal, onSubmit, form }: Props) => {
               ]}
             >
               <Input placeholder="Enter email address" />
+            </Form.Item>
+          </Col>
+
+          {/* Instagram */}
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Instagram"
+              name="instagram"
+            >
+              <Input placeholder="Enter your instagram" />
             </Form.Item>
           </Col>
 

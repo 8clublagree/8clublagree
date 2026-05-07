@@ -36,6 +36,7 @@ export interface CurrentPackageProps {
 export interface UserProfile {
   id?: string;
   email?: string;
+  instagram?: string;
   contact_number?: string;
   avatar_url?: string;
   full_name?: string;
@@ -69,6 +70,7 @@ export interface UpdateUserProfile {
   last_name?: string;
   birthday?: string;
   location?: string;
+  instagram?: string;
   credits?: number;
   shareable_credits?: number;
   emergency_contact_name?: string;

@@ -280,8 +280,6 @@ export default function ClientManagementPage() {
           );
         }
 
-        console.log('values: ', values)
-
         promises.push(
           updateClientPackage({
             clientPackageID: selectedRecord?.clientPackage?.clientPackageID as string,

@@ -45,6 +45,7 @@ interface EditClientProps {
     id?: string;
     currentPackage?: any;
     clientPackage?: any;
+    instagram?: string;
     first_name: string;
     last_name: string;
     email: string;
@@ -141,6 +142,7 @@ const EditClientForm = ({
         number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared,
         is_shareable: initialValues?.clientPackage?.isShareable,
         purchaseDate: initialValues?.clientPackage?.purchaseDate,
+        instagram: initialValues?.instagram ?? '',
         days_until_expiration: dayjs(initialValues?.clientPackage?.expirationDate).diff(dayjs(initialValues?.clientPackage?.purchaseDate), 'days'),
       };
 
@@ -284,7 +286,7 @@ const EditClientForm = ({
       full_name: `${values.first_name} ${values.last_name}`,
       number_of_credits_shared: initialValuesRef.current.maxShareableCredits - values.shareable_credits,
       shareable_credits: values.shareable_credits,
-      expiration_date: dayjs(initialValuesRef?.current?.purchaseDate).add(values.days_until_expiration, 'days').toISOString(),
+      ...(initialValuesRef?.current?.purchaseDate && { expiration_date: dayjs(initialValuesRef?.current?.purchaseDate).add(values.days_until_expiration, 'days').toISOString() })
     };
 
 
@@ -493,6 +495,15 @@ const EditClientForm = ({
                 ]}
               >
                 <Input placeholder="Enter contact number" />
+              </Form.Item>
+            </Col>
+            {/* Instagram */}
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Instagram"
+                name="instagram"
+              >
+                <Input placeholder="Enter client instagram" />
               </Form.Item>
             </Col>
           </Row>

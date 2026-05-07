@@ -157,7 +157,6 @@ export default function AuthenticatedLayout({
           : latestCredit.credits + shareableCreditsFromActivePackage
 
 
-
       dispatch(
         setUser({
           ...omit(profile, ['user_type']),
