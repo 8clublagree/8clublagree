@@ -42,9 +42,9 @@ export async function POST(req: Request) {
       is_shareable: isShareable,
       shareable_credits: shareableCredits,
       number_of_credits_shared: numberOfCreditsShared,
-      discounted: discounted,
-      discount_percentage: discountPercentage,
-      discount_code: discountCode
+      discounted: discounted as boolean ?? false,
+      discount_percentage: discountPercentage ?? null,
+      discount_code: discountCode ?? null,
     }).select()
 
     if (error) {
