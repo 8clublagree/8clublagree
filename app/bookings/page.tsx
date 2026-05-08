@@ -248,7 +248,7 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          // await handleFetchClasses()
+          await handleFetchClasses()
 
           setIsSubmitting(false);
           // setTimeout(() => {
@@ -287,7 +287,7 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          // await handleFetchClasses()
+          await handleFetchClasses()
 
           setIsSubmitting(false);
           // setTimeout(() => {
@@ -330,7 +330,7 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          // await handleFetchClasses()
+          await handleFetchClasses()
 
           setIsSubmitting(false);
           // setTimeout(() => {
@@ -358,7 +358,7 @@ export default function BookingsPage() {
             type: "success",
             content: "Successfully booked a class!",
           });
-          // await handleFetchClasses()
+          await handleFetchClasses()
 
           setIsSubmitting(false);
 
