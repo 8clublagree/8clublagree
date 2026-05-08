@@ -48,9 +48,14 @@ export async function POST(req: Request) {
     }).select()
 
     if (error) {
-      console.error("[package/upload-proof] Supabase insert failed:", error);
+      console.error("[package/upload-proof] Supabase insert failed:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
       return NextResponse.json(
-        { error: error.message ?? "Failed to upload payment proof." },
+        { error: error.message ?? "Failed to upload payment proof.", details: error.details ?? null },
         { status: 400 }
       );
     }
