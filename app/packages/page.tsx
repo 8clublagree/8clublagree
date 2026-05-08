@@ -585,7 +585,7 @@ export default function PackagesPage() {
             numberOfCreditsShared: 0,
             discounted: promoDetails ? true : false,
             discountPercentage: promoDetails?.discount ?? 0,
-            discountCode: !!promoCode.current.length ? promoCode.current : null
+            ...(!!promoCode.current.length && { discountCode: promoCode.current })
           },
         });
         if (response?.status !== 200) {
