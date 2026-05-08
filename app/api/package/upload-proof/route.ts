@@ -62,16 +62,16 @@ export async function POST(req: Request) {
       uploaded_at: uploadedAt,
       package_title: packageTitle,
       package_credits: packageCredits,
-      package_price: discounted ? parseFloat(packagePrice.toString()) - (parseFloat(packagePrice.toString()) * (discountPercentage / 100)) : packagePrice,
+      package_price: discounted && discounted === true ? parseFloat(packagePrice.toString()) - (parseFloat(packagePrice.toString()) * (discountPercentage / 100)) : packagePrice,
       package_validity_period: packageValidityPeriod,
       reference_id: referenceId,
       is_trial_package: isTrialPackage,
       is_shareable: isShareable,
       shareable_credits: shareableCredits,
       number_of_credits_shared: numberOfCreditsShared,
-      discounted: discounted as boolean ?? false,
-      discount_percentage: discountPercentage ?? null,
-      discount_code: discountCode ?? null,
+      discounted: discounted === true ? discounted : false,
+      discount_percentage: discountPercentage === null ? null : discountPercentage,
+      discount_code: discountCode === null ? null : discountCode,
     }).select()
 
     if (error) {
