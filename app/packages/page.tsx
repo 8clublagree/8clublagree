@@ -616,8 +616,8 @@ export default function PackagesPage() {
         toReadableErrorMessage(err?.response?.data?.error) ||
         toReadableErrorMessage(err?.message) ||
         "Please retry refreshing the page or ensure that you have a stable internet connection.";
-      showMessage({ type: "error", content: `Failed to upload image. ${uploadErrorMessage}` });
-      // showMessage({ type: "error", content: `${err}` });
+      // showMessage({ type: "error", content: `Failed to upload image. ${uploadErrorMessage}` });
+      showMessage({ type: "error", content: `${err}` });
 
       return null
     }
