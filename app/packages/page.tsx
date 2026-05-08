@@ -530,10 +530,12 @@ export default function PackagesPage() {
         const rawFile = file?.[0]?.originFileObj as File | undefined;
         if (!rawFile) {
           showMessage({ type: "error", content: "Please select an image to upload." });
+          setIsSendingPending(false);
           return null;
         }
         if (!rawFile.type?.toLowerCase().startsWith("image/")) {
           showMessage({ type: "error", content: "Only image files are allowed." });
+          setIsSendingPending(false);
           return null;
         }
         if (rawFile.size > MAX_PAYMENT_PROOF_SIZE_BYTES) {
@@ -541,6 +543,7 @@ export default function PackagesPage() {
             type: "error",
             content: `Image is too large. Maximum allowed size is ${MAX_PAYMENT_PROOF_SIZE_MB}MB.`,
           });
+          setIsSendingPending(false);
           return null;
         }
 

@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       uploaded_at: uploadedAt,
       package_title: packageTitle,
       package_credits: packageCredits,
-      package_price: discounted && discounted === true ? parseFloat(packagePrice.toString()) - (parseFloat(packagePrice.toString()) * (discountPercentage / 100)) : packagePrice,
+      package_price: discounted && discounted === true ? parseFloat(packagePrice) - (parseFloat(packagePrice) * (discountPercentage ? (discountPercentage / 100) : 0)) : packagePrice,
       package_validity_period: packageValidityPeriod,
       reference_id: referenceId,
       is_trial_package: isTrialPackage,
