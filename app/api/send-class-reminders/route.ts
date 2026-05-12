@@ -69,67 +69,69 @@ async function checkUpcomingClasses() {
       batch.map(async (booking) => {
         const classInfo: any = booking.classes;
         const userProfile: any = booking?.user_profiles?.[0];
-        const email: any = booking?.walk_in_client_email ?? userProfile?.email;
+        const email: any = booking?.walk_in_client_email === null ? userProfile?.email : booking?.walk_in_client_email;
 
-        await transporter.sendMail({
-          from: '"8ClubLagree" <8clublagree@gmail.com>',
-          to: email,
-          subject: `Reminder: Your class is tomorrow!`,
-          html: `
-     <div style="width:100%; background:#f4f4f4; padding:40px 0;">
-    <div style="
-      max-width:480px;
-      margin:0 auto;
-      background:#ffffff;
-      padding:32px;
-      border-radius:10px;
-      border:1px solid #e6e6e6;
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-      color:#333333;
-    ">
-
-      <!-- Header -->
-      <h2 style="
-        margin:0 0 20px 0;
-        font-size:28px;
-        font-weight:600;
-        color:#36013F;
-        text-align:center;
+        if (email) {
+          await transporter.sendMail({
+            from: '"8ClubLagree" <8clublagree@gmail.com>',
+            to: email,
+            subject: `Reminder: Your class is tomorrow!`,
+            html: `
+       <div style="width:100%; background:#f4f4f4; padding:40px 0;">
+      <div style="
+        max-width:480px;
+        margin:0 auto;
+        background:#ffffff;
+        padding:32px;
+        border-radius:10px;
+        border:1px solid #e6e6e6;
+        font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+        color:#333333;
       ">
-        Hey ${userProfile?.first_name ?? 'there'}!
-      </h2>
-
-      <!-- Package -->
-      <h2 style="
-        margin:0 0 20px 0;
-        font-size:18px;
-        font-weight:600;
-        color:#36013F;
-        text-align:center;
-      ">
-        Your upcoming class is on <span style="color: red">${`${dayjs(
-            booking.class_date,
-          ).format("MMMM DD YYYY")}`}</span></br>
-        It starts at <span style="color: red">${dayjs(
-            classInfo.start_time,
-          ).format("hh:mm A")}</span>.
-      </h2>
-
-      <!-- Body Paragraph (your exact content) -->
-      <p style="
-        font-size:18px;
-        line-height:1.6;
-        color:#333;
-        margin:0 0 10px 0;
-        text-align:center;
-      ">
-        Please arrive 10 to 15 minutes early.</br>We're looking forward to your visit!
-      </p>
-
+  
+        <!-- Header -->
+        <h2 style="
+          margin:0 0 20px 0;
+          font-size:28px;
+          font-weight:600;
+          color:#36013F;
+          text-align:center;
+        ">
+          Hey ${userProfile?.first_name ?? 'there'}!
+        </h2>
+  
+        <!-- Package -->
+        <h2 style="
+          margin:0 0 20px 0;
+          font-size:18px;
+          font-weight:600;
+          color:#36013F;
+          text-align:center;
+        ">
+          Your upcoming class is on <span style="color: red">${`${dayjs(
+              booking.class_date,
+            ).format("MMMM DD YYYY")}`}</span></br>
+          It starts at <span style="color: red">${dayjs(
+              classInfo.start_time,
+            ).format("hh:mm A")}</span>.
+        </h2>
+  
+        <!-- Body Paragraph (your exact content) -->
+        <p style="
+          font-size:18px;
+          line-height:1.6;
+          color:#333;
+          margin:0 0 10px 0;
+          text-align:center;
+        ">
+          Please arrive 10 to 15 minutes early.</br>We're looking forward to your visit!
+        </p>
+  
+      </div>
     </div>
-  </div>
-    `,
-        });
+      `,
+          });
+        }
 
         return booking.id;
       }),
