@@ -4,68 +4,29 @@ import supabaseServer from "../../supabase";
 export async function POST(req: Request) {
   try {
     const {
-      classDate,
-      bookerId,
-      classId,
-      isWalkIn,
-      walkInFirstName,
-      walkInLastName,
-      walkInClientEmail,
-      walkInClientContactNumber,
-      method
+      classDate, bookerId, classId, isWalkIn,
+      walkInFirstName, walkInLastName,
+      walkInClientEmail, walkInClientContactNumber, method
     } = await req.json();
 
-    const { data: classData, error: classError } = await supabaseServer
-      .from("classes")
-      .select(`*, class_bookings (id)`)
-      .eq("id", classId)
-      .single();
-
-    if (classError) {
-      return NextResponse.json({ error: classError.message }, { status: 400 });
-    }
-
-    if (classData?.taken_slots >= classData?.available_slots) {
-      return NextResponse.json({ error: "Class is full" }, { status: 400 });
-    }
-
-    const { data, error } = await supabaseServer
-      .from("class_bookings")
-      .insert({
-        method,
-        class_id: classId,
-        class_date: classDate,
-        is_walk_in: isWalkIn,
-        attendance_status: "no-show",
-        ...(bookerId && { booker_id: bookerId }),
-        ...(isWalkIn === true && { sent_email_reminder: true }),
-        ...(walkInFirstName && { walk_in_first_name: walkInFirstName }),
-        ...(walkInLastName && { walk_in_last_name: walkInLastName }),
-        ...(walkInClientEmail && { walk_in_client_email: walkInClientEmail }),
-        ...(walkInClientContactNumber && {
-          walk_in_client_contact_number: walkInClientContactNumber,
-        }),
-      })
-      .single();
+    const { data, error } = await supabaseServer.rpc("book_class", {
+      p_class_id: classId,
+      p_class_date: classDate,
+      p_booker_id: bookerId ?? null,
+      p_is_walk_in: isWalkIn ?? false,
+      p_method: method,
+      p_walk_in_first_name: walkInFirstName ?? null,
+      p_walk_in_last_name: walkInLastName ?? null,
+      p_walk_in_client_email: walkInClientEmail ?? null,
+      p_walk_in_client_contact_number: walkInClientContactNumber ?? null,
+    });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      const status = error.message === "Class is full" ? 400 : 500;
+      return NextResponse.json({ error: error.message }, { status });
     }
 
-
-    const { data: updateClassData, error: updateClassError } = await supabaseServer
-      .from("classes")
-      .update({
-        taken_slots: (classData?.taken_slots ?? 0) + 1,
-      })
-      .eq("id", classId)
-      .select();
-
-    if (updateClassError) {
-      return NextResponse.json({ error: updateClassError.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ data: { updateClassData, classBookingData: data } });
+    return NextResponse.json({ data });
   } catch (err: any) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }

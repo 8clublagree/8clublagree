@@ -555,13 +555,13 @@ export default function BookingsPage() {
                                 }
                                 onClick={() => handleScheduleAction(item)}
                                 className={`bg-[#800020] ${noCredits
-                                  ? "hover:!bg-[#800020]"
+                                  ? "bg-slate-300 hover:bg-slate-300"
                                   : item?.taken_slots === item?.available_slots
                                     ? ""
                                     : "!bg-[#800020] hover:!bg-[#800020]"
                                   } !border-none !text-white font-medium rounded-lg px-4 sm:px-6 shadow-sm transition-all duration-200 hover:scale-[1.03] w-full sm:w-auto text-sm sm:text-sm`}
                               >
-                                {noCredits ? "Get Credits" : "Join"}
+                                {noCredits ? "No Credits Available" : "Join"}
                               </Button>
                             )}
                           </div>
