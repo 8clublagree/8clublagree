@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       p_class_date: classDate,
       p_booker_id: bookerId ?? null,
       p_is_walk_in: isWalkIn ?? false,
-      p_method: method,
+      p_method: method ?? null,
       p_walk_in_first_name: walkInFirstName ?? null,
       p_walk_in_last_name: walkInLastName ?? null,
       p_walk_in_client_email: walkInClientEmail ?? null,

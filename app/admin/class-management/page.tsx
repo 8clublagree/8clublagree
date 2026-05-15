@@ -292,6 +292,7 @@ export default function ClassManagementPage() {
       };
     });
 
+    console.log('mapped: ', mapped)
     setSelectedRecord(record);
     setSelectedClass(record);
     setViewModalOpen(true);
@@ -353,13 +354,14 @@ export default function ClassManagementPage() {
 
       if (bookingType === "walk-in") {
         await bookClass({
-          classDate: values.classDate,
+          classDate: dayjs(selectedDate).toISOString(),
           classId: values.class_id,
           walkInFirstName: values.first_name,
           walkInLastName: values.last_name,
           walkInClientEmail: values.walk_in_client_email,
           walkInClientContactNumber: values.walk_in_client_contact_number,
           isWalkIn: true,
+          method: "walk-in",
         });
       }
 
@@ -392,6 +394,7 @@ export default function ClassManagementPage() {
             bookerId: clientID,
             isWalkIn: false,
             deductCredits: clientCredits != null,
+            method: "manual walk-in",
           });
 
           showMessage({
@@ -419,6 +422,7 @@ export default function ClassManagementPage() {
             bookerId: clientID,
             isWalkIn: false,
             deductCredits: clientCredits != null,
+            method: "manual existing",
           });
 
           showMessage({
@@ -448,6 +452,7 @@ export default function ClassManagementPage() {
             bookerId: clientID,
             isWalkIn: false,
             deductCredits: clientCredits != null,
+            method: "manual existing",
           });
           showMessage({
             type: "success",
