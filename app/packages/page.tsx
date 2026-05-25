@@ -1104,7 +1104,7 @@ export default function PackagesPage() {
 
                           <Row justify={'center'} className="w-full text-center items-center">
                             <Image
-                              src="/images/gcash-qr.png"
+                              src="/images/gcash-qr.jpeg"
                               alt="GCash QR"
                               width={130}
                               height={200}
