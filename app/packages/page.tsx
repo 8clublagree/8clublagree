@@ -1096,7 +1096,8 @@ export default function PackagesPage() {
                               {"BE*****T AN**E C."}
                             </Descriptions.Item>
                             <Descriptions.Item label="GCash Account Number">
-                              {"09524831558"}
+                              {/* {"09524831558"} */}
+                              {"09177073880"}
                             </Descriptions.Item>
 
                           </Descriptions>
