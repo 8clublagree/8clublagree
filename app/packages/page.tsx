@@ -1096,8 +1096,8 @@ export default function PackagesPage() {
                               {"BE*****T AN**E C."}
                             </Descriptions.Item>
                             <Descriptions.Item label="GCash Account Number">
-                              {/* {"09524831558"} */}
-                              {"09177073880"}
+                              {"09524831558"}
+                              {/* {"09177073880"} */}
                             </Descriptions.Item>
 
                           </Descriptions>
@@ -1105,7 +1105,7 @@ export default function PackagesPage() {
 
                           <Row justify={'center'} className="w-full text-center items-center">
                             <Image
-                              src="/images/gcash-qr.jpeg"
+                              src="/images/gcash-qr.png"
                               alt="GCash QR"
                               width={130}
                               height={200}
