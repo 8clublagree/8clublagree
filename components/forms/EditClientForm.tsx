@@ -281,8 +281,6 @@ const EditClientForm = ({
       }
     }
 
-    console.log('values: ', values)
-
     const formData = {
       ...values,
       ...(clientFile?.name !== "existing_image.png" && {

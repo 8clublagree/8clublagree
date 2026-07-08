@@ -179,6 +179,7 @@ export default function ClientManagementPage() {
             key: user.id,
             avatar_url: signedUrl,
             credits: user?.user_credits?.[0]?.credits ?? null,
+            shareable_credits: user?.user_credits?.[0]?.shareable_credits ?? null,
           };
         });
 
@@ -275,7 +276,7 @@ export default function ClientManagementPage() {
           promises.push(
             updateUserCredits({
               userID: selectedRecord?.id as string,
-              values: { credits: values.credits },
+              values: { credits: values.credits, shareable_credits: values.shareable_credits },
             }),
           );
         }
