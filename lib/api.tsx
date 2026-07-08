@@ -1207,7 +1207,7 @@ export const useManageCredits = () => {
     values,
   }: {
     userID: string;
-    values?: { credits: number };
+    values?: { credits: number; shareable_credits?: number };
   }) => {
     try {
       setLoading(true);

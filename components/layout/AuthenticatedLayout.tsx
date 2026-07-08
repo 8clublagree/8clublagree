@@ -121,6 +121,7 @@ export default function AuthenticatedLayout({
     });
 
     const latestCredit = profile?.user_credits?.[0];
+    const shareableCredits = profile?.user_credits?.[0]?.shareable_credits;
 
 
     const activePackage: CurrentPackageProps = profile?.client_packages?.find(
@@ -157,6 +158,7 @@ export default function AuthenticatedLayout({
           : latestCredit.credits + shareableCreditsFromActivePackage
 
 
+      console.log('profile: ', profile)
       dispatch(
         setUser({
           ...omit(profile, ['user_type']),
@@ -166,7 +168,7 @@ export default function AuthenticatedLayout({
           sharedPackages: sharedPackages,
           credits: credits,
           numberOfCreditsShared: activePackage?.number_of_credits_shared,
-          shareable_credits: activePackage ? activePackage.shareable_credits : 0,
+          shareable_credits: shareableCredits,
           totalUsableSharedCredits: totalUsableSharedCredits < 0 ? 0 : totalUsableSharedCredits,
           availedTrialPackage: profile?.availed_trial_package,
         }),

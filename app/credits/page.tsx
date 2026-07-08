@@ -43,6 +43,7 @@ export default function CreditsPage() {
     let active: any;
     let mapped: any = [];
     if (user) {
+
       const response = await fetchClientPackages({
         clientID: user?.id as string,
       });
@@ -146,7 +147,7 @@ export default function CreditsPage() {
       {!fetchingData && (
         <div className="space-y-6">
           {/* <Alert message="Purchased credits and credits shared to you will now be shown as a total in your credit tracker." type="info" showIcon /> */}
-          <Alert message="Bought a shareable package before March 18? Message us to unlock your shareable credits and bring a friend." type="success" showIcon />
+          <Alert message={<span>To unlock your shareable credits and bring a friend, <a href="https://www.instagram.com/8clublagree/" target="_blank" rel="noopener noreferrer">message us</a>.</span>} type="success" showIcon />
           <Row gutter={[16, 16]} className="flex flex-wrap items-stretch">
             {/* Current Package */}
             <Col xs={24} sm={12} lg={6} className="flex">
@@ -282,18 +283,24 @@ export default function CreditsPage() {
                   className={`${!activePackage && "p-[10px] bg-slate-200"
                     } rounded-lg items-center gap-[10px] min-h-[60px]`}
                 >
-                  {activePackage && activePackage.isShareable && (
-                    <Row wrap={false} className="flex-col justify-center w-full">
-                      <Title level={4} className="!mb-0 !font-normal">
-                        {`${activePackage.shareableCredits - ((activePackage?.numberOfCreditsShared ?? 0) + (activePackage?.numberOfSharedCreditsUsed ?? 0))} out of ${activePackage.shareableCredits} remaining`}
-                      </Title>
-                      <Button disabled={((activePackage.shareableCredits ?? 0) - (activePackage?.numberOfCreditsShared ?? 0)) === 0} onClick={() => setShareModalOpen(true)} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03]">Share</Button>
-                    </Row>
-                  )}
-                  {activePackage && !activePackage.isShareable && (
+
+                  <Row wrap={false} className="flex-col justify-center w-full">
+                    {user?.shareable_credits === 0 || user?.shareable_credits === null ? (
+                      <Text className="!mb-0 !font-normal">
+                        No shareable credits
+                      </Text>
+                    ) : (
+                      <Text className="!mb-0 !font-normal">
+                        {`${user?.shareable_credits} remaining`}
+                      </Text>
+                    )}
+                    {/* <Button disabled={((activePackage.shareableCredits ?? 0) - (activePackage?.numberOfCreditsShared ?? 0)) === 0} onClick={() => setShareModalOpen(true)} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03]">Share</Button> */}
+                  </Row>
+
+                  {/* {activePackage && !activePackage.isShareable && (
                     <Row className="w-full justify-center">
                       <Text>Your purchased package does not come with shareable credits</Text>
-                    </Row>)}
+                    </Row>)} */}
                 </Row>
               </Card>
             </Col>

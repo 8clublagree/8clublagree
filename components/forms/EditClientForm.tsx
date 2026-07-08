@@ -55,6 +55,7 @@ interface EditClientProps {
     expirationDate?: string;
     avatar_path?: string;
     credits?: number;
+    shareable_credits?: number;
     days_until_expiration?: number;
     shareableCredits?: number;
     numberOfCreditsShared?: number;
@@ -128,7 +129,6 @@ const EditClientForm = ({
 
   useEffect(() => {
     if (initialValues) {
-
       // exclude avatar data since it's not part of the form
       const maxShareable = initialValues?.clientPackage?.shareableCredits ?? 0;
       const initial = {
@@ -138,7 +138,7 @@ const EditClientForm = ({
         email: initialValues.email,
         credits: initialValues.credits,
         maxShareableCredits: maxShareable,
-        shareable_credits: (maxShareable ?? 0) - (initialValues?.clientPackage?.numberOfCreditsShared ?? 0),
+        shareable_credits: initialValues.shareable_credits ?? 0,
         number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared,
         is_shareable: initialValues?.clientPackage?.isShareable,
         purchaseDate: initialValues?.clientPackage?.purchaseDate,
@@ -146,7 +146,11 @@ const EditClientForm = ({
         days_until_expiration: dayjs(initialValues?.clientPackage?.expirationDate).diff(dayjs(initialValues?.clientPackage?.purchaseDate), 'days'),
       };
 
-      form.setFieldsValue({ days_until_expiration: dayjs(initialValues?.expirationDate).diff(dayjs(initialValues?.clientPackage?.purchaseDate), 'days'), maxShareableCredits: maxShareable, is_shareable: initialValues?.clientPackage?.isShareable, credits: initialValues.credits, shareable_credits: (maxShareable ?? 0) - (initialValues?.clientPackage?.numberOfCreditsShared ?? 0), number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared });
+      form.setFieldsValue({
+        days_until_expiration: dayjs(initialValues?.expirationDate).diff(dayjs(initialValues?.clientPackage?.purchaseDate), 'days'), maxShareableCredits: maxShareable, is_shareable: initialValues?.clientPackage?.isShareable, credits: initialValues.credits,
+        shareable_credits: initialValues.shareable_credits,
+        number_of_credits_shared: initialValues?.clientPackage?.numberOfCreditsShared
+      });
 
       if (!!initialValues?.avatar_url?.length) {
         setFile([
@@ -277,6 +281,7 @@ const EditClientForm = ({
       }
     }
 
+    console.log('values: ', values)
 
     const formData = {
       ...values,
@@ -335,18 +340,21 @@ const EditClientForm = ({
 
   const handleAddPackage = async () => {
     await handlePurchasePackage();
-    await handleUpdateUserCredits({ credits: selectedPackage.packageCredits });
+    await handleUpdateUserCredits({ credits: selectedPackage.packageCredits, shareable_credits: selectedPackage.shareable_credits });
 
     refetch();
     handleClose();
     handleClosePackagesModal();
   };
 
-  const handleUpdateUserCredits = async ({ credits }: { credits: number }) => {
+  const handleUpdateUserCredits = async ({ credits, shareable_credits }: { credits: number, shareable_credits?: number }) => {
     try {
       await updateUserCredits({
         userID: initialValues?.id as string,
-        values: { credits },
+        values: {
+          credits,
+          ...(shareable_credits !== undefined && shareable_credits !== null && { shareable_credits })
+        },
       });
     } catch (error) {
       console.log(error);
@@ -671,12 +679,6 @@ const EditClientForm = ({
                 <Form.Item
                   label={`Remaining Shareable Credits`}
                   name="shareable_credits"
-                  rules={[
-                    {
-                      required: initialValuesRef?.current?.is_shareable === true,
-                      message: "Please enter amount of shareable credits",
-                    },
-                  ]}
                 >
                   <InputNumber
                     // disabled={initialValues.isShareable === false}
@@ -684,7 +686,6 @@ const EditClientForm = ({
                     // prefix={<TeamOutlined className="text-slate-400" />}
                     className="w-full"
                     min={0}
-                    max={Number(initialValuesRef?.current?.maxShareableCredits) ?? 0}
                     precision={0}
                     onKeyDown={(e) => {
                       if (!/[0-9]/.test(e.key) && e.code !== "Backspace") {
