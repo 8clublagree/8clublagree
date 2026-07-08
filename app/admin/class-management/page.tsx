@@ -352,18 +352,18 @@ export default function ClassManagementPage() {
 
       // console.log('values: ', values)
 
-      // if (bookingType === "walk-in") {
-      //   await bookClass({
-      //     classDate: dayjs(selectedDate).toISOString(),
-      //     classId: values.class_id,
-      //     walkInFirstName: values.first_name,
-      //     walkInLastName: values.last_name,
-      //     walkInClientEmail: values.walk_in_client_email,
-      //     walkInClientContactNumber: values.walk_in_client_contact_number,
-      //     isWalkIn: true,
-      //     method: "walk-in",
-      //   });
-      // }
+      if (bookingType === "walk-in") {
+        await bookClass({
+          classDate: dayjs(selectedDate).toISOString(),
+          classId: values.class_id,
+          walkInFirstName: values.first_name,
+          walkInLastName: values.last_name,
+          walkInClientEmail: values.walk_in_client_email,
+          walkInClientContactNumber: values.walk_in_client_contact_number,
+          isWalkIn: true,
+          method: "walk-in",
+        });
+      }
 
       if (bookingType === "existing") {
         const clientID = values.existingClientRecord.id;
