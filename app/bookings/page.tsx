@@ -205,14 +205,13 @@ export default function BookingsPage() {
     try {
       setIsSubmitting(true);
       if (user) {
-        const hasPurchasedShareableCredits = user?.currentPackage?.is_shared === false ? (user?.shareable_credits ?? 0) - (user.numberOfCreditsShared ?? 0) : null
-        const hasPurchasedCredits = user.credits !== null && user.credits !== 0;
-        const hasUsableSharedCredits = user.totalUsableSharedCredits !== null && user?.totalUsableSharedCredits !== 0;
+        // const hasPurchasedShareableCredits = user?.currentPackage?.is_shared === false ? (user?.shareable_credits ?? 0) - (user.numberOfCreditsShared ?? 0) : null
+        // const hasPurchasedCredits = user.credits !== null && user.credits !== 0;
+        // const hasUsableSharedCredits = user.totalUsableSharedCredits !== null && user?.totalUsableSharedCredits !== 0;
 
-        const remainingCredits = ((user.credits as number) - (user.currentPackage?.shareable_credits ?? 0) - (user?.currentPackage?.number_of_shared_credits_used ?? 0))
+        // const remainingCredits = ((user.credits as number) - (user.currentPackage?.shareable_credits ?? 0) - (user?.currentPackage?.number_of_shared_credits_used ?? 0))
 
-        if (hasPurchasedCredits && remainingCredits > 0) {
-
+        if (user.credits && user.credits > 0) {
           await bookClass({
             classDate: dayjs(selectedDate).toISOString(),
             classId: selectedRecord.id,
@@ -222,14 +221,14 @@ export default function BookingsPage() {
             method: 'client_account'
           });
 
-          const updatedValue: number = (user?.credits as number - (hasPurchasedShareableCredits ?? 0)) - 1
+          const updatedValue: number = (user?.credits as number) - 1
 
           await updateUserCredits({
             userID: user?.id as string,
             ...(user?.credits && user?.credits !== null && !isNaN(user?.credits as number) && { values: { credits: updatedValue } }),
           });
 
-          if (user?.currentPackage?.is_shareable === false && updatedValue === 0) {
+          if (updatedValue === 0) {
             await updateClientPackage({
               clientPackageID: user.currentPackage?.id as string,
               values: {
@@ -256,7 +255,7 @@ export default function BookingsPage() {
           return
         }
 
-        if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
+        if (user.shareable_credits && user.shareable_credits > 0) {
           await bookClass({
             classDate: dayjs(selectedDate).toISOString(),
             classId: selectedRecord.id,
@@ -266,17 +265,26 @@ export default function BookingsPage() {
             method: 'client_account'
           });
 
-          const updatedValue: number = (user.currentPackage?.number_of_shared_credits_used ?? 0) + 1
+          const updatedValue: number = (user?.shareable_credits ?? 0) - 1
 
-          await updateClientPackage({
-            clientPackageID: user.currentPackage?.id as string,
-            values: {
-              ...(user.currentPackage?.shareable_credits && updatedValue >= user.currentPackage?.shareable_credits ? { status: "expired", expirationDate: dayjs() } : {}),
-              numberOfSharedCreditsUsed: updatedValue,
-            },
-          });
+          // await updateClientPackage({
+          //   clientPackageID: user.currentPackage?.id as string,
+          //   values: {
+          //     ...(user.currentPackage?.shareable_credits && updatedValue >= user.currentPackage?.shareable_credits ? { status: "expired", expirationDate: dayjs() } : {}),
+          //     numberOfSharedCreditsUsed: updatedValue,
+          //   },
+          // });
 
-          dispatch(setUser({ ...user, credits: user?.credits as number - 1 }));
+          if (updatedValue === 0) {
+            await updateClientPackage({
+              clientPackageID: user.currentPackage?.id as string,
+              values: {
+                status: "expired", expirationDate: dayjs()
+              },
+            });
+          }
+
+          dispatch(setUser({ ...user, shareable_credits: updatedValue }));
 
           handleSendConfirmationEmail();
 
@@ -294,50 +302,7 @@ export default function BookingsPage() {
           return
         }
 
-        if (hasUsableSharedCredits) {
-          await bookClass({
-            classDate: dayjs(selectedDate).toISOString(),
-            classId: selectedRecord.id,
-            bookerId: user.id as string,
-            isWalkIn: false,
-            // deductCredits: shouldDeductCredits,
-            method: 'client_account'
-          });
-
-
-          const soonestExpiring = user?.sharedPackages?.reduce((earliest, current) =>
-            dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
-          );
-
-
-          await updateClientPackage({
-            clientPackageID: soonestExpiring?.id as string,
-            values: {
-              // packageCredits: (soonestExpiring?.package_credits as number) - 1,
-              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) + 1,
-              // numberOfCreditsShared: (soonestExpiring?.number_of_credits_shared as number) + 1,
-            },
-          });
-
-          dispatch(setUser({ ...user, totalUsableSharedCredits: user?.totalUsableSharedCredits as number - 1 }));
-
-          handleSendConfirmationEmail();
-
-          handleCloseModal();
-          showMessage({
-            type: "success",
-            content: "Successfully booked a class!",
-          });
-          await handleFetchClasses()
-
-          setIsSubmitting(false);
-          // setTimeout(() => {
-          //   window.location.reload()
-          // }, 5000)
-          return
-        }
-
-        if (user.credits == null) {
+        if (user.credits === null) {
 
           await bookClass({
             classDate: dayjs(selectedDate).toISOString(),
@@ -380,7 +345,7 @@ export default function BookingsPage() {
   };
 
   const handleScheduleAction = (item: any) => {
-    if (user?.credits === null || (user?.credits ?? 0) + (user?.totalUsableSharedCredits ?? 0) !== 0) {
+    if (user?.credits === null || (user?.credits ?? 0) > 0 || (user?.shareable_credits ?? 0) > 0) {
       handleOpenModal(item);
     }
   };
@@ -390,7 +355,7 @@ export default function BookingsPage() {
   };
 
   const noPurchasedCredits = user?.credits === 0;
-  const noUsableSharedCredits = user?.totalUsableSharedCredits === 0;
+  const noUsableSharedCredits = user?.shareable_credits === 0;
   const noCredits = noPurchasedCredits && noUsableSharedCredits;
 
   return (
@@ -474,7 +439,7 @@ export default function BookingsPage() {
 
                   const notEnded = dayjs(item.start_time).isSameOrAfter(now)
                   const noPurchasedCredits = user?.credits === 0;
-                  const noUsableSharedCredits = user?.totalUsableSharedCredits === 0;
+                  const noUsableSharedCredits = user?.shareable_credits === 0;
 
                   const noCredits = user?.credits !== null && noPurchasedCredits && noUsableSharedCredits;
                   return (

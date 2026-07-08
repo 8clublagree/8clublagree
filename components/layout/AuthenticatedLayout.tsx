@@ -152,11 +152,7 @@ export default function AuthenticatedLayout({
       }
 
 
-      const credits =
-        activePackage && activePackage?.packages?.package_credits === null
-          ? null
-          : latestCredit.credits + shareableCreditsFromActivePackage
-
+      const credits = latestCredit?.credits
 
       dispatch(
         setUser({
