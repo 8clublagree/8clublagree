@@ -95,6 +95,7 @@ export default function ManualBookingForm({
     const clients = await searchClients({ name: debouncedValue });
     const mapped = clients?.map((client: any) => {
       const credits = client.user_credits?.[0]?.credits;
+      const shareableCredits = client.user_credits?.[0]?.shareable_credits ?? 0;
       const active = client?.client_packages?.find((item: any) => item.status === "active");
       const shared = client?.client_packages?.filter((item: any) => item.is_shared);
       const totalUsableSharedCredits = shared?.reduce((acc: number, p: any) => {
@@ -104,7 +105,7 @@ export default function ManualBookingForm({
       }, 0);
 
       const noCreditsAvailable = credits === 0 || (credits === null && !active)
-      const noSharedCreditsAvailable = totalUsableSharedCredits <= 0 || totalUsableSharedCredits === null;
+      const noSharedCreditsAvailable = shareableCredits === 0 || shareableCredits === null || shareableCredits === undefined;
 
       // console.log('noCreditsAvailable: ', noCreditsAvailable)
       // console.log('noSharedCreditsAvailable: ', noSharedCreditsAvailable)
@@ -120,10 +121,11 @@ export default function ManualBookingForm({
         value: `${client.first_name} ${client.last_name} ${noCreditsAvailable && noSharedCreditsAvailable
           ? "(No Credits Available)"
           : `${credits === null && active ? "Unlimited" : `(${credits}`
-          } purchased credits and ${totalUsableSharedCredits} shared credit(s) available)`
+          } purchased credits and ${shareableCredits} shared credit(s) available)`
           }`,
         disabled: noCreditsAvailable && noSharedCreditsAvailable,
         credits: credits,
+        shareableCredits: shareableCredits,
       };
     });
     setOptions(mapped);

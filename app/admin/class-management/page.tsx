@@ -346,40 +346,40 @@ export default function ClassManagementPage() {
       const bookingType = formData.bookingType;
       const values = omit(formData, ["bookingType"]);
 
-      const hasPurchasedShareableCredits = values?.existingClientRecord?.currentPackage?.is_shared === false ? (values?.existingClientRecord?.shareable_credits ?? 0) - (values?.existingClientRecord.numberOfCreditsShared ?? 0) : null
-      const hasPurchasedCredits = values?.existingClientRecord?.credits !== null && values?.existingClientRecord?.credits !== 0;
-      const hasUsableSharedCredits = values?.existingClientRecord?.totalUsableSharedCredits !== null && values?.existingClientRecord?.totalUsableSharedCredits !== 0;
+      const hasPurchasedShareableCredits = values?.existingClientRecord?.shareableCredits
+      // const hasPurchasedCredits = values?.existingClientRecord?.credits !== null && values?.existingClientRecord?.credits !== 0;
+      // const hasUsableSharedCredits = values?.existingClientRecord?.totalUsableSharedCredits !== null && values?.existingClientRecord?.totalUsableSharedCredits !== 0;
 
       // console.log('values: ', values)
 
-      if (bookingType === "walk-in") {
-        await bookClass({
-          classDate: dayjs(selectedDate).toISOString(),
-          classId: values.class_id,
-          walkInFirstName: values.first_name,
-          walkInLastName: values.last_name,
-          walkInClientEmail: values.walk_in_client_email,
-          walkInClientContactNumber: values.walk_in_client_contact_number,
-          isWalkIn: true,
-          method: "walk-in",
-        });
-      }
+      // if (bookingType === "walk-in") {
+      //   await bookClass({
+      //     classDate: dayjs(selectedDate).toISOString(),
+      //     classId: values.class_id,
+      //     walkInFirstName: values.first_name,
+      //     walkInLastName: values.last_name,
+      //     walkInClientEmail: values.walk_in_client_email,
+      //     walkInClientContactNumber: values.walk_in_client_contact_number,
+      //     isWalkIn: true,
+      //     method: "walk-in",
+      //   });
+      // }
 
       if (bookingType === "existing") {
         const clientID = values.existingClientRecord.id;
         const clientCredits = values.existingClientRecord.credits;
-        const remainingCredits = ((values.existingClientRecord.credits as number) - (values.existingClientRecord.currentPackage?.shareable_credits ?? 0) - (values.existingClientRecord?.currentPackage?.number_of_shared_credits_used ?? 0))
+        const remainingCredits = values.existingClientRecord.credits
 
         // CHECK CREDITS DEDUCTION AND PACKAGE EXPIRY HERE
-        if (hasPurchasedCredits && remainingCredits > 0) {
-          const updatedValue: number = (values.existingClientRecord?.credits as number - (hasPurchasedShareableCredits ?? 0)) - 1
+        if (remainingCredits > 0) {
+          const updatedValue: number = (values.existingClientRecord?.credits as number) - 1
 
           await updateUserCredits({
             userID: clientID as string,
             ...(clientCredits && clientCredits !== null && !isNaN(clientCredits as number) && { values: { credits: clientCredits as number - 1 } }),
           });
 
-          if (values.existingClientRecord?.currentPackage?.is_shareable === false && updatedValue === 0) {
+          if (updatedValue === 0) {
             await updateClientPackage({
               clientPackageID: values.existingClientRecord.currentPackage?.id as string,
               values: {
@@ -405,16 +405,21 @@ export default function ClassManagementPage() {
           return
         }
 
-        if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits !== 0) {
+        if (hasPurchasedShareableCredits !== null && hasPurchasedShareableCredits > 0 && hasPurchasedShareableCredits !== undefined) {
           const updatedValue: number = (values?.existingClientRecord?.currentPackage?.number_of_shared_credits_used ?? 0) + 1
 
-          await updateClientPackage({
-            clientPackageID: values?.existingClientRecord?.currentPackage?.id as string,
-            values: {
-              ...(values?.existingClientRecord?.currentPackage?.shareable_credits && updatedValue >= values?.existingClientRecord?.currentPackage?.shareable_credits ? { status: "expired", expirationDate: dayjs() } : {}),
-              numberOfSharedCreditsUsed: updatedValue,
-            },
+          await updateUserCredits({
+            userID: clientID as string,
+            ...(values?.existingClientRecord?.shareableCredits && values?.existingClientRecord?.shareableCredits !== null && !isNaN(values?.existingClientRecord?.shareableCredits as number) && { values: { shareable_credits: values?.existingClientRecord?.shareableCredits as number - 1 } }),
           });
+
+          // await updateClientPackage({
+          //   clientPackageID: values?.existingClientRecord?.currentPackage?.id as string,
+          //   values: {
+          //     ...(values?.existingClientRecord?.currentPackage?.shareable_credits && updatedValue >= values?.existingClientRecord?.currentPackage?.shareable_credits ? { status: "expired", expirationDate: dayjs() } : {}),
+          //     numberOfSharedCreditsUsed: updatedValue,
+          //   },
+          // });
 
           await bookClass({
             classDate: dayjs(selectedDate).toISOString(),
@@ -433,19 +438,7 @@ export default function ClassManagementPage() {
           return
         }
 
-        if (hasUsableSharedCredits) {
-
-          const soonestExpiring = values.existingClientRecord.sharedPackages?.reduce((earliest: any, current: any) =>
-            dayjs(current.expiration_date).isBefore(dayjs(earliest.expiration_date)) ? current : earliest
-          );
-
-          await updateClientPackage({
-            clientPackageID: soonestExpiring?.id as string,
-            values: {
-              numberOfSharedCreditsUsed: (soonestExpiring?.number_of_shared_credits_used as number) + 1,
-            },
-          });
-
+        if (remainingCredits === null) {
           await bookClass({
             classDate: dayjs(selectedDate).toISOString(),
             classId: values.class_id,

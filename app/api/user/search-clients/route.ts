@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
         `*,
         user_credits (
         id,
-        credits
+        credits,
+        shareable_credits
         ),
         class_bookings (      
                 attendance_status,
