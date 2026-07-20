@@ -39,16 +39,10 @@ async function expireOverduePackages() {
   // Batch zero out credits for all affected users in one call
   const { error: updateCreditsError } = await supabaseServer
     .from("user_credits")
-    .update({ credits: 0 })
+    .update({ credits: 0, shared_credits: 0 })
     .in("user_id", userIds);
 
-  if (updateCreditsError) {
-    console.error("[expire-packages] Credits update error:", updateCreditsError.message);
-    return { expired: packageIds.length, error: updateCreditsError.message };
-  }
-
-  console.log(`[expire-packages] Expired ${packageIds.length} packages for ${userIds.length} users.`);
-  console.log(`${packageIds.join(', ')}`);
+  if (updateCreditsError) return { expired: 0, error: updateCreditsError.message };
   return { expired: packageIds.length };
 }
 
@@ -153,6 +147,10 @@ export async function GET(request: Request) {
   try {
     const result = await expireOverduePackages();
     const endOfToday = dayjs().endOf("day").toISOString();
+
+    /**
+     * Contemplate to keep since tracking shared will now be done manually
+     */
     await expireSharedCredits(endOfToday);
     await expireTokenExpiredShares();
     return NextResponse.json({ status: "ok", ...result });
