@@ -209,7 +209,7 @@ export default function CreditsPage() {
                       {activePackage.packages.packageCredits &&
                         <Title level={4} className="!mb-0 !font-normal">
                           {/* {`${(user?.credits ?? 0) + (activePackage.shareableCredits - (activePackage?.numberOfCreditsShared ?? 0))} available credits`} */}
-                          {`${(user?.credits ?? 0)} available credits`}
+                          {`${(user?.credits ?? 0) + (user?.shareable_credits ?? 0)} available credits`}
                         </Title>
                       }
                       {!activePackage.packages.packageCredits && (
@@ -220,18 +220,6 @@ export default function CreditsPage() {
                           </Title>
                         </Row>
                       )}
-                      {/* {activePackage.packages.packageCredits && (
-                        <Title
-                          level={4}
-                          className={`${user?.credits === 0 && "!text-red-400"
-                            } !mb-0 !font-normal`}
-                        >
-                          {`${user?.credits} out of ${activePackage.packages.packageCredits}`}
-                        </Title>
-                      )} */}
-                      {/* <Title level={4} className="!m-0 !font-normal">
-                        sessions remaining
-                      </Title> */}
                     </Row>
                   ) : (
                     <Row className="w-full justify-center">
@@ -242,35 +230,7 @@ export default function CreditsPage() {
               </Card>
             </Col>
 
-            {/* Expiration Date */}
-            {/* <Col xs={24} sm={12} lg={6} className="flex">
-              <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
-                <Row wrap={false} className="items-center gap-[10px] mb-4">
-                  <HiOutlineCalendarDateRange size={30} className="flex-shrink-0" />
-                  <Title level={3} className="halyard !m-0">Expiration Date</Title>
-                </Row>
-
-                <Row
-                  justify={"start"}
-                  className={`${!activePackage && "p-[10px] bg-slate-200"
-                    } rounded-lg items-center gap-[10px] min-h-[60px]`}
-                >
-                  {activePackage ? (
-                    <Title level={4} className="!mb-0 !font-normal">
-                      {formatDate(dayjs(activePackage.expirationDate))} (
-                      {formatDate(dayjs(activePackage.expirationDate), "dddd")})
-                    </Title>
-                  ) : (
-                    <Row className="w-full justify-center">
-                      <Text>No package</Text>
-                    </Row>
-                  )}
-                </Row>
-              </Card>
-            </Col> */}
-
             {/* Shareable Credits */}
-
             <Col xs={24} sm={12} lg={6} className="flex">
               <Card className="shadow-sm transition-shadow flex flex-col justify-between w-full">
                 <Row wrap={false} className="items-center gap-[10px] mb-4">
@@ -290,9 +250,9 @@ export default function CreditsPage() {
                         No shareable credits
                       </Text>
                     ) : (
-                      <Text className="!mb-0 !font-normal">
+                      <Title level={4} className="halyard !font-normal !m-0">
                         {`${user?.shareable_credits} remaining`}
-                      </Text>
+                      </Title>
                     )}
                     {/* <Button disabled={((activePackage.shareableCredits ?? 0) - (activePackage?.numberOfCreditsShared ?? 0)) === 0} onClick={() => setShareModalOpen(true)} className="!bg-[#800020] hover:!bg-[#800020] !border-none !text-white font-medium rounded-lg px-[15px] shadow-sm transition-all duration-200 hover:scale-[1.03]">Share</Button> */}
                   </Row>
