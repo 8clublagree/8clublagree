@@ -127,19 +127,16 @@ const StudioGuidelines = () => {
         <Paragraph>
           <ul>
             <li>
-              Please arrive 10-15 minutes before your scheduled class to allow
-              ample time for preparation, check-in, and a brief orientation on the
-              Megaformer and proper equipment handling.
+              <strong>First-time clients</strong> must arrive <strong>10–15 minutes before</strong> their scheduled class to complete the mandatory Lagree orientation on the Megaformer, the Lagree Method, and studio safety.
             </li>
             <li>
-              A grace period of up to 10 minutes will be given for latecomers to
-              join; however, once the grace period has passed, entry will no
-              longer be permitted to ensure safety and avoid disruptions.
+              <strong>Late entry is strictly prohibited.</strong> Clients who arrive after class has started or miss the mandatory orientation will not be permitted to join the class.
             </li>
             <li>
-              Latecomers may be accommodated in the next available slot within the
-              same day, subject to availability; otherwise, the session will be
-              marked as attended and the credit forfeited.
+              Returning clients who arrive late may join the class at the instructor's discretion, provided it is safe to do so and does not disrupt the class.
+            </li>
+            <li>
+              First-time clients who are unable to join due to late arrival may be accommodated in the next available class <strong>within the same day</strong>, subject to availability. Otherwise, the session will be marked as attended and the class credit will be forfeited.
             </li>
           </ul>
         </Paragraph>

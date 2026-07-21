@@ -325,9 +325,7 @@ export default function LagreeStudioGuidelinesCebuPage() {
                     Before class
                   </h3>
                   <p className="mt-2 text-slate-700 leading-relaxed">
-                    Arrive <strong>10 to 15 minutes early</strong> for
-                    preparation, check-in, and a brief orientation on the
-                    Megaformer and proper equipment handling.
+                    <strong>First-time clients</strong> must arrive <strong>10–15 minutes before</strong> their scheduled class to complete the mandatory Lagree orientation on the Megaformer, the Lagree Method, and studio safety.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 p-5">
@@ -335,10 +333,13 @@ export default function LagreeStudioGuidelinesCebuPage() {
                     Late arrival
                   </h3>
                   <p className="mt-2 text-slate-700 leading-relaxed">
-                    A grace period of up to{" "}
-                    <strong>10 minutes</strong> is given for latecomers. Once the
-                    grace period has passed, entry will no longer be permitted to
-                    ensure safety and avoid disruptions.
+                    <strong>Late entry is strictly prohibited.</strong> Clients who arrive after class has started or miss the mandatory orientation will not be permitted to join the class.
+                  </p>
+                  <p className="mt-2 text-slate-700 leading-relaxed">
+                    Returning clients who arrive late may join the class at the instructor's discretion, provided it is safe to do so and does not disrupt the class.
+                  </p>
+                  <p className="mt-2 text-slate-700 leading-relaxed">
+                    First-time clients who are unable to join due to late arrival may be accommodated in the next available class *within the same day*, subject to availability. Otherwise, the session will be marked as attended and the class credit will be forfeited.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 p-5">
