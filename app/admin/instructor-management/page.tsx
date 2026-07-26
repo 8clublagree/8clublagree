@@ -263,7 +263,7 @@ export default function InstructorManagementPage() {
             values: {
               ...professionalDetails,
               user_id: data.user.id,
-              password: credentials.password,
+              // password: credentials.password,
             },
           });
 
