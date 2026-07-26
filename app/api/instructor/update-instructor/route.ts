@@ -8,7 +8,7 @@ export async function PUT(req: Request) {
     const { data, error } = await supabaseServer
       .from("instructors")
       .update(values)
-      .eq("id", id)
+      .eq("user_id", id)
       .select();
 
     if (error) {
