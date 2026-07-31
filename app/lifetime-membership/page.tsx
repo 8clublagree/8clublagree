@@ -39,7 +39,7 @@ const benefits = [
     icon: Cake,
     title: "Annual birthday pass",
     description:
-      "Receive one complimentary Birthday Group Pass during your birthday month with an active package.",
+      "Receive one complimentary credit in any scheduled group class during your birth month with an active package.",
   },
   {
     icon: Handshake,
