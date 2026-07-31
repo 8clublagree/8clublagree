@@ -273,12 +273,6 @@ export default function The88FoundingLifetimeMembersPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#800020]">
                     A permanent place in our story
                   </p>
-                  <div className="mt-5 flex items-baseline gap-3">
-                    <span className="halyard text-7xl text-[#800020] sm:text-8xl">88</span>
-                    <span className="max-w-[8rem] text-xs uppercase leading-5 tracking-[0.18em] text-[#6c6259]">
-                      members, ever
-                    </span>
-                  </div>
                   <h2 className="halyard mt-6 text-3xl leading-tight sm:text-4xl">
                     The highest recognition awarded by 8CLUB
                   </h2>
