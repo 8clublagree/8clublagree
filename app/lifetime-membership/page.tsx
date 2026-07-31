@@ -24,9 +24,9 @@ import {
 } from "lucide-react";
 
 const canonicalPath = "/lifetime-membership";
-const title = "THE 88 Founding Lifetime Members | 8CLUB Lagree Cebu";
+const title = "88 Lifetime Membership";
 const description =
-  "Meet THE 88 Founding Lifetime Members of 8CLUB Lagree Cebu. Learn how to earn the exclusive Lifetime Card, unlock member benefits, and join the first 88.";
+  "Meet THE 88 Lifetime Members of 8CLUB Lagree Cebu. Learn how to earn the exclusive Lifetime Card, unlock member benefits, and join the first 88.";
 
 const benefits = [
   {
@@ -49,7 +49,7 @@ const benefits = [
   {
     icon: Gift,
     title: "Exclusive tote bag",
-    description: "Receive a tote bag created exclusively for THE 88 Founding Lifetime Members.",
+    description: "Receive a tote bag created exclusively for THE 88 Lifetime Members.",
   },
   {
     icon: BadgeCheck,
@@ -87,14 +87,14 @@ const partners = [
 
 const faqs = [
   {
-    question: "How do I become one of THE 88 Founding Lifetime Members?",
+    question: "How do I become one of THE 88 Lifetime Members?",
     answer:
-      "Complete both the Progress Card and Progress Card Plus for a total of 48 sessions. The first 88 members to complete both milestone cards will become one of THE 88 Founding Lifetime Members and receive THE 88 Lifetime Card. Once all 88 cards have been awarded, no additional recipients will be added.",
+      "Complete both the Progress Card and Progress Card Plus for a total of 48 sessions. The first 88 members to complete both milestone cards will become one of THE 88 Lifetime Members and receive THE 88 Lifetime Card. Once all 88 cards have been awarded, no additional recipients will be added.",
   },
   {
     question: "What happens after all 88 Lifetime Cards have been awarded?",
     answer:
-      "THE 88 is a one-time recognition. Once all 88 Lifetime Cards have been awarded, the recognition will officially close. 8CLUB may introduce future loyalty initiatives, but THE 88 Founding Lifetime Members will always remain exclusive to its original recipients.",
+      "THE 88 is a one-time recognition. Once all 88 Lifetime Cards have been awarded, the recognition will officially close. 8CLUB may introduce future loyalty initiatives, but THE 88 Lifetime Members will always remain exclusive to its original recipients.",
   },
   {
     question: "Is my recognition permanent?",
@@ -123,12 +123,12 @@ export const metadata: Metadata = {
   description,
   alternates: { canonical: canonicalPath },
   keywords: [
-    "THE 88 founding lifetime members",
+    "The 88 Lifetime Members",
     "8CLUB lifetime card",
     "8CLUB Lagree Cebu",
     "Lagree loyalty program Cebu",
     "Lagree membership benefits",
-    "founding members Cebu",
+    "lagree members Cebu",
     "lagree membership",
     "best lagree membership",
     "lagree membership benefits",
@@ -159,7 +159,7 @@ export default function The88FoundingLifetimeMembersPage() {
     url: canonicalPath,
     about: {
       "@type": "Thing",
-      name: "THE 88 Founding Lifetime Members",
+      name: "The 88 Lifetime Members",
       description:
         "8CLUB's permanent recognition for the first 88 members to complete 48 milestone sessions.",
     },
@@ -206,7 +206,7 @@ export default function The88FoundingLifetimeMembersPage() {
                     data-delay="2"
                     className="halyard max-w-3xl text-[2.6rem] font-normal leading-[1.03] tracking-tight sm:text-6xl lg:text-7xl"
                   >
-                    THE 88 Founding Lifetime Members
+                    The 88 Lifetime Members
                   </h1>
                   <p
                     data-reveal
@@ -276,7 +276,7 @@ export default function The88FoundingLifetimeMembersPage() {
                   <div className="mt-5 flex items-baseline gap-3">
                     <span className="halyard text-7xl text-[#800020] sm:text-8xl">88</span>
                     <span className="max-w-[8rem] text-xs uppercase leading-5 tracking-[0.18em] text-[#6c6259]">
-                      cards, ever
+                      members, ever
                     </span>
                   </div>
                   <h2 className="halyard mt-6 text-3xl leading-tight sm:text-4xl">
@@ -310,7 +310,7 @@ export default function The88FoundingLifetimeMembersPage() {
                   <h2 className="halyard mt-4 text-3xl sm:text-5xl">48 sessions. Two milestones. One legacy.</h2>
                   <p className="mt-5 leading-7 text-[#6c6259]">
                     Complete both milestone cards. The first 88 members to finish the journey become
-                    THE 88 Founding Lifetime Members.
+                    THE 88 Lifetime Members.
                   </p>
                 </div>
 
