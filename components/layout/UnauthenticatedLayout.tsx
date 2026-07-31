@@ -31,6 +31,7 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
     { label: "Home", href: "/about", primary: false },
     { label: "Login", href: "/login", primary: false },
     { label: "Book Now", href: "/signup", primary: true },
+    { label: "Lifetime Membership", href: "/lifetime-membership", primary: false },
   ];
   return (
     <div className="h-[100vh]">
