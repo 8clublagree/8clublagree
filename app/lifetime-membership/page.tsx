@@ -129,6 +129,12 @@ export const metadata: Metadata = {
     "Lagree loyalty program Cebu",
     "Lagree membership benefits",
     "founding members Cebu",
+    "lagree membership",
+    "best lagree membership",
+    "lagree membership benefits",
+    "lagree membership benefits Cebu",
+    "lagree membership benefits Philippines",
+    "lagree membership benefits Philippines",
   ],
   openGraph: {
     title,
