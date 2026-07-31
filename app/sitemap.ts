@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/credits",
     "/lagree-cebu",
     "/beginner-lagree-cebu",
+    "/lifetime-membership",
     "/best-workouts-cebu-2026",
     "/lagree-vs-pilates-cebu",
   ];
@@ -33,6 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
           "/lagree-vs-pilates-cebu",
           "/lagree-cebu",
           "/beginner-lagree-cebu",
+          "/lifetime-membership",
           "/best-workouts-cebu-2026",
         ].includes(route)
           ? 0.9

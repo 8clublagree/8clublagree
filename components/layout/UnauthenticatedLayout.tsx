@@ -207,6 +207,12 @@ export default function UnauthenticatedLayout({ children }: LayoutProps) {
                 >
                   FAQ
                 </a>
+                <a
+                  href="/lifetime-membership"
+                  className="!text-white/90 hover:!text-white underline transition-colors text-sm sm:text-sm"
+                >
+                  Lifetime Membership
+                </a>
               </div>
             </div>
 
