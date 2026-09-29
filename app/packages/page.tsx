@@ -1053,7 +1053,11 @@ export default function PackagesPage() {
 
                   <Button
                     onClick={handleNext}
-                    disabled={!acceptsTerms || validatingPromoCode}
+                    disabled={
+                      !acceptsTerms ||
+                      validatingPromoCode ||
+                      Boolean(promoDetails?.error)
+                    }
                     className={`bg-[#110c12] ${acceptsTerms ? "hover:!bg-[#36013F]" : ""
                       } !border-none !text-white font-medium rounded-lg px-6 shadow-sm transition-all duration-200 w-full h-[50px]`}
                   >

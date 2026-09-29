@@ -14,14 +14,9 @@ export async function POST(req: NextRequest) {
 
     const data = await req.json();
     const promoCode = data?.promoCode
-    const userID = String(data?.userID ?? "").trim();
 
     if (!promoCode) {
       return NextResponse.json({ error: "Please enter a promo code." }, { status: 400 });
-    }
-
-    if (!userID) {
-      return NextResponse.json({ error: "User is required to validate promo code." }, { status: 400 });
     }
 
     const { data: promoCodeData, error } = await supabaseServer
@@ -34,10 +29,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Promo code not found." }, { status: 404 });
     }
 
+    if (String(promoCodeData.status ?? "").trim().toLowerCase() !== "active") {
+      return NextResponse.json({ error: "Promo code is not active." }, { status: 400 });
+    }
+
     if (
       promoCodeData.expiration_date &&
       dayjs(promoCodeData.expiration_date).isValid() &&
-      dayjs(promoCodeData.expiration_date).isBefore(dayjs())
+      dayjs(promoCodeData.expiration_date).endOf("day").isBefore(dayjs())
     ) {
       return NextResponse.json({ error: "Promo code has already expired." }, { status: 400 });
     }
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest) {
     const { data: redemptionData, error: redemptionError } = await supabaseServer
       .from("promo_code_redemptions")
       .select("id")
-      .eq("user_id", userID)
       .eq("promo_code_id", promoCodeData.id)
       .maybeSingle();
 
@@ -55,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     if (redemptionData) {
       return NextResponse.json(
-        { error: "You have already used this promo code. Please use a different code." },
+        { error: "This promo code has already been used. Please use a different code." },
         { status: 409 },
       );
     }
